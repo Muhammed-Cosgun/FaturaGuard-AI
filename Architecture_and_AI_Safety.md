@@ -40,6 +40,7 @@ FastAPI uygulaması
 - E-imza, taraf bilgileri, vergi kimlik bilgileri, fatura numarası, tarih ve ticari tutarı değiştiren alanlar otomatik düzeltilmez.
 - Her işlem, dosya bütünlük özeti ve karar kaydıyla ilişkilendirilir.
 - Kaynak bulunmadığında agent kesin bir yönlendirme yapmaz.
+- Agent, yalnızca yeterli rerank ve teknik-terim eşleşmesi olan kanıtta açıklama üretir; versiyon geçmişi gibi düşük bilgi değerli parçalar kaynak olarak elenir.
 - RAG kaynak envanteri `resources/gib/official_sources.json` dosyasında tutulur; kaynak dışı içerik indekslenmez.
 - Her yerel kaynak kopyası RAG'a alınmadan önce envanterdeki SHA-256 değeriyle doğrulanır.
 - İlk RAG sürümü GİB PDF sayfalarını parçalara bölüp yerel ve açıklanabilir arama yapar; her sonuçta belge, URL ve sayfa numarası zorunludur.

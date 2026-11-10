@@ -85,7 +85,7 @@ class SourceBackedAgent:
     def _has_sufficient_evidence(evidence: list[RetrievedEvidence]) -> bool:
         """Genel başlık/versiyon metinleriyle kesin GİB iddiası kurulmasını engeller."""
 
-        return any(item.rerank_score >= 0.60 and item.exact_term_score >= 0.12 for item in evidence)
+        return any(item.rerank_score >= 0.50 and item.exact_term_score >= 0.12 for item in evidence)
 
     @staticmethod
     def _is_version_history(item: RetrievedEvidence) -> bool:
