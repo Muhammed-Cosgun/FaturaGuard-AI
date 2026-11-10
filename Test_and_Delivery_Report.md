@@ -30,11 +30,12 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Yerel LLM smoke testi, varsayılan `qwen2.5:7b` modeliyle gerçek RAG kanıtı ve yapılandırılmış kaynak-atıf sözleşmesini doğrulamak için eklendi.
 - Gerçek yerel LLM smoke testi başarıyla tamamlandı: `qwen2.5:7b`, e-Fatura Test Planı v1.3, sayfa 7 kaynağıyla geçerli yapılandırılmış açıklama üretti; LangGraph akışı `awaiting_human_review` durumunda güvenle durdu.
 - İnsan onaylı düzeltme akışı eklendi: `hesap-dip-satir` için yalnızca mevcut satır tutarlarından `LineExtensionAmount` dip toplamını hesaplayan izinli kural, çalışma kopyası, diff ve yeniden doğrulama alt yapısı oluşturuldu.
+- İş kaydı ve audit trail, JSON dosyaları yerine SQLite'a taşındı. `job_created`, kullanıcı onayı/reddi, düzeltme uygulama, kaynak açıklaması ve otomasyon bildirimi olayları işlem kimliğiyle kaydedilir; tam XML diff'i SQLite dışında tutulur.
 - Hata ekranında isteğe bağlı kaynaklı AI açıklaması eklendi. Her açıklama LangGraph işlem izi ve doğrulanmış GİB URL/sayfa atfıyla işlem kaydında saklanır.
 - Golden sorgu seti ile semantic, BM25 ve hibrit retrieve→rerank akışları gerçek Chroma indeksi üzerinde ölçüldü. İlk baz ölçümde üç strateji de `Recall@3 = 0.67`, `MRR@3 = 0.67`, resmî GİB atıf kapsaması `1.00` verdi; eşitlik, daha geniş değerlendirme seti ve ağırlık kalibrasyonu için açık iyileştirme maddesi olarak kaydedildi.
 - n8n webhook bildiriminin yalnızca işlem metadatası gönderdiği; XML içeriği ve yerel saklama yolunu taşımadığı otomatik testle doğrulandı.
 - Kaynaklı açıklama öncesi kanıt uygunluk eşiği eklendi: versiyon geçmişi gibi düşük bilgi içeren parçalar elenir; yalnızca yeterli lexical/terim sinyali taşıyan GİB kanıtında üretim yapılır. Zayıf kanıtla agent'ın `insufficient_official_evidence` durumunda durduğu otomatik testle doğrulandı.
-- Uygulama kodu biçim/lint denetiminden geçti; tüm otomatik testler çalıştırıldı: 25/25 test başarılı.
+- Uygulama kodu biçim/lint denetiminden geçti; tüm otomatik testler çalıştırıldı: 26/26 test başarılı.
 - Gerçek `test_hesap_hata.xml` ile komut satırı uçtan uca demo çalıştırıldı. Onaysız akışta teklif oluşturulup giriş XML'i değiştirilmedi; onaylı akışta izinli dip toplam düzeltmesi çalışma kopyasına uygulandı, uyarı sayısı `2`'den `0`'a indi ve giriş dosyasının SHA-256 özeti değişmeden kaldı.
 - Gerçek `test_duzeltilmis.xml` ile geçerli belge kabul senaryosu çalıştırıldı: 0 hata, 0 uyarı, 0 düzeltme teklifi ve değişmeyen SHA-256 özeti doğrulandı.
 - Demo sonrası JSON rapor ayrıca incelendi: yeniden doğrulama özeti ile diff metadatası bulunuyor; orijinal yol, XML içeriği ve tam XML diff'i bulunmuyor.

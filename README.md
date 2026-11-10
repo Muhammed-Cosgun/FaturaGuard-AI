@@ -74,6 +74,8 @@ Sonuç `data/evaluation/retrieval_metrics.json` dosyasına yazılır. İlk baz �
 
 Orijinal XML değiştirilemez. Her düzeltme kullanıcı onayıyla çalışma kopyasına uygulanır ve belge yeniden doğrulanır.
 
+İş özeti ve denetim olayları yerel `data/faturaguard.sqlite3` veritabanında tutulur. Tam XML diff'i veritabanına yazılmaz; yalnızca ilgili işlem klasöründe saklanır.
+
 ## Tek komutla uçtan uca demo
 
 Doğrulama → teklif → isteğe bağlı onay → çalışma kopyası → yeniden doğrulama → rapor akışını gerçek bir XML üzerinde çalıştırmak için:

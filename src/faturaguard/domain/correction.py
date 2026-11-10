@@ -37,5 +37,6 @@ class CorrectionJob(BaseModel):
     corrected_sha256: str | None = None
     corrected_report: ValidationReport | None = None
     diff: str | None = None
+    diff_path: str | None = None
     agent_outputs: dict[str, dict[str, object]] = Field(default_factory=dict)
     automation_events: list[dict[str, object]] = Field(default_factory=list)
