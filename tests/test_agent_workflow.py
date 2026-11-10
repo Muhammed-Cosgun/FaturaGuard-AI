@@ -2,7 +2,11 @@ from faturaguard.domain.validation import Finding, Priority, Severity
 from faturaguard.services.agent_workflow import SourceBackedAgent
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
 from faturaguard.services.official_rag import RagChunk
-from faturaguard.services.source_backed_explanation import Citation, SourceBackedExplanation
+from faturaguard.services.source_backed_explanation import (
+    Citation,
+    LLMUnavailableError,
+    SourceBackedExplanation,
+)
 
 
 class FakeRetriever:
@@ -29,6 +33,11 @@ class FakeGenerator:
                 )
             ],
         )
+
+
+class FailingGenerator:
+    def generate(self, finding, evidence):
+        raise LLMUnavailableError("Yerel model yanıt veremedi.")
 
 
 def _finding() -> Finding:
@@ -71,3 +80,17 @@ def test_agent_stops_when_only_weak_official_evidence_exists() -> None:
 
     assert result["status"] == "insufficient_official_evidence"
     assert result["explanation"] is None
+
+
+def test_agent_preserves_official_evidence_when_generation_is_unavailable() -> None:
+    chunk = RagChunk(
+        "gib-test", "GİB Test Planı", "https://ebelge.gib.gov.tr/test.pdf", 7, "Şema kontrolü"
+    )
+    evidence = RetrievedEvidence(chunk, 0.9, 1.0, 1.0, 0.95)
+
+    result = SourceBackedAgent(FakeRetriever([evidence]), FailingGenerator()).explain(_finding())
+
+    assert result["status"] == "generation_unavailable"
+    assert result["explanation"] is None
+    assert result["evidence"] == [evidence]
+    assert "source_generation_unavailable" in result["audit_events"]

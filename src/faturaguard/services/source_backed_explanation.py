@@ -1,6 +1,7 @@
 """Kanıta dayalı, yapılandırılmış LLM açıklama sözleşmesi."""
 
 import json
+import re
 from collections.abc import Sequence
 from typing import Protocol
 
@@ -76,7 +77,7 @@ class OllamaStructuredGenerator:
                 content = response.json()["message"]["content"]
                 explanation = SourceBackedExplanation.model_validate_json(content)
                 self._validate_citations(explanation, evidence)
-                return explanation
+                return self._remove_reasoning_repetition(explanation)
             except (httpx.HTTPError, KeyError, ValueError) as error:
                 last_error = error
         raise LLMUnavailableError("Yerel LLM kaynaklı açıklama üretemedi.") from last_error
@@ -91,6 +92,9 @@ Doğal, kısa ve dilbilgisi düzgün Türkçe kullan. Her alanı en fazla 3 kıs
 FINDING içindeki satır numarası yalnızca kullanıcının yüklediği XML'e aittir; onu hiçbir zaman
 GİB belgesinin sayfası veya satırı gibi gösterme. Kaynağın sayfa numarasını yalnızca citations
 alanında ver. Bir GİB kuralını desteklemeyen kanıttan kural çıkarma veya sayfa/satır uydurma.
+summary bulguyu bir kez açıklar; reasoning yalnızca kanıtın belge alanını nasıl desteklediğini
+açıklar; recommendation yalnızca sonraki kullanıcı adımını söyler. Aynı cümleyi alanlar arasında
+tekrar etme.
 Çıktıyı yalnızca verilen JSON şemasına uygun üret ve en az bir EVIDENCE kaynağını aynen cite et."""
 
     @staticmethod
@@ -125,3 +129,19 @@ alanında ver. Bir GİB kuralını desteklemeyen kanıttan kural çıkarma veya 
         }
         if not cited.issubset(allowed):
             raise UnsafeExplanationError("LLM doğrulanmamış bir kaynak atfı üretti.")
+
+    @staticmethod
+    def _remove_reasoning_repetition(
+        explanation: SourceBackedExplanation,
+    ) -> SourceBackedExplanation:
+        """Küçük yerel modellerin özet cümlesini reasoning alanında yinelemesini azaltır."""
+
+        summary_sentences = re.split(r"(?<=[.!?])\s+", explanation.summary.strip())
+        seen = {sentence.casefold().strip() for sentence in summary_sentences if sentence.strip()}
+        reasoning_sentences = re.split(r"(?<=[.!?])\s+", explanation.reasoning.strip())
+        unique_reasoning = [
+            sentence for sentence in reasoning_sentences if sentence.casefold().strip() not in seen
+        ]
+        if not unique_reasoning:
+            unique_reasoning = ["Seçilen resmî kaynaklar ilgili UBL-TR alanlarını tanımlar."]
+        return explanation.model_copy(update={"reasoning": " ".join(unique_reasoning)})

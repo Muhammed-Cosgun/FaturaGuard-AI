@@ -41,7 +41,17 @@
                     {% for citation in agent_output.explanation.citations %}
                       <a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a>{% if not loop.last %}; {% endif %}
                     {% endfor %}</p>
-                  {% else %}<p class="metadata">Yeterli resmî kanıt bulunamadı; insan incelemesi gerekir.</p>{% endif %}
+                  {% else %}
+                    {% if agent_output.status == 'generation_unavailable' %}
+                      <p class="metadata">Resmî kanıt bulundu; ancak yerel model açıklamayı üretemedi. İnsan incelemesi gerekir.</p>
+                    {% else %}<p class="metadata">Yeterli resmî kanıt bulunamadı; insan incelemesi gerekir.</p>{% endif %}
+                    {% if agent_output.evidence %}
+                      <p class="metadata">Bulunan resmî kanıtlar:
+                      {% for evidence in agent_output.evidence %}
+                        <a href="{{ evidence.source_url }}" target="_blank" rel="noopener">{{ evidence.source_title }}, s. {{ evidence.page }}</a>{% if not loop.last %}; {% endif %}
+                      {% endfor %}</p>
+                    {% endif %}
+                  {% endif %}
                   <p class="metadata">İşlem izi: {{ agent_output.audit_events|join(' → ') }}</p>
                 </div>
               {% endif %}

@@ -93,6 +93,14 @@ class CorrectionWorkflow:
             "status": result["status"],
             "audit_events": result["audit_events"],
             "explanation": result["explanation"].model_dump() if result["explanation"] else None,
+            "evidence": [
+                {
+                    "source_title": item.chunk.source_title,
+                    "source_url": item.chunk.source_url,
+                    "page": item.chunk.page,
+                }
+                for item in result.get("evidence", [])
+            ],
         }
         self._store.save(job)
         self._store.append_event(

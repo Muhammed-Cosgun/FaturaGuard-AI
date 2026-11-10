@@ -46,6 +46,7 @@ FastAPI uygulaması
 - İlk RAG sürümü GİB PDF sayfalarını parçalara bölüp yerel ve açıklanabilir arama yapar; her sonuçta belge, URL ve sayfa numarası zorunludur.
 - XML, GİB kaynağı, kullanıcı girdisi ve RAG metni güvenilmeyen veri kabul edilir; hiçbiri agent sistem talimatını, araç allowlist'ini veya kullanıcı onayı gereğini değiştiremez.
 - Agent'ın LLM çıktısı Pydantic şema ile doğrulanır. Şema dışı çıktı veya yeterli kaynak yoksa işlem "insan incelemesi gerekli" durumuna yönlenir.
+- Yerel LLM geçici olarak yanıt veremezse kaynaklı işlem hata sayfasına düşmez; `generation_unavailable` durumuyla insan incelemesine yönlenir ve retrieval ile bulunan resmî kanıtlar kullanıcıya gösterilir.
 - Chroma koleksiyonuna yalnızca envanter + SHA-256 denetiminden geçen GİB kaynakları yazılabilir.
 
 ## RAG kalite ölçümü

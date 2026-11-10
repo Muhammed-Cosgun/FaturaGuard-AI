@@ -8,6 +8,7 @@ from faturaguard.domain.validation import Finding
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
 from faturaguard.services.source_backed_explanation import (
     ExplanationGenerator,
+    LLMUnavailableError,
     SourceBackedExplanation,
 )
 
@@ -93,7 +94,14 @@ class SourceBackedAgent:
         return "versiyon yayım tarihi" in text or "eklenen/silinen/değişen bölüm" in text
 
     def _generate_source_backed_explanation(self, state: AgentState) -> dict[str, object]:
-        explanation = self._generator.generate(state["finding"], state["evidence"])
+        try:
+            explanation = self._generator.generate(state["finding"], state["evidence"])
+        except LLMUnavailableError:
+            return {
+                "explanation": None,
+                "status": "generation_unavailable",
+                "audit_events": [*state["audit_events"], "source_generation_unavailable"],
+            }
         return {
             "explanation": explanation,
             "audit_events": [*state["audit_events"], "generate_source_backed_explanation"],
@@ -102,7 +110,9 @@ class SourceBackedAgent:
     @staticmethod
     def _await_human_review(state: AgentState) -> dict[str, object]:
         return {
-            "status": "awaiting_human_review",
+            "status": state["status"]
+            if state["status"] == "generation_unavailable"
+            else "awaiting_human_review",
             "audit_events": [*state["audit_events"], "await_human_review"],
         }
 
