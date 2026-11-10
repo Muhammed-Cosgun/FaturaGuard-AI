@@ -1,5 +1,8 @@
 [
   {"id": "schema-schematron", "query": "UBL-TR şema XSD schematron kontrolü", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 7},
   {"id": "mali-muhur", "query": "e-fatura mali mühür sertifikası ile onaylanmalı", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 7},
-  {"id": "gonderici-birim", "query": "gönderici birim e-fatura zarf şema schematron kontrolü", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 12}
+  {"id": "gonderici-birim", "query": "gönderici birim e-fatura zarf şema schematron kontrolü", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 12},
+  {"id": "legal-monetary-total", "query": "LegalMonetaryTotal parasal toplamlar LineExtensionAmount TaxExclusiveAmount", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 35},
+  {"id": "invoice-line-extension", "query": "InvoiceLine mal hizmet kalemleri LineExtensionAmount", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 36},
+  {"id": "tax-exclusive-total", "query": "TaxExclusiveAmount vergi hariç tutar LegalMonetaryTotal", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 35}
 ]

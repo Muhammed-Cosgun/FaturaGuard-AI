@@ -23,7 +23,7 @@ FastAPI uygulaması
 
 - Doğrulama adaptörü: `efatura-kontrol` sonuçlarını tek bulgu modeline dönüştürür. Harici kütüphanenin veri tipleri arayüz veya diğer iş kurallarına doğrudan sızmaz.
 - Önceliklendirme: hata kodu, seviye ve kaynakla çalışan deterministik iş kuralları kullanır; önceliği bir dil modeli belirlemez.
-- RAG: yalnızca doğrulanmış resmî GİB kaynaklarından açıklama getirir. Parçalar kaynak kimliği, başlık, resmî URL, sayfa numarası, sürüm ve hash ile saklanır.
+- RAG: yalnızca doğrulanmış resmî GİB kaynaklarından açıklama getirir. e-Fatura PDF'lerinin yanında SHA-256 ile doğrulanan UBL-TR kılavuz arşivindeki Fatura ve Ortak Elemanlar dokümanları da indekslenir. Parçalar kaynak kimliği, başlık, resmî URL, sayfa numarası, sürüm ve hash ile saklanır.
 - Chroma: doğrulanmış GİB chunks'larının kalıcı vektör koleksiyonudur; içerik ve metadata filtreleri buradan getirilir.
 - Hibrit retrieval/rerank: semantic arama ile lexical arama ayrı üretilir; adaylar birleştirilir ve teknik-terim eşleşmesi, benzerlik ve belge bağlamıyla tekrar sıralanır.
 - Agent: LangGraph üzerinde tanımlı araçlar dışında işlem yapamaz. Akış: doğrula → önceliklendir → getir → rerank → kaynaklı açıkla → güvenlik denetimi → onay bekle → uygula → yeniden doğrula → raporla.

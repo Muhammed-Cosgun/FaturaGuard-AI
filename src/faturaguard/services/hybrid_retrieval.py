@@ -59,7 +59,9 @@ class SentenceTransformerEmbedder:
                 cache_folder=str(self.cache_directory),
                 local_files_only=not self.allow_model_download,
             )
-        return self._model.encode(values, normalize_embeddings=True).tolist()
+        return self._model.encode(
+            values, normalize_embeddings=True, batch_size=min(256, len(values))
+        ).tolist()
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,8 +99,9 @@ class ChromaSemanticStore:
         collection = client.create_collection(
             self._collection_name, metadata={"hnsw:space": "cosine"}
         )
-        for start in range(0, len(chunks), 32):
-            batch = chunks[start : start + 32]
+        # Yerel CPU'da indeks kurulum süresini azaltmak için yeterli büyüklükte batch kullanılır.
+        for start in range(0, len(chunks), 128):
+            batch = chunks[start : start + 128]
             collection.add(
                 ids=[self._chunk_id(chunk) for chunk in batch],
                 documents=[chunk.text for chunk in batch],
@@ -114,6 +117,50 @@ class ChromaSemanticStore:
                 ],
             )
         return len(chunks)
+
+    def sync(self, chunks: Sequence[RagChunk], max_batches: int | None = None) -> tuple[int, int]:
+        """Eksik embedding'leri mevcut kalıcı koleksiyona ekler.
+
+        Uzun süren yerel indeksleme işlemleri kesilse dahi daha önce yazılmış batch'ler
+        korunur. Dönen değer sırasıyla koleksiyondaki ve hedefteki chunk sayısıdır.
+        """
+
+        chromadb = self._chromadb()
+        client = chromadb.PersistentClient(path=str(self._persist_path))
+        try:
+            collection = client.get_collection(self._collection_name)
+        except Exception:
+            collection = client.create_collection(
+                self._collection_name, metadata={"hnsw:space": "cosine"}
+            )
+        existing_ids = set(collection.get(include=[])["ids"])
+        batches_written = 0
+        for start in range(0, len(chunks), 32):
+            batch = [
+                chunk
+                for chunk in chunks[start : start + 32]
+                if self._chunk_id(chunk) not in existing_ids
+            ]
+            if not batch:
+                continue
+            collection.add(
+                ids=[self._chunk_id(chunk) for chunk in batch],
+                documents=[chunk.text for chunk in batch],
+                embeddings=self._embedder.embed_documents([chunk.text for chunk in batch]),
+                metadatas=[
+                    {
+                        "source_id": chunk.source_id,
+                        "source_title": chunk.source_title,
+                        "source_url": chunk.source_url,
+                        "page": chunk.page,
+                    }
+                    for chunk in batch
+                ],
+            )
+            batches_written += 1
+            if max_batches is not None and batches_written >= max_batches:
+                break
+        return collection.count(), len(chunks)
 
     def search(
         self, query: str, limit: int = 10, where: dict[str, str] | None = None

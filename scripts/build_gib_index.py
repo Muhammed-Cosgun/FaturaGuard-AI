@@ -1,4 +1,4 @@
-"""Doğrulanmış resmî GİB PDF'lerinden yerel RAG indeksi üretir."""
+"""Doğrulanmış resmî GİB PDF ve UBL-TR kılavuzlarından yerel RAG indeksi üretir."""
 
 from pathlib import Path
 

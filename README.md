@@ -64,7 +64,7 @@ RAG kalitesi yalnızca örnek bir sorguyla değil, beklenen resmî kaynak ve say
 python scripts/evaluate_rag.py
 ```
 
-Sonuç `data/evaluation/retrieval_metrics.json` dosyasına yazılır. İlk baz ölçümde üç sorguda bütün stratejiler `Recall@3 = 0.67`, `MRR@3 = 0.67` ve resmî GİB atıf kapsaması `1.00` elde etti. Eşit sonuç bir başarı iddiası olarak değil, golden veri setinin genişletilmesi ve ağırlıkların sonraki iterasyonda ayarlanması gereken bir kalite bulgusu olarak izlenir.
+Sonuç `data/evaluation/retrieval_metrics.json` dosyasına yazılır. Altı sorguluk güncel golden sette semantic arama `Recall@3 = 0.67`, `MRR@3 = 0.44`; BM25 ve hibrit rerank ise `Recall@3 = 0.83`, `MRR@3 = 0.72` elde etti. Tüm stratejilerde resmî GİB atıf kapsaması `1.00` olarak korundu. Sonuçlar başarı iddiası değil, sonraki ağırlık/model iyileştirmeleri için ölçüm tabanıdır.
 
 ## İsteğe bağlı n8n otomasyonu
 

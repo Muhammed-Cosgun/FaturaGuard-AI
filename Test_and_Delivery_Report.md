@@ -22,6 +22,7 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Hata, hesap/şematron uyarısı, imza eksikliği ve bilgilendirme bulguları için deterministik önceliklendirme testleri eklendi.
 - SHA-256 doğrulamasından geçen iki resmî GİB PDF'sinden 100 kaynak parçası üretilip yerel RAG aramasıyla doğrulandı; arama sonucu kaynak kimliği ve sayfa numarası döndürüyor.
 - Chroma semantic retrieval, BM25 lexical retrieval ve hibrit rerank altyapısı eklendi. Rerank birimi, teknik terim eşleşmesinin doğru GİB kanıtını öne çıkardığını sınar.
+- Resmî GİB UBL-TR 1.2.1 Kılavuzları arşivinden Fatura ve Ortak Elemanlar PDF'leri de SHA-256 doğrulanmış arşiv üzerinden indekslendi. Kaynak parçası sayısı 100'den 330'a çıktı; `LegalMonetaryTotal` ve `InvoiceLine` alanları için doğrudan UBL-TR kanıtı getirildi.
 - Gerçek GİB chunk'ları üzerinde BM25 lexical araması çalıştırıldı; `UBL-TR şema schematron kontrolü` sorgusunda e-Fatura Test Planı'nın ilgili sayfası ilk sonuç oldu.
 - Embedding modeli önbelleği kullanıcı profili yerine proje içindeki `data/models/` klasörüne yönlendirildi; model ve indeks varlıkları proje ortamında tutulur.
 - Gerçek Chroma koleksiyonu üretildi: doğrulanmış 100 GİB chunk'ı kalıcı vektör koleksiyonuna yazıldı. Semantic + BM25 + hybrid rerank sorgusu, e-Fatura Test Planı'nın 7. sayfasını kaynak URL'siyle ilk kanıt olarak döndürdü.
@@ -35,9 +36,10 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Kullanıcı arayüzündeki audit zamanları UTC olarak saklanan kayıtlardan Türkiye yerel saatine dönüştürülerek okunabilir biçimde gösterilir.
 - Hata ekranında isteğe bağlı kaynaklı AI açıklaması eklendi. Her açıklama LangGraph işlem izi ve doğrulanmış GİB URL/sayfa atfıyla işlem kaydında saklanır.
 - Golden sorgu seti ile semantic, BM25 ve hibrit retrieve→rerank akışları gerçek Chroma indeksi üzerinde ölçüldü. İlk baz ölçümde üç strateji de `Recall@3 = 0.67`, `MRR@3 = 0.67`, resmî GİB atıf kapsaması `1.00` verdi; eşitlik, daha geniş değerlendirme seti ve ağırlık kalibrasyonu için açık iyileştirme maddesi olarak kaydedildi.
+- Golden sorgu seti altı sorguya genişletildi. Güncel ölçümde hybrid rerank ve BM25 `Recall@3 = 0.83`, `MRR@3 = 0.72`; semantic arama `Recall@3 = 0.67`, `MRR@3 = 0.44` verdi. Tüm sonuçlarda resmî GİB atıf kapsamı `1.00` korundu.
 - n8n webhook bildiriminin yalnızca işlem metadatası gönderdiği; XML içeriği ve yerel saklama yolunu taşımadığı otomatik testle doğrulandı.
 - Kaynaklı açıklama öncesi kanıt uygunluk eşiği eklendi: versiyon geçmişi gibi düşük bilgi içeren parçalar elenir; yalnızca yeterli lexical/terim sinyali taşıyan GİB kanıtında üretim yapılır. Zayıf kanıtla agent'ın `insufficient_official_evidence` durumunda durduğu otomatik testle doğrulandı.
-- Uygulama kodu biçim/lint denetiminden geçti; tüm otomatik testler çalıştırıldı: 28/28 test başarılı.
+- Uygulama kodu biçim/lint denetiminden geçti; tüm otomatik testler çalıştırıldı: 29/29 test başarılı.
 - Gerçek `test_hesap_hata.xml` ile komut satırı uçtan uca demo çalıştırıldı. Onaysız akışta teklif oluşturulup giriş XML'i değiştirilmedi; onaylı akışta izinli dip toplam düzeltmesi çalışma kopyasına uygulandı, uyarı sayısı `2`'den `0`'a indi ve giriş dosyasının SHA-256 özeti değişmeden kaldı.
 - Gerçek `test_duzeltilmis.xml` ile geçerli belge kabul senaryosu çalıştırıldı: 0 hata, 0 uyarı, 0 düzeltme teklifi ve değişmeyen SHA-256 özeti doğrulandı.
 - Demo sonrası JSON rapor ayrıca incelendi: yeniden doğrulama özeti ile diff metadatası bulunuyor; orijinal yol, XML içeriği ve tam XML diff'i bulunmuyor.
