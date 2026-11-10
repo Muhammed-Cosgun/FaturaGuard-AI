@@ -107,7 +107,12 @@ class SourceBackedAgent:
             }
         return {
             "explanation": explanation,
-            "audit_events": [*state["audit_events"], "generate_source_backed_explanation"],
+            "audit_events": [
+                *state["audit_events"],
+                "deterministic_source_fallback"
+                if explanation.generation_mode == "deterministic_fallback"
+                else "generate_source_backed_explanation",
+            ],
         }
 
     @staticmethod

@@ -47,6 +47,7 @@ FastAPI uygulaması
 - XML, GİB kaynağı, kullanıcı girdisi ve RAG metni güvenilmeyen veri kabul edilir; hiçbiri agent sistem talimatını, araç allowlist'ini veya kullanıcı onayı gereğini değiştiremez.
 - Agent'ın LLM çıktısı Pydantic şema ile doğrulanır. Şema dışı çıktı veya yeterli kaynak yoksa işlem "insan incelemesi gerekli" durumuna yönlenir.
 - Yerel LLM geçici olarak yanıt veremezse kaynaklı işlem hata sayfasına düşmez; `generation_unavailable` durumuyla insan incelemesine yönlenir ve retrieval ile bulunan resmî kanıtlar kullanıcıya gösterilir.
+- Ollama çıktısı JSON sözleşmesini doğrulayamazsa, sistem LLM metnini kullanmaz. Aynı doğrulanmış bulgu ve retrieval kanıtlarıyla `deterministic_fallback` kaynak özeti oluşturur; bu özet her zaman insan incelemesi gerektirir.
 - Chroma koleksiyonuna yalnızca envanter + SHA-256 denetiminden geçen GİB kaynakları yazılabilir.
 
 ## RAG kalite ölçümü

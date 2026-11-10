@@ -25,6 +25,7 @@ class SourceBackedExplanation(BaseModel):
     recommendation: str = Field(min_length=1, max_length=700)
     requires_user_review: bool = True
     citations: list[Citation] = Field(min_length=1, max_length=3)
+    generation_mode: str = "llm"
 
 
 class ExplanationGenerator(Protocol):
@@ -69,7 +70,6 @@ class OllamaStructuredGenerator:
                 },
             ],
         }
-        last_error: Exception | None = None
         for _ in range(self._retries):
             try:
                 response = httpx.post(f"{self._base_url}/api/chat", json=payload, timeout=90.0)
@@ -78,12 +78,9 @@ class OllamaStructuredGenerator:
                 explanation = SourceBackedExplanation.model_validate_json(content)
                 self._validate_citations(explanation, evidence)
                 return self._remove_reasoning_repetition(explanation)
-            except (httpx.HTTPError, KeyError, ValueError) as error:
-                last_error = error
-        reason = type(last_error).__name__ if last_error else "UnknownError"
-        raise LLMUnavailableError(
-            f"Yerel LLM kaynaklı açıklama üretemedi: {reason}."
-        ) from last_error
+            except (httpx.HTTPError, KeyError, ValueError):
+                continue
+        return self._deterministic_fallback(finding, evidence)
 
     @staticmethod
     def _system_prompt() -> str:
@@ -148,3 +145,31 @@ tekrar etme.
         if not unique_reasoning:
             unique_reasoning = ["Seçilen resmî kaynaklar ilgili UBL-TR alanlarını tanımlar."]
         return explanation.model_copy(update={"reasoning": " ".join(unique_reasoning)})
+
+    @staticmethod
+    def _deterministic_fallback(
+        finding: Finding, evidence: Sequence[RetrievedEvidence]
+    ) -> SourceBackedExplanation:
+        """LLM JSON sözleşmesini bozarsa doğrulanmış kanıtlarla güvenli, kısa özet üretir."""
+
+        citations = [
+            Citation(
+                source_id=item.chunk.source_id,
+                source_title=item.chunk.source_title,
+                source_url=item.chunk.source_url,
+                page=item.chunk.page,
+            )
+            for item in evidence[:2]
+        ]
+        return SourceBackedExplanation(
+            summary=finding.message,
+            reasoning=(
+                "Yerel model yapılandırılmış açıklama üretemedi. Seçilen resmî GİB "
+                "kaynakları ilgili UBL-TR alanlarını tanımlar; insan incelemesiyle doğrulayın."
+            ),
+            recommendation=(
+                finding.suggested_fix or "Belgeyi ve gösterilen resmî kaynakları inceleyin."
+            ),
+            citations=citations,
+            generation_mode="deterministic_fallback",
+        )

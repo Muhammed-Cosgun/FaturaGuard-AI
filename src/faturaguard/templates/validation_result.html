@@ -32,7 +32,7 @@
               {% set agent_output = job.agent_outputs.get(finding.code) %}
               {% if agent_output %}
                 <div class="agent-output">
-                  <h4>AI açıklaması · {{ agent_output.status }}</h4>
+                  <h4>{% if agent_output.explanation and agent_output.explanation.generation_mode == 'deterministic_fallback' %}Kaynak özeti{% else %}AI açıklaması{% endif %} · {{ agent_output.status }}</h4>
                   {% if agent_output.explanation %}
                     <p>{{ agent_output.explanation.summary }}</p>
                     <p>{{ agent_output.explanation.reasoning }}</p>
