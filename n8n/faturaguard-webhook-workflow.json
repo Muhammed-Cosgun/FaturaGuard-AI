@@ -1,0 +1,25 @@
+{
+  "name": "FaturaGuard AI - Düzeltme Bildirimi",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "faturaguard-correction", "responseMode": "onReceived"},
+      "id": "faturaguard-webhook",
+      "name": "FaturaGuard Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {"assignments": {"assignments": [{"name": "job_id", "value": "={{ $json.body.job_id }}", "type": "string"}, {"name": "event", "value": "={{ $json.body.event }}", "type": "string"}, {"name": "corrected_sha256", "value": "={{ $json.body.corrected_sha256 }}", "type": "string"}]}, "options": {}},
+      "id": "prepare-summary",
+      "name": "İşlem Özetini Hazırla",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [540, 300]
+    }
+  ],
+  "connections": {"FaturaGuard Webhook": {"main": [[{"node": "İşlem Özetini Hazırla", "type": "main", "index": 0}]]}},
+  "active": false,
+  "settings": {},
+  "versionId": "faturaguard-v1"
+}

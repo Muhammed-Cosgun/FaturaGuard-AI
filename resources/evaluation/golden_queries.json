@@ -1,0 +1,5 @@
+[
+  {"id": "schema-schematron", "query": "UBL-TR şema XSD schematron kontrolü", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 7},
+  {"id": "mali-muhur", "query": "e-fatura mali mühür sertifikası ile onaylanmalı", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 7},
+  {"id": "gonderici-birim", "query": "gönderici birim e-fatura zarf şema schematron kontrolü", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 12}
+]

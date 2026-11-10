@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FaturaGuard AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  </head>
+  <body>
+    <main class="container">
+      <p class="eyebrow">E-FATURA DOĞRULAMA</p>
+      <h1>FaturaGuard AI</h1>
+      <p class="lead">Güvenli, kaynaklı ve kullanıcı onaylı XML kontrolü.</p>
+      <section class="notice" aria-labelledby="upload-title">
+        <h2 id="upload-title">XML belgesini doğrula</h2>
+        <p>Dosyanın orijinali korunur; hiçbir düzeltme kullanıcı onayı olmadan uygulanmaz.</p>
+        <form action="/documents/validate" method="post" enctype="multipart/form-data">
+          <label for="document">UBL-TR XML dosyası</label>
+          <input id="document" name="file" type="file" accept=".xml,application/xml,text/xml" required>
+          <button type="submit">Doğrulamayı başlat</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

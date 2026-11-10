@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Doğrulama sonucu · FaturaGuard AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  </head>
+  <body>
+    <main class="container">
+      <p class="eyebrow">DOĞRULAMA SONUCU</p>
+      <h1>Belge analizi</h1>
+      {% if error %}
+        <section class="notice error"><h2>İşlem tamamlanamadı</h2><p>{{ error }}</p></section>
+      {% else %}
+        <section class="notice">
+          <h2>{{ report.original_filename }}</h2>
+          <p><strong>{% if report.summary.is_valid %}GEÇERLİ{% else %}GEÇERSİZ{% endif %}</strong> · {{ report.summary.error_count }} hata, {{ report.summary.warning_count }} uyarı, {{ report.summary.info_count }} bilgi</p>
+          <p class="metadata">SHA-256: <code>{{ job.original_sha256 }}</code><br>İşlem kimliği: <code>{{ job.job_id }}</code></p>
+        </section>
+        <section class="notice"><h2>Bulgular</h2>
+          {% for finding in report.findings %}
+            <article class="finding {{ finding.severity }}">
+              <p><strong>{{ finding.priority|upper }} · {{ finding.source|upper }}</strong>{% if finding.line %} · satır {{ finding.line }}{% endif %}</p>
+              <h3>{{ finding.code }}</h3><p>{{ finding.message }}</p>
+              <p class="metadata">Öncelik gerekçesi: {{ finding.priority_reason }}</p>
+              {% if finding.explanation %}<p class="metadata">{{ finding.explanation }}</p>{% endif %}
+              {% if finding.suggested_fix %}<p><strong>Öneri:</strong> {{ finding.suggested_fix }}</p>{% endif %}
+              <form action="/jobs/{{ job.job_id }}/findings/{{ finding.code }}/explain" method="post" class="inline-form ai-explanation-form">
+                <button type="submit" class="secondary">Resmî GİB kaynağıyla açıkla</button>
+              </form>
+              {% set agent_output = job.agent_outputs.get(finding.code) %}
+              {% if agent_output %}
+                <div class="agent-output">
+                  <h4>AI açıklaması · {{ agent_output.status }}</h4>
+                  {% if agent_output.explanation %}
+                    <p>{{ agent_output.explanation.summary }}</p>
+                    <p>{{ agent_output.explanation.reasoning }}</p>
+                    <p><strong>Öneri:</strong> {{ agent_output.explanation.recommendation }}</p>
+                    <p class="metadata">Kaynaklar:
+                    {% for citation in agent_output.explanation.citations %}
+                      <a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a>{% if not loop.last %}; {% endif %}
+                    {% endfor %}</p>
+                  {% else %}<p class="metadata">Yeterli resmî kanıt bulunamadı; insan incelemesi gerekir.</p>{% endif %}
+                  <p class="metadata">İşlem izi: {{ agent_output.audit_events|join(' → ') }}</p>
+                </div>
+              {% endif %}
+            </article>
+          {% else %}<p>Bulgu bulunamadı.</p>{% endfor %}
+        </section>
+        {% if job.proposals %}
+        <section class="notice"><h2>Güvenli düzeltme önerileri</h2>
+          {% for proposal in job.proposals %}
+          <article class="finding">
+            <h3>{{ proposal.title }}</h3><p>{{ proposal.rationale }}</p>
+            <p><code>{{ proposal.target_path }}</code>: <del>{{ proposal.before }}</del> → <ins>{{ proposal.after }}</ins></p>
+            {% if proposal.status == 'proposed' %}
+            <form action="/jobs/{{ job.job_id }}/proposals/{{ proposal.proposal_id }}" method="post" class="decision-form">
+              <button name="decision" value="approve" type="submit">Düzeltmeyi onayla</button>
+              <button name="decision" value="reject" type="submit" class="secondary">Reddet</button>
+            </form>
+            {% else %}<p><strong>Karar:</strong> {{ proposal.status }}</p>{% endif %}
+          </article>
+          {% endfor %}
+        </section>
+        {% endif %}
+        {% if job.corrected_report %}
+        <section class="notice"><h2>Yeniden doğrulama</h2>
+          <p><strong>{% if job.corrected_report.summary.is_valid %}GEÇERLİ{% else %}GEÇERSİZ{% endif %}</strong> · {{ job.corrected_report.summary.error_count }} hata, {{ job.corrected_report.summary.warning_count }} uyarı</p>
+          <p class="metadata">Düzeltilmiş kopya SHA-256: <code>{{ job.corrected_sha256 }}</code></p>
+          <h3>XML farkı</h3><pre>{{ job.diff }}</pre>
+        </section>
+        {% endif %}
+        <p><a href="/jobs/{{ job.job_id }}/report">İşlem raporunu görüntüle</a> · <a href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
+      {% endif %}
+      <p><a href="/">Yeni belge yükle</a></p>
+    </main>
+    <script>
+      document.querySelectorAll(".ai-explanation-form").forEach((form) => {
+        form.addEventListener("submit", () => {
+          const button = form.querySelector("button");
+          button.disabled = true;
+          button.textContent = "Resmî GİB kaynaklarıyla açıklama hazırlanıyor…";
+        });
+      });
+    </script>
+  </body>
+</html>

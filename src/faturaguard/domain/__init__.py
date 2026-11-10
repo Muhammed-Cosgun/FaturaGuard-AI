@@ -1,0 +1,1 @@
+"""FaturaGuard AI iş modeli."""

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>İşlem raporu · FaturaGuard AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  </head>
+  <body>
+    <main class="container report">
+      <p class="eyebrow">DENETİM RAPORU</p>
+      <h1>FaturaGuard AI işlem raporu</h1>
+      <section class="notice">
+        <h2>{{ job.original_filename }}</h2>
+        <p>İşlem kimliği: <code>{{ job.job_id }}</code></p>
+        <p>Orijinal SHA-256: <code>{{ job.original_sha256 }}</code></p>
+        {% if job.corrected_sha256 %}<p>Düzeltilmiş SHA-256: <code>{{ job.corrected_sha256 }}</code></p>{% endif %}
+      </section>
+      <section class="notice">
+        <h2>Doğrulama özeti</h2>
+        <p>Önce: {{ job.report.summary.error_count }} hata, {{ job.report.summary.warning_count }} uyarı.</p>
+        {% if job.corrected_report %}<p>Sonra: {{ job.corrected_report.summary.error_count }} hata, {{ job.corrected_report.summary.warning_count }} uyarı.</p>{% endif %}
+      </section>
+      <section class="notice">
+        <h2>Kullanıcı kararları</h2>
+        {% for proposal in job.proposals %}<p>{{ proposal.title }}: <strong>{{ proposal.status }}</strong></p>{% else %}<p>Teklif üretilmedi.</p>{% endfor %}
+      </section>
+      {% if job.agent_outputs %}<section class="notice"><h2>Kaynaklı AI açıklamaları</h2><pre>{{ job.agent_outputs | tojson(indent=2) }}</pre></section>{% endif %}
+      {% if job.diff %}<section class="notice"><h2>XML farkı</h2><pre>{{ job.diff }}</pre></section>{% endif %}
+      <p class="metadata">Bu rapor XML içeriğini içermez; belge bütünlük değerleri ve işlem kanıtlarını içerir.</p>
+      <p><a href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
+    </main>
+  </body>
+</html>

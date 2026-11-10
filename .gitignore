@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-work/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environments and local settings
+.venv/
+.env
+.build-temp/
+.verification-data/
+.tooling/
+
+# Runtime data
+data/*
+!data/.gitkeep
+!data/rag/
+data/rag/*
+!data/rag/.gitkeep
+
+# Resmî kaynakların indirilen, büyük ikili kopyaları sürüm kontrolüne alınmaz.
+resources/gib/raw/*
+!resources/gib/raw/.gitkeep
+
+# Editor and operating-system files
+.vscode/
+.idea/
+Thumbs.db
