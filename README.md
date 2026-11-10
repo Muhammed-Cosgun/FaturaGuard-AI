@@ -48,7 +48,7 @@ Chroma koleksiyonu yerel olarak `data/chroma/` altında saklanır. Sadece `resou
 
 ## Yerel LLM smoke testi
 
-Varsayılan yerel açıklama modeli, CPU üzerinde daha akıcı demo için `qwen2.5:3b-instruct`'tür. Daha kapsamlı ama yavaş yanıt için `OLLAMA_MODEL=qwen2.5:7b` seçilebilir. Ollama servisi açıkken, gerçek GİB kanıtı üzerinden kaynaklı ve yapılandırılmış çıktı testi için:
+Varsayılan yerel açıklama modeli `gemma3:4b`'tür. Dört gerçek bulgu vakasında geçerli yapılandırılmış LLM çıktısı oranı %100, ortalama yanıt süresi 43,42 saniye ölçüldü. Farklı bir model denemek için `OLLAMA_MODEL` ortam değişkeni kullanılabilir. Ollama servisi açıkken, gerçek GİB kanıtı üzerinden kaynaklı ve yapılandırılmış çıktı testi için:
 
 ```powershell
 python scripts/run_local_llm_smoke_test.py
@@ -74,7 +74,7 @@ Yerel modelleri aynı dört gerçek bulgu senaryosunda hız, şemaya uygun LLM �
 python scripts\benchmark_local_models.py
 ```
 
-Varsayılan karşılaştırma `qwen2.5:3b-instruct`, `qwen3:4b-instruct` ve `gemma3:4b` modelleridir. Sonuç `data/evaluation/local_model_benchmark.json` dosyasına yazılır. Tek model denemek için `--model qwen3:4b-instruct` kullanılabilir.
+Varsayılan karşılaştırma `qwen2.5:3b-instruct`, `qwen3:4b-instruct` ve `gemma3:4b` modelleridir. Son ölçümde sırasıyla ortalama 20,95 sn / %0 LLM başarı, 51,16 sn / %50 LLM başarı ve 43,42 sn / %100 LLM başarı elde edildi. Bu nedenle varsayılan `gemma3:4b` seçilmiştir. Sonuç `data/evaluation/local_model_benchmark.json` dosyasına yazılır. Tek model denemek için `--model qwen3:4b-instruct` kullanılabilir.
 
 ## İsteğe bağlı n8n otomasyonu
 

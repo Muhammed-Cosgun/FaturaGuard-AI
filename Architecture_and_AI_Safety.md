@@ -28,7 +28,7 @@ FastAPI uygulaması
 - Hibrit retrieval/rerank: semantic arama ile lexical arama ayrı üretilir; adaylar birleştirilir ve teknik-terim eşleşmesi, benzerlik ve belge bağlamıyla tekrar sıralanır.
 - Agent: LangGraph üzerinde tanımlı araçlar dışında işlem yapamaz. Akış: doğrula → önceliklendir → getir → rerank → kaynaklı açıkla → güvenlik denetimi → onay bekle → uygula → yeniden doğrula → raporla.
 - Kaynaklı açıklama: Ollama yerel API'sine JSON şeması gönderilir. LLM çıktısındaki her atıf, retrieval ile dönen GİB kanıtlarıyla bire bir eşleşmek zorundadır; eşleşmeyen atıf reddedilir.
-- Model sağlayıcısı: yerel LLM veya API sağlayıcısı, aynı yapılandırılmış çıktı sözleşmesini uygulayan değiştirilebilir bir adaptör üzerinden bağlanır. Varsayılan demo sağlayıcısı yerel Ollama `qwen2.5:3b-instruct` modelidir; daha güçlü model çevresel ayarla seçilebilir.
+- Model sağlayıcısı: yerel LLM veya API sağlayıcısı, aynı yapılandırılmış çıktı sözleşmesini uygulayan değiştirilebilir bir adaptör üzerinden bağlanır. Varsayılan demo sağlayıcısı yerel Ollama `gemma3:4b` modelidir; dört gerçek bulgu vakasındaki %100 geçerli yapılandırılmış çıktı sonucu nedeniyle seçilmiştir. Model çevresel ayarla değiştirilebilir.
 - MCP: agent araçları için aynı sözleşmeyi dış sistemlere açabilecek standart adaptör sınırıdır; ilk sürümde uygulama içi araçlar esas alınır.
 - Düzeltme motoru: sadece izin listesinde bulunan, düşük riskli değişiklikleri çalışma kopyasına uygular.
 - İşlem geçmişi: iş özeti, doğrulama sonucu ve audit olayları yerel SQLite veritabanında saklanır. Tam XML diff'i veritabanı dışında, işlem kimliğiyle ilişkili ayrı bir dosyada tutulur.
