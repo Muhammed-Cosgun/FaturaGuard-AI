@@ -23,6 +23,7 @@ from faturaguard.services.n8n_webhook import N8nWebhookNotifier
 from faturaguard.services.official_rag import OfficialRagIndex
 from faturaguard.services.reporting import build_report_payload
 from faturaguard.services.source_backed_explanation import (
+    DeterministicSourceGenerator,
     FallbackExplanationGenerator,
     GeminiStructuredGenerator,
     LLMUnavailableError,
@@ -60,8 +61,12 @@ def _create_agent() -> SourceBackedAgent | None:
     local_generator = OllamaStructuredGenerator(settings.ollama_model, settings.ollama_base_url)
     if settings.llm_provider in {"auto", "gemini"} and settings.gemini_api_key:
         generator = FallbackExplanationGenerator(
-            GeminiStructuredGenerator(settings.gemini_api_key, settings.gemini_model),
-            local_generator,
+            GeminiStructuredGenerator(
+                settings.gemini_api_key,
+                settings.gemini_model,
+                timeout_seconds=settings.gemini_timeout_seconds,
+            ),
+            DeterministicSourceGenerator(),
         )
     else:
         generator = local_generator

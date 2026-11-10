@@ -58,11 +58,11 @@ Farklı bir yüklü model seçmek için `OLLAMA_MODEL` ortam değişkeni kullan�
 
 ## Hızlı API modu ve yerel fallback
 
-Sunumda daha kısa ilk-yanıt süresi istenirse `GEMINI_API_KEY` tanımlandığında uygulama Gemini API'yi birincil açıklama üreticisi olarak kullanır; erişilemezse otomatik olarak yerel `gemma3:4b` modeline döner. API'ye XML, dosya adı, fatura taraf/tutar bilgileri, SHA-256 özeti veya yerel dosya yolu gönderilmez; yalnızca doğrulama bulgusu ve yerelde seçilmiş resmî GİB kanıt parçaları gönderilir.
+Sunumda daha kısa ilk-yanıt süresi istenirse `GEMINI_API_KEY` tanımlandığında uygulama düşük gecikmeli `gemini-3.5-flash-lite` modelini birincil açıklama üreticisi olarak kullanır. API 12 saniye içinde yanıt vermezse uygulama yerel modeli beklemez; doğrulanmış GİB atıflarıyla anında güvenli kaynak özeti gösterir. Anahtar tanımlı değilse uygulama tamamen yerel `gemma3:4b` modunda çalışır. API'ye XML, dosya adı, fatura taraf/tutar bilgileri, SHA-256 özeti veya yerel dosya yolu gönderilmez; yalnızca doğrulama kuralı ve yerelde seçilmiş resmî GİB kanıt parçaları gönderilir.
 
 ```powershell
 $env:GEMINI_API_KEY = "AI-Studio-anahtarınız"
-$env:GEMINI_MODEL = "gemini-3.8-flash"
+$env:GEMINI_MODEL = "gemini-3.5-flash-lite"
 uvicorn faturaguard.main:app --reload
 ```
 

@@ -20,7 +20,9 @@ class Settings:
     # auto: GEMINI_API_KEY tanımlıysa hızlı API, değilse tamamen yerel Ollama kullanılır.
     llm_provider: str = os.getenv("LLM_PROVIDER", "auto").lower()
     gemini_api_key: str | None = os.getenv("GEMINI_API_KEY") or None
-    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+    # Resmî model kataloğunda düşük gecikmeli yapılandırılmış çıktı için Flash-Lite seçilir.
+    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+    gemini_timeout_seconds: float = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "12"))
     n8n_webhook_url: str | None = os.getenv("N8N_WEBHOOK_URL") or None
 
 

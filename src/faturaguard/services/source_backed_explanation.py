@@ -185,10 +185,13 @@ class GeminiStructuredGenerator(OllamaStructuredGenerator):
 
     _endpoint = "https://generativelanguage.googleapis.com/v1beta/interactions"
 
-    def __init__(self, api_key: str, model: str, retries: int = 1) -> None:
+    def __init__(
+        self, api_key: str, model: str, retries: int = 1, timeout_seconds: float = 12.0
+    ) -> None:
         self._api_key = api_key
         self._model = model
         self._retries = retries
+        self._timeout_seconds = timeout_seconds
 
     def generate(
         self, finding: Finding, evidence: Sequence[RetrievedEvidence]
@@ -216,7 +219,7 @@ class GeminiStructuredGenerator(OllamaStructuredGenerator):
         for _ in range(self._retries):
             try:
                 response = httpx.post(
-                    self._endpoint, json=payload, headers=headers, timeout=20.0
+                    self._endpoint, json=payload, headers=headers, timeout=self._timeout_seconds
                 )
                 response.raise_for_status()
                 explanation = SourceBackedExplanation.model_validate_json(
@@ -238,16 +241,28 @@ class GeminiStructuredGenerator(OllamaStructuredGenerator):
     ) -> dict[str, object]:
         """API sınırında belgeye özgü hata metni ve tutarlar bulunmaz."""
 
-        payload = OllamaStructuredGenerator._request_payload(finding, evidence)
-        payload["finding"] = {
+        # Sunum gecikmesini azaltmak için yalnızca en güçlü iki kanıtın sınırlı metni gönderilir.
+        # Citation doğrulaması yine retrieval ile dönen tüm resmî kanıtlara karşı yapılır.
+        return {
+            "finding": {
             "code": finding.code,
             "source": finding.source,
             "severity": finding.severity.value,
             "priority": finding.priority.value,
             "rule_description": finding.explanation,
             "recommended_user_action": finding.suggested_fix,
+            },
+            "evidence": [
+                {
+                    "source_id": item.chunk.source_id,
+                    "source_title": item.chunk.source_title,
+                    "source_url": item.chunk.source_url,
+                    "page": item.chunk.page,
+                    "text": item.chunk.text[:1200],
+                }
+                for item in evidence[:2]
+            ],
         }
-        return payload
 
     @staticmethod
     def _output_text(response: dict[str, object]) -> str:
@@ -285,3 +300,12 @@ class FallbackExplanationGenerator:
             return self._fallback.generate(finding, evidence).model_copy(
                 update={"provider_trace": f"API fallback: {self.last_primary_error}"}
             )
+
+
+class DeterministicSourceGenerator:
+    """Uzak API gecikirse LLM beklemeden güvenli kaynak özetine döner."""
+
+    def generate(
+        self, finding: Finding, evidence: Sequence[RetrievedEvidence]
+    ) -> SourceBackedExplanation:
+        return OllamaStructuredGenerator._deterministic_fallback(finding, evidence)
