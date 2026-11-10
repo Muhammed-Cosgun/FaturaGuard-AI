@@ -56,6 +56,18 @@ python scripts/run_local_llm_smoke_test.py
 
 Farklı bir yüklü model seçmek için `OLLAMA_MODEL` ortam değişkeni kullanılabilir.
 
+## Hızlı API modu ve yerel fallback
+
+Sunumda daha kısa ilk-yanıt süresi istenirse `GEMINI_API_KEY` tanımlandığında uygulama Gemini API'yi birincil açıklama üreticisi olarak kullanır; erişilemezse otomatik olarak yerel `gemma3:4b` modeline döner. API'ye XML, dosya adı, fatura taraf/tutar bilgileri, SHA-256 özeti veya yerel dosya yolu gönderilmez; yalnızca doğrulama bulgusu ve yerelde seçilmiş resmî GİB kanıt parçaları gönderilir.
+
+```powershell
+$env:GEMINI_API_KEY = "AI-Studio-anahtarınız"
+$env:GEMINI_MODEL = "gemini-3.8-flash"
+uvicorn faturaguard.main:app --reload
+```
+
+Anahtarı `.env`, kaynak kodu veya Git'e kaydetmeyin. Anahtar tanımlı değilse ek kurulum gerekmeden yerel mod devam eder. API performansı, sunum öncesi `scripts/benchmark_local_models.py` ile aynı dört vaka üzerinden ayrıca ölçülmelidir.
+
 ## RAG kalite değerlendirmesi
 
 RAG kalitesi yalnızca örnek bir sorguyla değil, beklenen resmî kaynak ve sayfa bilgisi tanımlanmış küçük bir golden sorgu setiyle de ölçülür. Aşağıdaki komut semantic, BM25 lexical ve hibrit retrieve→rerank akışlarını karşılaştırır:

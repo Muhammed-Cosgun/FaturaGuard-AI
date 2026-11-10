@@ -23,6 +23,8 @@ from faturaguard.services.n8n_webhook import N8nWebhookNotifier
 from faturaguard.services.official_rag import OfficialRagIndex
 from faturaguard.services.reporting import build_report_payload
 from faturaguard.services.source_backed_explanation import (
+    FallbackExplanationGenerator,
+    GeminiStructuredGenerator,
     LLMUnavailableError,
     OllamaStructuredGenerator,
 )
@@ -55,10 +57,15 @@ def _create_agent() -> SourceBackedAgent | None:
         ChromaSemanticStore(chroma_path, SentenceTransformerEmbedder()),
         Bm25LexicalRetriever(chunks),
     )
-    return SourceBackedAgent(
-        retriever,
-        OllamaStructuredGenerator(settings.ollama_model, settings.ollama_base_url),
-    )
+    local_generator = OllamaStructuredGenerator(settings.ollama_model, settings.ollama_base_url)
+    if settings.llm_provider in {"auto", "gemini"} and settings.gemini_api_key:
+        generator = FallbackExplanationGenerator(
+            GeminiStructuredGenerator(settings.gemini_api_key, settings.gemini_model),
+            local_generator,
+        )
+    else:
+        generator = local_generator
+    return SourceBackedAgent(retriever, generator)
 
 
 def create_app() -> FastAPI:
