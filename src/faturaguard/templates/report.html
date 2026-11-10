@@ -27,8 +27,18 @@
       </section>
       {% if job.agent_outputs %}<section class="notice"><h2>Kaynaklı AI açıklamaları</h2><pre>{{ job.agent_outputs | tojson(indent=2) }}</pre></section>{% endif %}
       {% if job.diff %}<section class="notice"><h2>XML farkı</h2><pre>{{ job.diff }}</pre></section>{% endif %}
+      {% if audit_events %}
+      <section class="notice">
+        <h2>Denetim izi</h2>
+        <ul class="audit-list">
+        {% for event in audit_events %}
+          <li><code>{{ event.occurred_at }}</code> · <strong>{{ event.event_type }}</strong>{% if event.detail %} · {{ event.detail | tojson }}{% endif %}</li>
+        {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
       <p class="metadata">Bu rapor XML içeriğini içermez; belge bütünlük değerleri ve işlem kanıtlarını içerir.</p>
-      <p><a href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
+      <p><a href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a> · <a href="/history">İşlem geçmişi</a></p>
     </main>
   </body>
 </html>

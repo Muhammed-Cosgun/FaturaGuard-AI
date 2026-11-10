@@ -64,6 +64,11 @@ def create_app() -> FastAPI:
     def home(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, "home.html")
 
+    @app.get("/history", response_class=HTMLResponse, include_in_schema=False)
+    def history(request: Request) -> HTMLResponse:
+        jobs = app.state.correction_workflow.list_recent_jobs()
+        return templates.TemplateResponse(request, "history.html", {"jobs": jobs})
+
     @app.post("/documents/validate", response_class=HTMLResponse, include_in_schema=False)
     async def validate_document(request: Request, file: UploadFile = File(...)) -> HTMLResponse:
         filename = file.filename or ""
@@ -122,14 +127,22 @@ def create_app() -> FastAPI:
                 request, "validation_result.html", {"error": str(error)}, status_code=404
             )
         return templates.TemplateResponse(
-            request, "report.html", {"job": job, "payload": build_report_payload(job)}
+            request,
+            "report.html",
+            {
+                "job": job,
+                "payload": build_report_payload(job),
+                "audit_events": app.state.correction_workflow.list_audit_events(job_id),
+            },
         )
 
     @app.get("/jobs/{job_id}/report.json", include_in_schema=False)
     async def download_report(job_id: str) -> JSONResponse:
         job = app.state.correction_workflow._store.load(job_id)
+        payload = build_report_payload(job)
+        payload["audit_events"] = app.state.correction_workflow.list_audit_events(job_id)
         return JSONResponse(
-            build_report_payload(job),
+            payload,
             headers={
                 "Content-Disposition": f'attachment; filename="faturaguard-report-{job_id}.json"'
             },

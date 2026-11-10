@@ -23,3 +23,14 @@ def test_home_page_is_available() -> None:
 
     assert response.status_code == 200
     assert b"FaturaGuard AI" in response.body
+
+
+def test_history_page_is_available() -> None:
+    app, endpoint = _app_and_route_endpoint("/history")
+    request = Request(
+        {"type": "http", "method": "GET", "path": "/history", "headers": [], "app": app}
+    )
+    response = endpoint(request)
+
+    assert response.status_code == 200
+    assert "İşlem geçmişi".encode() in response.body

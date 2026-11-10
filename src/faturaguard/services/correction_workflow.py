@@ -112,3 +112,9 @@ class CorrectionWorkflow:
             {"status": status, "detail": detail},
         )
         return job
+
+    def list_recent_jobs(self, limit: int = 20) -> list[dict[str, object]]:
+        return self._store.list_recent(limit)
+
+    def list_audit_events(self, job_id: str) -> list[dict[str, object]]:
+        return self._store.list_events(job_id)

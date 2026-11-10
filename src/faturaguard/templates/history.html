@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>İşlem geçmişi · FaturaGuard AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  </head>
+  <body>
+    <main class="container history">
+      <p class="eyebrow">DENETLENEBİLİR İŞLEM GEÇMİŞİ</p>
+      <h1>İşlem geçmişi</h1>
+      <p class="lead">Son 20 doğrulama işlemi; XML içeriği gösterilmeden listelenir.</p>
+      <section class="notice">
+        {% if jobs %}
+        <div class="history-table-wrap">
+          <table>
+            <thead><tr><th>Belge</th><th>Durum</th><th>Bulgular</th><th>Güncellendi</th><th></th></tr></thead>
+            <tbody>
+            {% for item in jobs %}
+              {% set summary = item.report.summary %}
+              <tr>
+                <td><strong>{{ item.original_filename }}</strong><br><code>{{ item.original_sha256[:12] }}…</code></td>
+                <td>{% if summary.is_valid %}<span class="badge success">GEÇERLİ</span>{% else %}<span class="badge error">GEÇERSİZ</span>{% endif %}</td>
+                <td>{{ summary.error_count }} hata · {{ summary.warning_count }} uyarı</td>
+                <td>{{ item.updated_at }}</td>
+                <td><a href="/jobs/{{ item.job_id }}/report">Rapor</a></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}<p>Henüz işlem geçmişi bulunmuyor.</p>{% endif %}
+      </section>
+      <p><a href="/">Yeni belge yükle</a></p>
+    </main>
+  </body>
+</html>

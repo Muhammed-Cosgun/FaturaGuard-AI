@@ -76,6 +76,8 @@ Orijinal XML değiştirilemez. Her düzeltme kullanıcı onayıyla çalışma ko
 
 İş özeti ve denetim olayları yerel `data/faturaguard.sqlite3` veritabanında tutulur. Tam XML diff'i veritabanına yazılmaz; yalnızca ilgili işlem klasöründe saklanır.
 
+Ana sayfadaki **İşlem geçmişi** bağlantısı, son 20 işlemi XML içeriğini göstermeden listeler. Her kaydın denetim izi, HTML ve JSON raporunda görüntülenebilir.
+
 ## Tek komutla uçtan uca demo
 
 Doğrulama → teklif → isteğe bağlı onay → çalışma kopyası → yeniden doğrulama → rapor akışını gerçek bir XML üzerinde çalıştırmak için:

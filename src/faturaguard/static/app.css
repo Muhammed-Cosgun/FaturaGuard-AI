@@ -30,3 +30,12 @@ pre { padding: 14px; overflow-x: auto; color: #dce5f3; background: #172338; bord
 .finding.hata { border-color: #bd3f3f; }
 .finding.uyari { border-color: #bd7b20; }
 .finding h3 { margin: 0; font-size: 1rem; }
+.history-table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { padding: 12px 8px; border-bottom: 1px solid #dce3ef; text-align: left; vertical-align: top; }
+th { color: #526078; font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
+.badge { display: inline-block; padding: 3px 7px; border-radius: 999px; font-size: .72rem; font-weight: 700; }
+.badge.success { color: #0b6a3a; background: #e7f7ee; }
+.badge.error { color: #9d2525; background: #fdecec; }
+.audit-list { padding-left: 20px; }
+.audit-list li { margin: 8px 0; overflow-wrap: anywhere; }
