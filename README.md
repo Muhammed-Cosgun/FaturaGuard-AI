@@ -66,6 +66,16 @@ python scripts/evaluate_rag.py
 
 Sonuç `data/evaluation/retrieval_metrics.json` dosyasına yazılır. Altı sorguluk güncel golden sette semantic arama `Recall@3 = 0.67`, `MRR@3 = 0.44`; BM25 ve hibrit rerank ise `Recall@3 = 0.83`, `MRR@3 = 0.72` elde etti. Tüm stratejilerde resmî GİB atıf kapsaması `1.00` olarak korundu. Sonuçlar başarı iddiası değil, sonraki ağırlık/model iyileştirmeleri için ölçüm tabanıdır.
 
+## Yerel LLM model benchmark'ı
+
+Yerel modelleri aynı dört gerçek bulgu senaryosunda hız, şemaya uygun LLM çıktısı, deterministik fallback oranı ve kaynaklı yanıt oranıyla karşılaştırmak için:
+
+```cmd
+python scripts\benchmark_local_models.py
+```
+
+Varsayılan karşılaştırma `qwen2.5:3b-instruct`, `qwen3:4b-instruct` ve `gemma3:4b` modelleridir. Sonuç `data/evaluation/local_model_benchmark.json` dosyasına yazılır. Tek model denemek için `--model qwen3:4b-instruct` kullanılabilir.
+
 ## İsteğe bağlı n8n otomasyonu
 
 `n8n/faturaguard-webhook-workflow.json` dosyasını n8n'e içe aktarın. Ardından n8n webhook adresini `N8N_WEBHOOK_URL` ortam değişkenine yazın. FaturaGuard yalnızca işlem kimliği, dosya adı, hash, karar durumu ve doğrulama özetini gönderir; XML içeriğini göndermez.

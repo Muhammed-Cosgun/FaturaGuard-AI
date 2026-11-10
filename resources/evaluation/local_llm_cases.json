@@ -1,0 +1,46 @@
+[
+  {
+    "id": "hesap-dip-satir",
+    "code": "hesap-dip-satir",
+    "severity": "uyari",
+    "priority": "yuksek",
+    "priority_reason": "Belgenin tutarlılığını etkiler.",
+    "source": "hesap",
+    "message": "Mal/hizmet toplamı satır tutarlarının toplamı ile uyuşmuyor: yazılan 25.15, hesaplanan 15.15.",
+    "explanation": "cac:LegalMonetaryTotal/cbc:LineExtensionAmount satır tutarlarının toplamı olmalı.",
+    "suggested_fix": "Satırları toplayıp yazın."
+  },
+  {
+    "id": "hesap-dip-vergi-haric",
+    "code": "hesap-dip-vergi-haric",
+    "severity": "uyari",
+    "priority": "yuksek",
+    "priority_reason": "Belgenin tutarlılığını etkiler.",
+    "source": "hesap",
+    "message": "Vergi hariç tutar mal/hizmet toplamı ile uyuşmuyor: yazılan 15.15, hesaplanan 25.15.",
+    "explanation": "cbc:TaxExclusiveAmount dip toplam ile uyumlu olmalı.",
+    "suggested_fix": "Dip toplamı yeniden hesaplayın."
+  },
+  {
+    "id": "imza-yok",
+    "code": "imza-yok",
+    "severity": "bilgi",
+    "priority": "yuksek",
+    "priority_reason": "GİB gönderimi öncesinde imza gerekir.",
+    "source": "imza",
+    "message": "Belge elektronik imza taşımıyor; gönderim öncesi XAdES imzası bulunmalıdır.",
+    "explanation": "Taslak için normal olabilir; GİB gönderimi öncesinde imzalanmalı.",
+    "suggested_fix": "Mali mühür veya e-imza ile XAdES-BES enveloped imza atın."
+  },
+  {
+    "id": "xsd-sema",
+    "code": "xsd-sema",
+    "severity": "hata",
+    "priority": "kritik",
+    "priority_reason": "Belge doğrulamasını durdurur.",
+    "source": "xsd",
+    "message": "UBL-TR şema ve Schematron kurallarına uyum doğrulanmalıdır.",
+    "explanation": "Belge, UBL-TR şema ve iş kurallarıyla uyumlu olmalı.",
+    "suggested_fix": "Şema ve Schematron bulgularını düzeltin."
+  }
+]
