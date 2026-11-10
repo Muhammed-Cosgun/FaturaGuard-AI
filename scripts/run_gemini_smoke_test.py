@@ -44,6 +44,8 @@ def main() -> None:
         raise SystemExit(f"Gemini smoke test başarısız: {type(error).__name__}: {error}") from error
     print(f"model={settings.gemini_model}")
     print(f"status={result['status']}")
+    if result["generation_error"]:
+        print(f"generation_error={result['generation_error']}")
     if result["explanation"] is not None:
         print(result["explanation"].model_dump_json(indent=2))
     print("audit_events=" + ", ".join(result["audit_events"]))
