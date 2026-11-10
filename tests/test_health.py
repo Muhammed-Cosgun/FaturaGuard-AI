@@ -1,6 +1,6 @@
 from starlette.requests import Request
 
-from faturaguard.main import create_app
+from faturaguard.main import create_app, format_turkey_time
 
 
 def _app_and_route_endpoint(path: str):
@@ -14,6 +14,10 @@ def test_health_check_returns_application_status() -> None:
     response = endpoint()
 
     assert response == {"status": "ok", "version": "0.1.0"}
+
+
+def test_turkey_time_formatter_converts_utc_audit_timestamp() -> None:
+    assert format_turkey_time("2026-11-10T15:11:33.508466+00:00") == "10.11.2026 18:11"
 
 
 def test_home_page_is_available() -> None:

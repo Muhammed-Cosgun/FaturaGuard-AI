@@ -1,6 +1,8 @@
 """FastAPI uygulama giriş noktası."""
 
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -28,6 +30,19 @@ from faturaguard.services.validation_adapter import EfaturaKontrolAdapter, Valid
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
+
+
+def format_turkey_time(value: str) -> str:
+    """UTC audit zamanını arayüzde Türkiye yerel saatiyle gösterir."""
+
+    return (
+        datetime.fromisoformat(value)
+        .astimezone(ZoneInfo("Europe/Istanbul"))
+        .strftime("%d.%m.%Y %H:%M")
+    )
+
+
+templates.env.filters["turkey_time"] = format_turkey_time
 
 
 def _create_agent() -> SourceBackedAgent | None:

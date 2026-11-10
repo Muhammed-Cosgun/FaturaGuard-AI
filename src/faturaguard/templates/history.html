@@ -23,7 +23,7 @@
                 <td><strong>{{ item.original_filename }}</strong><br><code>{{ item.original_sha256[:12] }}…</code></td>
                 <td>{% if summary.is_valid %}<span class="badge success">GEÇERLİ</span>{% else %}<span class="badge error">GEÇERSİZ</span>{% endif %}</td>
                 <td>{{ summary.error_count }} hata · {{ summary.warning_count }} uyarı</td>
-                <td>{{ item.updated_at }}</td>
+                <td>{{ item.updated_at | turkey_time }}</td>
                 <td><a href="/jobs/{{ item.job_id }}/report">Rapor</a></td>
               </tr>
             {% endfor %}

@@ -32,7 +32,7 @@
         <h2>Denetim izi</h2>
         <ul class="audit-list">
         {% for event in audit_events %}
-          <li><code>{{ event.occurred_at }}</code> · <strong>{{ event.event_type }}</strong>{% if event.detail %} · {{ event.detail | tojson }}{% endif %}</li>
+          <li><code>{{ event.occurred_at | turkey_time }}</code> · <strong>{{ event.event_type }}</strong>{% if event.detail %} · {{ event.detail | tojson }}{% endif %}</li>
         {% endfor %}
         </ul>
       </section>
