@@ -144,6 +144,7 @@ def test_fallback_generator_uses_local_generator_after_api_failure() -> None:
     )
 
     assert result.summary == "Yerel açıklama."
+    assert result.provider_trace == "API fallback: API timeout"
 
 
 def _finding_for_fallback() -> Finding:

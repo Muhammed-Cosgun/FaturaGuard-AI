@@ -107,8 +107,10 @@ class SourceBackedAgent:
             }
         return {
             "explanation": explanation,
+            "generation_error": explanation.provider_trace,
             "audit_events": [
                 *state["audit_events"],
+                *( ["api_provider_fallback"] if explanation.provider_trace else [] ),
                 "deterministic_source_fallback"
                 if explanation.generation_mode == "deterministic_fallback"
                 else "generate_source_backed_explanation",

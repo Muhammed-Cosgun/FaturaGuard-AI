@@ -68,6 +68,12 @@ uvicorn faturaguard.main:app --reload
 
 Anahtarı `.env`, kaynak kodu veya Git'e kaydetmeyin. Anahtar tanımlı değilse ek kurulum gerekmeden yerel mod devam eder. API performansı, sunum öncesi `scripts/benchmark_local_models.py` ile aynı dört vaka üzerinden ayrıca ölçülmelidir.
 
+Anahtarın, seçilen modelin ve yapılandırılmış çıktı sözleşmesinin canlı kontrolü için sunucuyu başlatmadan önce şu smoke testi çalıştırılabilir; anahtarı ekrana yazdırmaz:
+
+```cmd
+python scripts\run_gemini_smoke_test.py
+```
+
 ## RAG kalite değerlendirmesi
 
 RAG kalitesi yalnızca örnek bir sorguyla değil, beklenen resmî kaynak ve sayfa bilgisi tanımlanmış küçük bir golden sorgu setiyle de ölçülür. Aşağıdaki komut semantic, BM25 lexical ve hibrit retrieve→rerank akışlarını karşılaştırır:

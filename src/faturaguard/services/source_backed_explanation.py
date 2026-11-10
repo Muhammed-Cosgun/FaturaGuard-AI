@@ -26,6 +26,7 @@ class SourceBackedExplanation(BaseModel):
     requires_user_review: bool = True
     citations: list[Citation] = Field(min_length=1, max_length=3)
     generation_mode: str = "llm"
+    provider_trace: str | None = None
 
 
 class ExplanationGenerator(Protocol):
@@ -270,11 +271,17 @@ class FallbackExplanationGenerator:
     def __init__(self, primary: ExplanationGenerator, fallback: ExplanationGenerator) -> None:
         self._primary = primary
         self._fallback = fallback
+        self.last_primary_error: str | None = None
 
     def generate(
         self, finding: Finding, evidence: Sequence[RetrievedEvidence]
     ) -> SourceBackedExplanation:
         try:
-            return self._primary.generate(finding, evidence)
-        except LLMUnavailableError:
-            return self._fallback.generate(finding, evidence)
+            explanation = self._primary.generate(finding, evidence)
+            self.last_primary_error = None
+            return explanation
+        except LLMUnavailableError as error:
+            self.last_primary_error = str(error)
+            return self._fallback.generate(finding, evidence).model_copy(
+                update={"provider_trace": f"API fallback: {self.last_primary_error}"}
+            )
