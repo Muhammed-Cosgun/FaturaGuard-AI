@@ -101,12 +101,17 @@ class CorrectionWorkflow:
                 }
                 for item in result.get("evidence", [])
             ],
+            "failure_reason": result.get("generation_error"),
         }
         self._store.save(job)
         self._store.append_event(
             job.job_id,
             "source_explanation_requested",
-            {"finding_code": finding_code, "status": result["status"]},
+            {
+                "finding_code": finding_code,
+                "status": result["status"],
+                "failure_reason": result.get("generation_error"),
+            },
         )
         return job
 

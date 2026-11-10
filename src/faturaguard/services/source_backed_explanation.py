@@ -80,7 +80,10 @@ class OllamaStructuredGenerator:
                 return self._remove_reasoning_repetition(explanation)
             except (httpx.HTTPError, KeyError, ValueError) as error:
                 last_error = error
-        raise LLMUnavailableError("Yerel LLM kaynaklı açıklama üretemedi.") from last_error
+        reason = type(last_error).__name__ if last_error else "UnknownError"
+        raise LLMUnavailableError(
+            f"Yerel LLM kaynaklı açıklama üretemedi: {reason}."
+        ) from last_error
 
     @staticmethod
     def _system_prompt() -> str:

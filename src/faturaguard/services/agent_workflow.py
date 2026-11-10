@@ -19,6 +19,7 @@ class AgentState(TypedDict):
     evidence: list[RetrievedEvidence]
     explanation: SourceBackedExplanation | None
     status: str
+    generation_error: str | None
     audit_events: list[str]
 
 
@@ -43,6 +44,7 @@ class SourceBackedAgent:
                 "evidence": [],
                 "explanation": None,
                 "status": "started",
+                "generation_error": None,
                 "audit_events": [],
             }
         )
@@ -96,10 +98,11 @@ class SourceBackedAgent:
     def _generate_source_backed_explanation(self, state: AgentState) -> dict[str, object]:
         try:
             explanation = self._generator.generate(state["finding"], state["evidence"])
-        except LLMUnavailableError:
+        except LLMUnavailableError as error:
             return {
                 "explanation": None,
                 "status": "generation_unavailable",
+                "generation_error": str(error),
                 "audit_events": [*state["audit_events"], "source_generation_unavailable"],
             }
         return {

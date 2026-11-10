@@ -93,4 +93,5 @@ def test_agent_preserves_official_evidence_when_generation_is_unavailable() -> N
     assert result["status"] == "generation_unavailable"
     assert result["explanation"] is None
     assert result["evidence"] == [evidence]
+    assert result["generation_error"] == "Yerel model yanıt veremedi."
     assert "source_generation_unavailable" in result["audit_events"]
