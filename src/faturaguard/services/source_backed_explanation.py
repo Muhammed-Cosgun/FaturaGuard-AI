@@ -305,9 +305,12 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
     ) -> SourceBackedExplanation:
         request = self._request_payload(finding, evidence)
         strict_schema_supported = self._model.startswith("openai/gpt-oss-")
+        qwen_schema_supported = self._model.startswith("qwen/")
         payload = {
             "model": self._model,
-            "reasoning_effort": "low",
+            # Qwen'in instruct modu kısa açıklamalarda gereksiz düşünme tokenlarını önler.
+            "reasoning_effort": "none" if qwen_schema_supported else "low",
+            "max_completion_tokens": 450,
             "messages": [
                 {"role": "system", "content": self._system_prompt()},
                 {
@@ -319,7 +322,9 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
                     ),
                 },
             ],
-            "response_format": self._response_format(strict_schema_supported),
+            "response_format": self._response_format(
+                strict_schema_supported, qwen_schema_supported
+            ),
         }
         headers = {"Authorization": f"Bearer {self._api_key}"}
         last_error: str | None = None
@@ -346,10 +351,21 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
         )
 
     @staticmethod
-    def _response_format(strict_schema_supported: bool) -> dict[str, object]:
+    def _response_format(
+        strict_schema_supported: bool, qwen_schema_supported: bool
+    ) -> dict[str, object]:
+        if qwen_schema_supported:
+            # Qwen JSON Schema Mode destekler; strict decoding yerine istemci tarafındaki
+            # Pydantic ve atıf kontrolleri son güvenlik katmanı olarak kalır.
+            return {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "faturaguard_explanation",
+                    "strict": False,
+                    "schema": GroqStructuredGenerator._strict_schema(),
+                },
+            }
         if not strict_schema_supported:
-            # Qwen gibi strict schema desteklemeyen Groq modellerinde geçerli JSON istenir;
-            # şema ve atıf güvenliği istemci tarafındaki Pydantic kontrolleriyle korunur.
             return {"type": "json_object"}
         return {
             "type": "json_schema",

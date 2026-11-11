@@ -207,10 +207,11 @@ def test_groq_generator_uses_strict_schema_and_marks_api_mode(monkeypatch) -> No
     assert schema["schema"]["additionalProperties"] is False
 
 
-def test_groq_qwen_uses_json_mode_and_keeps_client_side_validation() -> None:
-    response_format = GroqStructuredGenerator._response_format(False)
+def test_groq_qwen_uses_json_schema_best_effort_and_keeps_client_side_validation() -> None:
+    response_format = GroqStructuredGenerator._response_format(False, True)
 
-    assert response_format == {"type": "json_object"}
+    assert response_format["type"] == "json_schema"
+    assert response_format["json_schema"]["strict"] is False
 
 
 def test_groq_generator_records_http_status_without_response_body(monkeypatch) -> None:

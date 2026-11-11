@@ -80,7 +80,7 @@ Yerel model karşılaştırmasında `LLM_PROVIDER=local` ile başlatıldığınd
 
 ## Bağımsız ücretsiz API yedeği: Groq
 
-`GROQ_API_KEY` tanımlıysa `LLM_PROVIDER=auto` akışında Gemini başarısız olduğunda Groq ikinci sağlayıcı olarak denenir; iki API de başarısız olursa uygulama anında resmî GİB kaynak özeti gösterir. Yerel Gemma bu otomatik yedek zincirinde kullanılmaz. Varsayılan Groq modeli `openai/gpt-oss-20b`'dir ve seçim gerçek vakalarla benchmark edilmelidir. GPT-OSS strict JSON Schema kullanır; strict schema desteklemeyen Groq modelleri JSON mode ile çağrılır ve çıktı yine uygulama tarafında Pydantic şeması ve GİB atıflarıyla doğrulanır.
+`GROQ_API_KEY` tanımlıysa `LLM_PROVIDER=auto` akışında Gemini başarısız olduğunda Groq ikinci sağlayıcı olarak denenir; iki API de başarısız olursa uygulama anında resmî GİB kaynak özeti gösterir. Yerel Gemma bu otomatik yedek zincirinde kullanılmaz. Varsayılan Groq modeli `openai/gpt-oss-20b`'dir ve seçim gerçek vakalarla benchmark edilmelidir. GPT-OSS strict JSON Schema kullanır; Qwen 3.8 27B ise JSON Schema best-effort ve `reasoning_effort=none` ile çağrılır. Her iki yolda da çıktı uygulama tarafında Pydantic şeması ve GİB atıflarıyla doğrulanır.
 
 ```cmd
 set "GROQ_API_KEY=Groq-anahtarınız"
