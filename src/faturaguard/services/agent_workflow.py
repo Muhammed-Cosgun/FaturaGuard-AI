@@ -32,11 +32,7 @@ class SourceBackedAgent:
         self.graph = self._build_graph()
 
     def explain(self, finding: Finding) -> AgentState:
-        query = " ".join(
-            part
-            for part in [finding.code, finding.source, finding.message, finding.explanation]
-            if part
-        )
+        query = self._trusted_retrieval_query(finding)
         return self.graph.invoke(
             {
                 "finding": finding,
@@ -56,6 +52,28 @@ class SourceBackedAgent:
         generator_warmup = getattr(self._generator, "warmup", None)
         if callable(generator_warmup):
             generator_warmup()
+
+    @staticmethod
+    def _trusted_retrieval_query(finding: Finding) -> str:
+        """Bulguya ait ham metni RAG sorgusuna taşımadan teknik kanıt arar.
+
+        XML hata mesajı, kullanıcı girdisi ya da dış kütüphanenin açıklaması gibi
+        veriler talimat içerebilir. Retrieval için bunlara ihtiyaç yoktur: her
+        desteklenen bulgu kodu, ilgili GİB terimlerini içeren sabit bir sözlüğe
+        eşlenir. Tanınmayan kodda ise yalnızca kısa kimlik alanları kullanılır.
+        """
+
+        vocabulary = {
+            "xml-bicim": "UBL-TR XML iyi biçimli XSD şema doğrulama",
+            "xsd-sema": "UBL-TR XSD Schematron şema doğrulama",
+            "hesap-dip-satir": "UBL-TR LegalMonetaryTotal LineExtensionAmount InvoiceLine",
+            "hesap-dip-vergi-haric": (
+                "UBL-TR TaxExclusiveAmount LegalMonetaryTotal "
+                "AllowanceTotalAmount ChargeTotalAmount"
+            ),
+            "imza-yok": "UBL-TR XAdES UBLExtensions ExtensionContent ds Signature",
+        }
+        return vocabulary.get(finding.code, f"UBL-TR {finding.code} {finding.source}")
 
     def _build_graph(self):
         workflow = StateGraph(AgentState)

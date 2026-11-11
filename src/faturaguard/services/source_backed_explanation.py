@@ -122,8 +122,22 @@ ve GİB'e gönderim öncesinde imza gerektiğini birlikte belirt.
     def _request_payload(
         finding: Finding, evidence: Sequence[RetrievedEvidence]
     ) -> dict[str, object]:
+        """LLM sınırına yalnızca doğrulama kuralı metadatasını geçirir.
+
+        ``message`` alanı XML ayrıntısı veya kütüphane çıktısı taşıyabilir. Bu
+        ayrıntı kullanıcı arayüzünde zaten gösterilir; kaynaklı açıklama için
+        gerekmez ve güvenilmeyen metni model bağlamından uzak tutar.
+        """
+
         return {
-            "finding": finding.model_dump(),
+            "finding": {
+                "code": finding.code,
+                "source": finding.source,
+                "severity": finding.severity.value,
+                "priority": finding.priority.value,
+                "rule_description": finding.explanation,
+                "recommended_user_action": finding.suggested_fix,
+            },
             "evidence": [
                 {
                     "source_id": item.chunk.source_id,
@@ -235,7 +249,7 @@ ve GİB'e gönderim öncesinde imza gerektiğini birlikte belirt.
             for item in evidence[:2]
         ]
         return SourceBackedExplanation(
-            summary=finding.message,
+            summary=f"{finding.code} bulgusu için resmî kaynak özeti hazırlandı.",
             reasoning=(
                 "Yerel model yapılandırılmış açıklama üretemedi. Seçilen resmî GİB "
                 "kaynakları ilgili UBL-TR alanlarını tanımlar; insan incelemesiyle doğrulayın."
