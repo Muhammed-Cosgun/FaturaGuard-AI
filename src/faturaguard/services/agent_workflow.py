@@ -65,7 +65,6 @@ class SourceBackedAgent:
 
         vocabulary = {
             "xml-bicim": "UBL-TR XML iyi biçimli XSD şema doğrulama",
-            "xsd-sema": "UBL-TR XSD Schematron şema doğrulama",
             "hesap-dip-satir": "UBL-TR LegalMonetaryTotal LineExtensionAmount InvoiceLine",
             "hesap-dip-vergi-haric": (
                 "UBL-TR TaxExclusiveAmount LegalMonetaryTotal "
@@ -73,7 +72,53 @@ class SourceBackedAgent:
             ),
             "imza-yok": "UBL-TR XAdES UBLExtensions ExtensionContent ds Signature",
         }
-        return vocabulary.get(finding.code, f"UBL-TR {finding.code} {finding.source}")
+        if finding.code in vocabulary:
+            return vocabulary[finding.code]
+
+        code = finding.code.casefold()
+        if code.startswith("xsd-"):
+            return "UBL-TR XSD XML eleman sırası zorunlu alan schema doğrulama"
+        if code.startswith("hesap-satir"):
+            return "UBL-TR InvoiceLine LineExtensionAmount InvoicedQuantity Price AllowanceCharge"
+        if code.startswith("hesap-vergi"):
+            return "UBL-TR TaxSubtotal TaxAmount TaxableAmount Percent vergi hesaplama"
+        if code.startswith("hesap-tevkifat"):
+            return "UBL-TR WithholdingTaxTotal TaxAmount TaxTypeCode Percent tevkifat"
+        if code == "hesap-dip-indirim":
+            return "UBL-TR AllowanceTotalAmount AllowanceCharge ChargeIndicator indirim"
+        if code == "hesap-dip-artirim":
+            return "UBL-TR ChargeTotalAmount AllowanceCharge ChargeIndicator artırım"
+        if code == "hesap-dip-vergi-dahil":
+            return "UBL-TR TaxInclusiveAmount TaxExclusiveAmount TaxTotal vergi dahil tutar"
+        if code == "hesap-dip-odenecek":
+            return "UBL-TR PayableAmount PayableRoundingAmount WithholdingTaxTotal"
+        if code == "hesap-para-birimi":
+            return "UBL-TR DocumentCurrencyCode currencyID para birimi"
+        if "invoiceid" in code:
+            return "UBL-TR Invoice cbc ID fatura numarası formatı"
+        if "uuid" in code:
+            return "UBL-TR cbc UUID fatura tekil kimlik formatı"
+        if "tarihbicimi" in code or "timecheck" in code:
+            return "UBL-TR IssueDate IssueTime düzenleme tarihi saat formatı"
+        if any(term in code for term in ("profileid", "invoicetypecode", "customizationid", "ublversionid")):
+            return "UBL-TR ProfileID InvoiceTypeCode CustomizationID UBLVersionID senaryo fatura tipi"
+        if "currency" in code:
+            return "UBL-TR DocumentCurrencyCode currencyID PricingExchangeRate döviz kuru"
+        if "unitcode" in code or "invoicedquantity" in code:
+            return "UBL-TR InvoicedQuantity unitCode UN ECE ölçü birimi"
+        if "partyidentification" in code:
+            return "UBL-TR PartyIdentification VKN TCKN schemeID PartyName Person"
+        if "taxexemption" in code or "taxtype" in code:
+            return "UBL-TR TaxCategory TaxScheme TaxTypeCode TaxExemptionReasonCode"
+        if "withholdingtax" in code or "generalwithholding" in code:
+            return "UBL-TR WithholdingTaxTotal TaxTypeCode Percent tevkifat"
+        if "xades" in code or "signature" in code:
+            return "UBL-TR XAdES UBLExtensions ExtensionContent ds Signature KeyInfo SigningTime"
+        if "iade" in code or "billingreference" in code:
+            return "UBL-TR IADE BillingReference InvoiceDocumentReference InvoiceTypeCode"
+        if "paymentmeans" in code or "kamufatura" in code:
+            return "UBL-TR PaymentMeans PaymentMeansCode PayeeFinancialAccount IBAN"
+        return f"UBL-TR {finding.code} {finding.source}"
 
     def _build_graph(self):
         workflow = StateGraph(AgentState)

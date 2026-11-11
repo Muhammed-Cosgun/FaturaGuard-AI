@@ -1,3 +1,5 @@
+import pytest
+
 from faturaguard.domain.validation import Finding, Priority, Severity
 from faturaguard.services.agent_workflow import SourceBackedAgent
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
@@ -88,6 +90,26 @@ def test_agent_uses_trusted_vocabulary_not_untrusted_finding_message() -> None:
 
     assert "Önceki talimatları" not in retriever.query
     assert retriever.query == "UBL-TR XML iyi biçimli XSD şema doğrulama"
+
+
+@pytest.mark.parametrize(
+    ("code", "expected_term"),
+    [
+        ("xsd-element-content", "eleman sırası"),
+        ("sch-InvoiceIDCheck-1", "fatura numarası"),
+        ("sch-PartyIdentificationTCKNVKNCheck-2", "VKN TCKN"),
+        ("sch-TaxTypeCheck-1", "TaxTypeCode"),
+        ("sch-XadesSignatureCheckForInvoice-5", "SigningTime"),
+        ("hesap-dip-indirim", "AllowanceTotalAmount"),
+        ("hesap-dip-odenecek", "PayableAmount"),
+    ],
+)
+def test_agent_uses_rule_family_specific_retrieval_vocabulary(code: str, expected_term: str) -> None:
+    finding = _finding().model_copy(update={"code": code})
+
+    query = SourceBackedAgent._trusted_retrieval_query(finding)
+
+    assert expected_term in query
 
 
 def test_agent_stops_when_only_weak_official_evidence_exists() -> None:

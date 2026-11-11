@@ -1,0 +1,20 @@
+[
+  {"id":"xml-well-formed","code":"xml-bicim","family":"XML","status":"real_xml_verified"},
+  {"id":"xsd-order","code":"xsd-element-content","family":"XSD","status":"real_xml_verified"},
+  {"id":"invoice-id","code":"sch-InvoiceIDCheck-1","family":"Schematron / kimlik","status":"real_xml_verified"},
+  {"id":"party-tckn","code":"sch-PartyIdentificationTCKNVKNCheck-2","family":"Schematron / taraf","status":"real_xml_verified"},
+  {"id":"return-reference","code":"sch-IADEInvioceCheck-1","family":"Schematron / iade","status":"real_xml_verified"},
+  {"id":"return-profile","code":"sch-InvoiceTypeCodeCheck-2","family":"Schematron / senaryo","status":"real_xml_verified"},
+  {"id":"line-total","code":"hesap-dip-satir","family":"Aritmetik","status":"real_xml_verified"},
+  {"id":"discount-total","code":"hesap-dip-indirim","family":"Aritmetik","status":"real_xml_verified"},
+  {"id":"tax-exclusive","code":"hesap-dip-vergi-haric","family":"Aritmetik","status":"real_xml_verified"},
+  {"id":"signature-missing","code":"imza-yok","family":"İmza","status":"real_xml_verified"},
+  {"id":"uuid","code":"sch-UUIDCheck-1","family":"Schematron / kimlik","status":"planned_fixture"},
+  {"id":"date","code":"sch-TarihBicimi-1","family":"Schematron / tarih","status":"planned_fixture"},
+  {"id":"currency","code":"sch-CurrencyCodeCheck-1","family":"Schematron / kod listesi","status":"planned_fixture"},
+  {"id":"unit","code":"sch-GeneralUnitCodeCheck-1","family":"Schematron / kod listesi","status":"planned_fixture"},
+  {"id":"tax-code","code":"sch-TaxTypeCheck-1","family":"Schematron / vergi","status":"planned_fixture"},
+  {"id":"withholding","code":"sch-WithholdingTaxTotalCheck-3","family":"Schematron / tevkifat","status":"planned_fixture"},
+  {"id":"xades-structure","code":"sch-XadesSignatureCheckForInvoice-1","family":"Schematron / imza","status":"planned_fixture"},
+  {"id":"payable","code":"hesap-dip-odenecek","family":"Aritmetik","status":"planned_fixture"}
+]

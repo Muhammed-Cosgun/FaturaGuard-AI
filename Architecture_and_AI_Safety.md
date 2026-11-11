@@ -48,6 +48,7 @@ FastAPI uygulaması
 - İlk RAG sürümü GİB PDF sayfalarını parçalara bölüp yerel ve açıklanabilir arama yapar; her sonuçta belge, URL ve sayfa numarası zorunludur.
 - XML, GİB kaynağı, kullanıcı girdisi ve RAG metni güvenilmeyen veri kabul edilir; hiçbiri agent sistem talimatını, araç allowlist'ini veya kullanıcı onayı gereğini değiştiremez.
 - Agent'ın RAG sorgusu ham XML hata metninden üretilmez. Desteklenen bulgu kodları, ilgili UBL-TR teknik terimlerini içeren sabit bir güvenilir sözlüğe eşlenir; tanınmayan kodlarda yalnızca kısa kimlik alanları kullanılır.
+- Güvenilir sözlük; XML/XSD, kimlik, tarih-saat, senaryo, para birimi-birim, taraf, vergi-istisna, tevkifat, iade, ödeme, XAdES ve aritmetik hata ailelerini kapsar. Hata ailesi eşlenemediğinde sistem genel bir resmî kaynak araması yapar; kanıt eşiği geçilmezse açıklama üretmeden insan incelemesinde durur.
 - LLM sağlayıcılarına ham bulgu mesajı, XML parçası, satır numarası veya dosya metadatası gönderilmez. İstek yalnızca bulgu kodu/seviyesi, doğrulama kuralı, önerilen kullanıcı adımı ve retrieval ile seçilmiş resmî GİB kanıtlarını taşır.
 - Agent'ın LLM çıktısı Pydantic şema ile doğrulanır. Şema dışı çıktı veya yeterli kaynak yoksa işlem "insan incelemesi gerekli" durumuna yönlenir.
 - Yerel LLM geçici olarak yanıt veremezse kaynaklı işlem hata sayfasına düşmez; `generation_unavailable` durumuyla insan incelemesine yönlenir ve retrieval ile bulunan resmî kanıtlar kullanıcıya gösterilir.
