@@ -286,6 +286,9 @@ def test_cohere_generator_uses_json_schema_and_marks_api_mode(monkeypatch) -> No
     assert result.generation_mode == "cohere_api"
     assert observed["headers"]["Authorization"] == "Bearer secret"
     assert observed["json"]["response_format"]["type"] == "json_object"
+    schema = observed["json"]["response_format"]["schema"]
+    assert "minItems" not in schema["properties"]["citations"]
+    assert "minimum" not in schema["properties"]["citations"]["items"]["properties"]["page"]
 
 
 def test_groq_qwen_uses_json_schema_best_effort_and_keeps_client_side_validation() -> None:

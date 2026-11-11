@@ -460,7 +460,7 @@ class CohereStructuredGenerator(GeminiStructuredGenerator):
             ],
             "response_format": {
                 "type": "json_object",
-                "schema": GroqStructuredGenerator._strict_schema(),
+                "schema": self._cohere_schema(),
             },
         }
         headers = {"Authorization": f"Bearer {self._api_key}", "Content-Type": "application/json"}
@@ -502,6 +502,44 @@ class CohereStructuredGenerator(GeminiStructuredGenerator):
         if not text:
             raise KeyError("Cohere yanıtında model metni yok.")
         return text
+
+    @staticmethod
+    def _cohere_schema() -> dict[str, object]:
+        """Cohere JSON Schema desteğinin kabul ettiği ortak şemayı döndürür.
+
+        Cohere numeric/array length sınırlarını desteklemez. Bu sınırlar uygulama
+        tarafındaki Pydantic modeliyle yine doğrulanır.
+        """
+
+        citation = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "source_id": {"type": "string"},
+                "source_title": {"type": "string"},
+                "source_url": {"type": "string"},
+                "page": {"type": "integer"},
+            },
+            "required": ["source_id", "source_title", "source_url", "page"],
+        }
+        return {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "summary": {"type": "string"},
+                "reasoning": {"type": "string"},
+                "recommendation": {"type": "string"},
+                "requires_user_review": {"type": "boolean"},
+                "citations": {"type": "array", "items": citation},
+            },
+            "required": [
+                "summary",
+                "reasoning",
+                "recommendation",
+                "requires_user_review",
+                "citations",
+            ],
+        }
 
 
 class FallbackExplanationGenerator:
