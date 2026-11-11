@@ -9,12 +9,12 @@
   {"id":"discount-total","code":"hesap-dip-indirim","family":"Aritmetik","status":"real_xml_verified"},
   {"id":"tax-exclusive","code":"hesap-dip-vergi-haric","family":"Aritmetik","status":"real_xml_verified"},
   {"id":"signature-missing","code":"imza-yok","family":"İmza","status":"real_xml_verified"},
-  {"id":"uuid","code":"sch-UUIDCheck-1","family":"Schematron / kimlik","status":"planned_fixture"},
-  {"id":"date","code":"sch-TarihBicimi-1","family":"Schematron / tarih","status":"planned_fixture"},
-  {"id":"currency","code":"sch-CurrencyCodeCheck-1","family":"Schematron / kod listesi","status":"planned_fixture"},
-  {"id":"unit","code":"sch-GeneralUnitCodeCheck-1","family":"Schematron / kod listesi","status":"planned_fixture"},
-  {"id":"tax-code","code":"sch-TaxTypeCheck-1","family":"Schematron / vergi","status":"planned_fixture"},
+  {"id":"uuid","code":"sch-UUIDCheck-1","family":"Schematron / kimlik","status":"real_xml_verified"},
+  {"id":"date","code":"sch-TarihBicimi-1","family":"Schematron / tarih","status":"real_xml_verified"},
+  {"id":"currency","code":"sch-CurrencyCodeCheck-1","family":"Schematron / kod listesi","status":"real_xml_verified"},
+  {"id":"unit","code":"sch-GeneralUnitCodeCheck-1","family":"Schematron / kod listesi","status":"real_xml_verified"},
+  {"id":"tax-code","code":"sch-TaxTypeCheck-1","family":"Schematron / vergi","status":"real_xml_verified"},
   {"id":"withholding","code":"sch-WithholdingTaxTotalCheck-3","family":"Schematron / tevkifat","status":"planned_fixture"},
   {"id":"xades-structure","code":"sch-XadesSignatureCheckForInvoice-1","family":"Schematron / imza","status":"planned_fixture"},
-  {"id":"payable","code":"hesap-dip-odenecek","family":"Aritmetik","status":"planned_fixture"}
+  {"id":"payable","code":"hesap-dip-odenecek","family":"Aritmetik","status":"real_xml_verified"}
 ]
