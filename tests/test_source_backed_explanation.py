@@ -1,3 +1,5 @@
+import pytest
+
 from faturaguard.domain.validation import Finding, Priority, Severity
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
 from faturaguard.services.official_rag import RagChunk
@@ -10,6 +12,7 @@ from faturaguard.services.source_backed_explanation import (
     LLMUnavailableError,
     OllamaStructuredGenerator,
     SourceBackedExplanation,
+    UnsafeExplanationError,
 )
 
 
@@ -199,6 +202,50 @@ def test_fallback_generator_uses_local_generator_after_api_failure() -> None:
 
     assert result.summary == "Yerel açıklama."
     assert result.provider_trace == "API fallback: API timeout"
+
+
+def test_fallback_chain_uses_second_api_generator_after_primary_failure() -> None:
+    class FailingGemini:
+        def generate(self, finding, evidence):
+            raise LLMUnavailableError("Gemini timeout")
+
+    class WorkingGroq:
+        def generate(self, finding, evidence):
+            return SourceBackedExplanation(
+                summary="Groq açıklaması.",
+                reasoning="Resmî kanıt tanımı destekler.",
+                recommendation="İnceleyin.",
+                citations=[Citation(source_id="gib", source_title="GİB", source_url="https://gib", page=1)],
+                generation_mode="groq_api",
+            )
+
+    result = FallbackExplanationGenerator(FailingGemini(), WorkingGroq()).generate(
+        _finding_for_fallback(), []
+    )
+
+    assert result.generation_mode == "groq_api"
+    assert result.provider_trace == "API fallback: Gemini timeout"
+
+
+def test_generator_rejects_citation_not_returned_by_retrieval() -> None:
+    explanation = SourceBackedExplanation(
+        summary="Açıklama.",
+        reasoning="Kanıt.",
+        recommendation="İnceleyin.",
+        citations=[Citation(source_id="other", source_title="Diğer", source_url="https://other", page=1)],
+    )
+    evidence = [
+        RetrievedEvidence(
+            RagChunk("gib", "GİB", "https://ebelge.gib.gov.tr/x", 7, "Kanıt"),
+            0.9,
+            0.8,
+            0.5,
+            0.8,
+        )
+    ]
+
+    with pytest.raises(UnsafeExplanationError):
+        OllamaStructuredGenerator._validate_citations(explanation, evidence)
 
 
 def test_groq_generator_uses_strict_schema_and_marks_api_mode(monkeypatch) -> None:

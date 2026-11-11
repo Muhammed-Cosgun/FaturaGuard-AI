@@ -43,7 +43,8 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Yerel LLM seçimini ölçüme dayandırmak için dört gerçek bulgu vakasında süre, şemaya uygun LLM yanıt oranı, fallback oranı ve kaynaklı yanıt oranını ölçen benchmark altyapısı eklendi. Karşılaştırılacak modeller: `qwen2.5:3b-instruct`, `qwen3:4b-instruct`, `gemma3:4b`.
 - n8n webhook bildiriminin yalnızca işlem metadatası gönderdiği; XML içeriği ve yerel saklama yolunu taşımadığı otomatik testle doğrulandı.
 - Kaynaklı açıklama öncesi kanıt uygunluk eşiği eklendi: versiyon geçmişi gibi düşük bilgi içeren parçalar elenir; yalnızca yeterli lexical/terim sinyali taşıyan GİB kanıtında üretim yapılır. Zayıf kanıtla agent'ın `insufficient_official_evidence` durumunda durduğu otomatik testle doğrulandı.
-- Uygulama kodu biçim/lint denetiminden geçti; güncel otomatik test paketi 43/43 başarılıdır.
+- Güvenlik negatif testleri genişletildi: onaysız ve izin listesi dışındaki düzeltme kuralı reddedilir; retrieval ile dönmeyen citation reddedilir; Gemini başarısızlığında ikinci API sağlayıcısının sonucu korunur.
+- Uygulama kodu biçim/lint denetiminden geçti; güncel otomatik test paketi 46/46 başarılıdır.
 - Gerçek `test_hesap_hata.xml` ile komut satırı uçtan uca demo çalıştırıldı. Onaysız akışta teklif oluşturulup giriş XML'i değiştirilmedi; onaylı akışta izinli dip toplam düzeltmesi çalışma kopyasına uygulandı, uyarı sayısı `2`'den `0`'a indi ve giriş dosyasının SHA-256 özeti değişmeden kaldı.
 - Gerçek `test_duzeltilmis.xml` ile geçerli belge kabul senaryosu çalıştırıldı: 0 hata, 0 uyarı, 0 düzeltme teklifi ve değişmeyen SHA-256 özeti doğrulandı.
 - Demo sonrası JSON rapor ayrıca incelendi: yeniden doğrulama özeti ile diff metadatası bulunuyor; orijinal yol, XML içeriği ve tam XML diff'i bulunmuyor.
