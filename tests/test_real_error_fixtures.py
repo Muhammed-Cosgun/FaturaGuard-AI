@@ -12,6 +12,27 @@ def _mutate(old: bytes, new: bytes) -> bytes:
     return BASELINE.replace(old, new, 1)
 
 
+def _with_xml_signature(signature: bytes) -> bytes:
+    """Temel faturaya imza denetimlerinin okuyabileceği bir ds:Signature ekler."""
+    return _mutate(
+        b'xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">\n  <ext:UBLExtensions>',
+        b'xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" '
+        b'xmlns:ds="http://www.w3.org/2000/09/xmldsig#" '
+        b'xmlns:xades="http://uri.etsi.org/01903/v1.3.2#">\n  <ext:UBLExtensions>',
+    ).replace(b"<n4:auto-generated_for_wildcard/>", signature, 1)
+
+
+COMPLETE_SIGNATURE = (
+    b"<ds:Signature><ds:SignedInfo><ds:Reference URI=\"\"/></ds:SignedInfo>"
+    b"<ds:SignatureValue>test</ds:SignatureValue><ds:KeyInfo><ds:X509Data>"
+    b"<ds:X509Certificate>test</ds:X509Certificate></ds:X509Data></ds:KeyInfo><ds:Object>"
+    b"<xades:QualifyingProperties><xades:SignedProperties><xades:SignedSignatureProperties>"
+    b"<xades:SigningTime>2026-01-01T00:00:00Z</xades:SigningTime>"
+    b"<xades:SigningCertificate/></xades:SignedSignatureProperties></xades:SignedProperties>"
+    b"</xades:QualifyingProperties></ds:Object></ds:Signature>"
+)
+
+
 @pytest.mark.parametrize(
     ("case_id", "document", "expected_code"),
     [
@@ -75,12 +96,16 @@ def _mutate(old: bytes, new: bytes) -> bytes:
         ),
         (
             "xades-structure",
-            _mutate(
-                b'xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">\n  <ext:UBLExtensions>',
-                b'xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">\n  <ext:UBLExtensions>',
-            ).replace(b"<n4:auto-generated_for_wildcard/>", b"<ds:Signature/>", 1),
+            _with_xml_signature(b"<ds:Signature/>"),
             "sch-XadesSignatureCheckForInvoice-1",
         ),
+        ("signature-structure", _with_xml_signature(b"<ds:Signature/>"), "imza-yapi"),
+        (
+            "signature-reference",
+            _with_xml_signature(COMPLETE_SIGNATURE.replace(b'URI=""', b'URI="#missing"')),
+            "imza-referans",
+        ),
+        ("signature-present", _with_xml_signature(COMPLETE_SIGNATURE), "imza-var"),
         (
             "tax-inclusive",
             _mutate(
@@ -90,6 +115,36 @@ def _mutate(old: bytes, new: bytes) -> bytes:
             "hesap-dip-vergi-dahil",
         ),
         ("payable", _mutate(b"<cbc:PayableAmount currencyID=\"TRY\">17.88", b"<cbc:PayableAmount currencyID=\"TRY\">17.00"), "hesap-dip-odenecek"),
+        (
+            "document-tax-total",
+            _mutate(
+                b'<cac:TaxTotal><cbc:TaxAmount currencyID="TRY">2.73',
+                b'<cac:TaxTotal><cbc:TaxAmount currencyID="TRY">2.00',
+            ),
+            "hesap-vergi-toplam",
+        ),
+        (
+            "amount-currency-mismatch",
+            _mutate(
+                b'<cbc:PriceAmount currencyID="TRY">0.15',
+                b'<cbc:PriceAmount currencyID="USD">0.15',
+            ),
+            "hesap-para-birimi",
+        ),
+        (
+            "document-charge-total",
+            _mutate(
+                b'  <cac:TaxTotal>',
+                b'  <cac:AllowanceCharge><cbc:ChargeIndicator>true</cbc:ChargeIndicator>'
+                b'<cbc:Amount currencyID="TRY">1.00</cbc:Amount></cac:AllowanceCharge>\n  <cac:TaxTotal>',
+            ).replace(
+                b'<cbc:TaxExclusiveAmount currencyID="TRY">15.15',
+                b'<cbc:ChargeTotalAmount currencyID="TRY">0.00</cbc:ChargeTotalAmount>'
+                b'<cbc:TaxExclusiveAmount currencyID="TRY">15.15',
+                1,
+            ),
+            "hesap-dip-artirim",
+        ),
     ],
 )
 def test_real_mutated_xml_fixture_produces_expected_validator_code(

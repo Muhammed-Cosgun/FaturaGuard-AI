@@ -32,5 +32,11 @@
   {"id":"withholding","code":"sch-GeneralWithholdingTaxTotalCheck-1","family":"Schematron / tevkifat","status":"real_xml_verified"},
   {"id":"xades-structure","code":"sch-XadesSignatureCheckForInvoice-1","family":"Schematron / imza","status":"real_xml_verified"},
   {"id":"signature-scheme","code":"sch-SignatureCheck-1","family":"Schematron / imza","status":"real_xml_verified"},
-  {"id":"payable","code":"hesap-dip-odenecek","family":"Aritmetik","status":"real_xml_verified"}
+  {"id":"payable","code":"hesap-dip-odenecek","family":"Aritmetik","status":"real_xml_verified"},
+  {"id":"signature-structure","code":"imza-yapi","family":"İmza","status":"real_xml_verified"},
+  {"id":"signature-reference","code":"imza-referans","family":"İmza","status":"real_xml_verified"},
+  {"id":"signature-present","code":"imza-var","family":"İmza","status":"real_xml_verified"},
+  {"id":"document-tax-total","code":"hesap-vergi-toplam","family":"Aritmetik","status":"real_xml_verified"},
+  {"id":"amount-currency-mismatch","code":"hesap-para-birimi","family":"Aritmetik","status":"real_xml_verified"},
+  {"id":"document-charge-total","code":"hesap-dip-artirim","family":"Aritmetik","status":"real_xml_verified"}
 ]
