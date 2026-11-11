@@ -50,7 +50,14 @@ COMPLETE_SIGNATURE = (
         ("profile", _mutate(b"<cbc:ProfileID>TEMELFATURA", b"<cbc:ProfileID>GECERSIZ"), "sch-ProfileIDCheck-1"),
         ("uuid", _mutate(b"F47AC10B-58CC-4372-A567-0E02B2C3D479", b"GECERSIZ-UUID"), "sch-UUIDCheck-1"),
         ("date", _mutate(b"2009-01-05", b"2009-02-30"), "sch-TarihBicimi-1"),
+        ("future-date", _mutate(b"2009-01-05", b"2099-01-05"), "sch-TimeCheck-1"),
+        ("legacy-date", _mutate(b"2009-01-05", b"2000-01-05"), "sch-TimeCheck-2"),
         ("currency", _mutate(b"<cbc:DocumentCurrencyCode>TRY", b"<cbc:DocumentCurrencyCode>ZZZ"), "sch-CurrencyCodeCheck-1"),
+        (
+            "exchange-rate-required",
+            _mutate(b"<cbc:DocumentCurrencyCode>TRY", b"<cbc:DocumentCurrencyCode>USD"),
+            "sch-CurrencyCodeCheck-6",
+        ),
         ("amount-currency", _mutate(b'<cbc:TaxAmount currencyID="TRY">2.73', b'<cbc:TaxAmount currencyID="ZZZ">2.73'), "sch-GeneralCurrencyIDCheck-1"),
         ("decimal", _mutate(b'<cbc:TaxInclusiveAmount currencyID="TRY">17.88', b'<cbc:TaxInclusiveAmount currencyID="TRY">17.888'), "sch-decimalCheck-1"),
         ("unit", _mutate(b'unitCode="KWH"', b'unitCode="ADET"'), "sch-GeneralUnitCodeCheck-1"),
@@ -68,6 +75,35 @@ COMPLETE_SIGNATURE = (
             "sch-PartyIdentificationTCKNVKNCheck-1",
         ),
         ("party-tckn", _mutate(b' schemeID="TCKN">10000000146', b' schemeID="TCKN">123'), "sch-PartyIdentificationTCKNVKNCheck-2"),
+        (
+            "party-required-identity",
+            _mutate(
+                b'<cac:AccountingSupplierParty><cac:Party><cbc:WebsiteURI>http://www.aaa.com.tr/</cbc:WebsiteURI><cac:PartyIdentification><cbc:ID schemeID="VKN">1288331521',
+                b'<cac:AccountingSupplierParty><cac:Party><cbc:WebsiteURI>http://www.aaa.com.tr/</cbc:WebsiteURI><cac:PartyIdentification><cbc:ID schemeID="MUSTERINO">1288331521',
+            ),
+            "sch-PartyIdentificationPartyNamePersonCheck-1",
+        ),
+        (
+            "party-name-required",
+            _mutate(
+                "<cac:PartyName><cbc:Name>AAA Anonim Şirketi</cbc:Name></cac:PartyName>".encode(),
+                b"",
+            ),
+            "sch-PartyIdentificationPartyNamePersonCheck-3",
+        ),
+        (
+            "party-person-required",
+            _mutate(
+                b"<cac:Person><cbc:FirstName>Ali</cbc:FirstName><cbc:FamilyName>YILMAZ</cbc:FamilyName></cac:Person>",
+                b"",
+            ),
+            "sch-PartyIdentificationPartyNamePersonCheck-5",
+        ),
+        (
+            "party-person-name-required",
+            _mutate(b"<cbc:FirstName>Ali</cbc:FirstName>", b"<cbc:FirstName></cbc:FirstName>"),
+            "sch-PartyIdentificationPartyNamePersonCheck-6",
+        ),
         ("return-reference", _mutate(b"<cbc:InvoiceTypeCode>SATIS", b"<cbc:InvoiceTypeCode>IADE"), "sch-IADEInvioceCheck-1"),
         ("signature-scheme", _mutate(b'<cac:Signature><cbc:ID schemeID="VKN_TCKN"', b'<cac:Signature><cbc:ID schemeID="HATALI"'), "sch-SignatureCheck-1"),
         (
@@ -100,6 +136,12 @@ COMPLETE_SIGNATURE = (
             "sch-XadesSignatureCheckForInvoice-1",
         ),
         ("signature-structure", _with_xml_signature(b"<ds:Signature/>"), "imza-yapi"),
+        ("xades-key-info", _with_xml_signature(b"<ds:Signature/>"), "sch-XadesSignatureCheckForInvoice-2"),
+        (
+            "xades-signing-time",
+            _with_xml_signature(b"<ds:Signature><ds:Object/></ds:Signature>"),
+            "sch-XadesSignatureCheckForInvoice-5",
+        ),
         (
             "signature-reference",
             _with_xml_signature(COMPLETE_SIGNATURE.replace(b'URI=""', b'URI="#missing"')),
