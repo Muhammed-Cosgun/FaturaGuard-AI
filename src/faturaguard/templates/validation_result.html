@@ -7,16 +7,16 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
   </head>
   <body>
-    <main class="container">
-      <nav class="site-nav" aria-label="Ana menü"><a class="brand" href="/">FaturaGuard <span>AI</span></a><a href="/history">İşlem geçmişi</a></nav>
-      <p class="eyebrow">DOĞRULAMA SONUCU</p>
-      <h1>Belge analizi</h1>
+    <div class="app-shell"><header class="topbar"><div class="topbar-inner"><a class="brand" href="/">FaturaGuard <span>AI</span></a><span class="environment-badge">GÜVENLİ ÇALIŞMA ALANI</span><nav class="site-nav" aria-label="Ana menü"><a class="nav-active" href="/">Doğrulama</a><a href="/history">İşlem geçmişi</a></nav></div></header>
+    <main class="container result-page">
+      <div class="page-heading"><div><p class="eyebrow">DOĞRULAMA SONUCU</p><h1>Belge analizi</h1></div><a class="quiet-link" href="/">+ Yeni doğrulama</a></div>
       {% if error %}
         <section class="notice error"><h2>İşlem tamamlanamadı</h2><p>{{ error }}</p></section>
       {% else %}
         <section class="notice result-hero">
-          <div><p class="section-label">YÜKLENEN BELGE</p><h2>{{ report.original_filename }}</h2></div>
+          <div class="result-title"><div><p class="section-label">YÜKLENEN BELGE</p><h2>{{ report.original_filename }}</h2></div>
           <span class="status-badge {% if report.summary.is_valid %}success{% else %}error{% endif %}">{% if report.summary.is_valid %}GEÇERLİ{% else %}GEÇERSİZ{% endif %}</span>
+          </div>
           <div class="metric-grid" aria-label="Doğrulama özeti">
             <div class="metric error"><strong>{{ report.summary.error_count }}</strong><span>Hata</span></div>
             <div class="metric warning"><strong>{{ report.summary.warning_count }}</strong><span>Uyarı</span></div>
@@ -24,7 +24,7 @@
           </div>
           <p class="metadata">SHA-256: <code>{{ job.original_sha256 }}</code><br>İşlem kimliği: <code>{{ job.job_id }}</code></p>
         </section>
-        <section class="notice"><h2>Bulgular</h2>
+        <section class="notice findings-section"><div class="section-heading"><div><p class="section-label">DENETİM BULGULARI</p><h2>Bulgular</h2></div><span class="finding-count">{{ report.findings|length }} kayıt</span></div>
           {% for finding in report.findings %}
             <article class="finding {{ finding.severity }}">
               <div class="finding-header"><span class="tag priority-{{ finding.priority }}">{{ finding.priority|upper }}</span><span class="tag source">{{ finding.source|upper }}</span>{% if finding.line %}<span class="line-number">satır {{ finding.line }}</span>{% endif %}</div>
@@ -65,7 +65,7 @@
           {% else %}<p>Bulgu bulunamadı.</p>{% endfor %}
         </section>
         {% if job.proposals %}
-        <section class="notice"><h2>Güvenli düzeltme önerileri</h2>
+        <section class="notice"><div class="section-heading"><div><p class="section-label">KULLANICI KARARI GEREKİR</p><h2>Güvenli düzeltme önerileri</h2></div></div>
           {% for proposal in job.proposals %}
           <article class="finding proposal-card">
             <h3>{{ proposal.title }}</h3><p>{{ proposal.rationale }}</p>
@@ -81,7 +81,7 @@
         </section>
         {% endif %}
         {% if job.corrected_report %}
-        <section class="notice"><h2>Yeniden doğrulama</h2>
+        <section class="notice"><div class="section-heading"><div><p class="section-label">DÜZELTME SONRASI KONTROL</p><h2>Yeniden doğrulama</h2></div></div>
           <p><span class="status-badge {% if job.corrected_report.summary.is_valid %}success{% else %}error{% endif %}">{% if job.corrected_report.summary.is_valid %}GEÇERLİ{% else %}GEÇERSİZ{% endif %}</span> · {{ job.corrected_report.summary.error_count }} hata, {{ job.corrected_report.summary.warning_count }} uyarı</p>
           <p class="metadata">Düzeltilmiş kopya SHA-256: <code>{{ job.corrected_sha256 }}</code></p>
           <h3>XML farkı</h3><pre>{{ job.diff }}</pre>
@@ -89,8 +89,9 @@
         {% endif %}
         <p><a href="/jobs/{{ job.job_id }}/report">İşlem raporunu görüntüle</a> · <a href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
       {% endif %}
-      <p><a href="/">Yeni belge yükle</a></p>
+      <p class="bottom-actions"><a class="button-link secondary-link" href="/">Yeni belge yükle</a></p>
     </main>
+    <footer class="site-footer"><div>FaturaGuard AI · Karar ve kaynak kayıtları denetlenebilir biçimde tutulur</div><div>GİB’e doğrudan gönderim yapmaz</div></footer></div>
     <script>
       document.querySelectorAll(".ai-explanation-form").forEach((form) => {
         form.addEventListener("submit", () => {

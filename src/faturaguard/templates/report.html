@@ -7,10 +7,9 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
   </head>
   <body>
+    <div class="app-shell"><header class="topbar"><div class="topbar-inner"><a class="brand" href="/">FaturaGuard <span>AI</span></a><span class="environment-badge">DENETİM RAPORU</span><nav class="site-nav" aria-label="Ana menü"><a href="/">Doğrulama</a><a class="nav-active" href="/history">İşlem geçmişi</a></nav></div></header>
     <main class="container report">
-      <nav class="site-nav" aria-label="Ana menü"><a class="brand" href="/">FaturaGuard <span>AI</span></a><a href="/history">İşlem geçmişi</a></nav>
-      <p class="eyebrow">DENETİM RAPORU</p>
-      <h1>FaturaGuard AI işlem raporu</h1>
+      <div class="page-heading"><div><p class="eyebrow">DENETİM RAPORU</p><h1>İşlem kanıtları</h1></div><a class="quiet-link" href="/history">← İşlem geçmişi</a></div>
       <section class="notice">
         <h2>{{ job.original_filename }}</h2>
         <p>İşlem kimliği: <code>{{ job.job_id }}</code></p>
@@ -18,9 +17,8 @@
         {% if job.corrected_sha256 %}<p>Düzeltilmiş SHA-256: <code>{{ job.corrected_sha256 }}</code></p>{% endif %}
       </section>
       <section class="notice">
-        <h2>Doğrulama özeti</h2>
-        <p>Önce: {{ job.report.summary.error_count }} hata, {{ job.report.summary.warning_count }} uyarı.</p>
-        {% if job.corrected_report %}<p>Sonra: {{ job.corrected_report.summary.error_count }} hata, {{ job.corrected_report.summary.warning_count }} uyarı.</p>{% endif %}
+        <p class="section-label">DOĞRULAMA ÖZETİ</p><h2>Önce / sonra görünümü</h2>
+        <div class="report-summary-grid"><div><small>İLK DOĞRULAMA</small><strong>{{ job.report.summary.error_count }} hata · {{ job.report.summary.warning_count }} uyarı</strong></div>{% if job.corrected_report %}<div><small>YENİDEN DOĞRULAMA</small><strong>{{ job.corrected_report.summary.error_count }} hata · {{ job.corrected_report.summary.warning_count }} uyarı</strong></div>{% endif %}</div>
       </section>
       <section class="notice">
         <h2>Kullanıcı kararları</h2>
@@ -51,7 +49,8 @@
       </section>
       {% endif %}
       <p class="metadata">Bu rapor XML içeriğini içermez; belge bütünlük değerleri ve işlem kanıtlarını içerir.</p>
-      <p><a href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a> · <a href="/history">İşlem geçmişi</a></p>
+      <p class="bottom-actions"><a class="button-link secondary-link" href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
     </main>
+    <footer class="site-footer"><div>FaturaGuard AI · Denetlenebilir işlem kaydı</div><div>Rapor XML içeriğini içermez</div></footer></div>
   </body>
 </html>

@@ -7,14 +7,18 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
   </head>
   <body>
-    <main class="container">
-      <nav class="site-nav" aria-label="Ana menü"><a class="brand" href="/">FaturaGuard <span>AI</span></a><a href="/history">İşlem geçmişi</a></nav>
-      <p class="eyebrow">E-FATURA DOĞRULAMA · GÜVENLİ AI İŞ AKIŞI</p>
-      <h1>Faturanızı doğrulayın, <em>kontrolü sizde tutun.</em></h1>
-      <p class="lead">Resmî GİB kaynaklarıyla açıklama, sınırlı düzeltme ve zorunlu kullanıcı onayı.</p>
-      <section class="notice" aria-labelledby="upload-title">
-        <h2 id="upload-title">XML belgesini doğrula</h2>
-        <p>Dosyanın orijinali korunur; hiçbir düzeltme kullanıcı onayı olmadan uygulanmaz.</p>
+    <div class="app-shell">
+    <header class="topbar"><div class="topbar-inner"><a class="brand" href="/">FaturaGuard <span>AI</span></a><span class="environment-badge">GÜVENLİ ÇALIŞMA ALANI</span><nav class="site-nav" aria-label="Ana menü"><a class="nav-active" href="/">Doğrulama</a><a href="/history">İşlem geçmişi</a></nav></div></header>
+    <main class="container home-page">
+      <section class="hero-panel">
+        <div class="hero-copy"><p class="eyebrow">E-FATURA DENETİM PLATFORMU</p>
+        <h1>Faturanızı doğrulayın,<br><em>kontrolü sizde tutun.</em></h1>
+        <p class="lead">UBL-TR kontrolü, resmî GİB kaynaklı açıklama ve insan onaylı güvenli düzeltme tek iş akışında.</p></div>
+        <aside class="hero-assurance" aria-label="Platform güvenceleri"><span class="assurance-icon">✓</span><div><strong>Denetlenebilir karar akışı</strong><p>Her doğrulama, kaynak ve kullanıcı kararı kayıt altındadır.</p></div></aside>
+      </section>
+      <section class="notice upload-card" aria-labelledby="upload-title">
+        <div class="section-heading"><div><p class="section-label">YENİ DOĞRULAMA</p><h2 id="upload-title">XML belgesini yükleyin</h2></div><span class="step-chip">1 / 3</span></div>
+        <p class="metadata">Orijinal dosya korunur. Düzeltmeler yalnızca sizin açık onayınızla uygulanır.</p>
         <form action="/documents/validate" method="post" enctype="multipart/form-data">
           <label for="document">UBL-TR XML dosyası</label>
           <input id="document" name="file" type="file" accept=".xml,application/xml,text/xml" required>
@@ -22,10 +26,12 @@
         </form>
       </section>
       <section class="trust-grid" aria-label="Güvenlik ilkeleri">
-        <article><strong>01</strong><span>Orijinal XML korunur</span></article>
-        <article><strong>02</strong><span>Kaynaklar resmî GİB belgeleridir</span></article>
-        <article><strong>03</strong><span>Düzeltme yalnızca onayla uygulanır</span></article>
+        <article><strong>01</strong><span>Orijinal XML korunur</span><small>SHA-256 ile bütünlük kaydı</small></article>
+        <article><strong>02</strong><span>Resmî kaynaklarla açıklama</span><small>Yalnızca GİB kaynak kümesi</small></article>
+        <article><strong>03</strong><span>İnsan onaylı düzeltme</span><small>Önce/sonra farkı ve yeniden kontrol</small></article>
       </section>
     </main>
+    <footer class="site-footer"><div>FaturaGuard AI · e-Fatura kalite güvence çalışma alanı</div><div>Orijinal belge içeriği arayüzde tutulmaz</div></footer>
+    </div>
   </body>
 </html>

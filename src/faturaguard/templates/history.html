@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
   </head>
   <body>
+    <div class="app-shell"><header class="topbar"><div class="topbar-inner"><a class="brand" href="/">FaturaGuard <span>AI</span></a><span class="environment-badge">GÜVENLİ ÇALIŞMA ALANI</span><nav class="site-nav" aria-label="Ana menü"><a href="/">Doğrulama</a><a class="nav-active" href="/history">İşlem geçmişi</a></nav></div></header>
     <main class="container history">
-      <nav class="site-nav" aria-label="Ana menü"><a class="brand" href="/">FaturaGuard <span>AI</span></a><a href="/">Yeni doğrulama</a></nav>
       <p class="eyebrow">DENETLENEBİLİR İŞLEM GEÇMİŞİ</p>
       <h1>İşlem geçmişi</h1>
       <p class="lead">Son 20 doğrulama işlemi; XML içeriği gösterilmeden listelenir.</p>
@@ -33,7 +33,8 @@
         </div>
         {% else %}<p>Henüz işlem geçmişi bulunmuyor.</p>{% endif %}
       </section>
-      <p><a href="/">Yeni belge yükle</a></p>
+      <p class="bottom-actions"><a class="button-link secondary-link" href="/">Yeni belge yükle</a></p>
     </main>
+    <footer class="site-footer"><div>FaturaGuard AI · İşlem geçmişi</div><div>XML içeriği listelenmez</div></footer></div>
   </body>
 </html>
