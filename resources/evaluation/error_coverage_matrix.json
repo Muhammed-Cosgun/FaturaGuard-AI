@@ -48,4 +48,13 @@
   ,{"id":"party-person-name-required","code":"sch-PartyIdentificationPartyNamePersonCheck-6","family":"Schematron / taraf","status":"real_xml_verified"}
   ,{"id":"xades-key-info","code":"sch-XadesSignatureCheckForInvoice-2","family":"Schematron / imza","status":"real_xml_verified"}
   ,{"id":"xades-signing-time","code":"sch-XadesSignatureCheckForInvoice-5","family":"Schematron / imza","status":"real_xml_verified"}
+  ,{"id":"zero-vat-exemption-reason","code":"sch-TaxExemptionReasonCheck-1","family":"Schematron / istisna","status":"real_xml_verified"}
+  ,{"id":"invalid-exemption-code","code":"sch-TaxExemptionReasonCodeCheck-2","family":"Schematron / istisna","status":"real_xml_verified"}
+  ,{"id":"incompatible-exemption-invoice-type","code":"sch-TaxExemptionReasonCodeCheck-3","family":"Schematron / istisna","status":"real_xml_verified"}
+  ,{"id":"withholding-invalid-code","code":"sch-WithholdingTaxTotalCheck-2","family":"Schematron / tevkifat","status":"real_xml_verified"}
+  ,{"id":"withholding-invalid-percent","code":"sch-WithholdingTaxTotalCheck-3","family":"Schematron / tevkifat","status":"real_xml_verified"}
+  ,{"id":"payment-means-code","code":"sch-PaymentMeansCodeCheck-1","family":"Schematron / ödeme","status":"real_xml_verified"}
+  ,{"id":"public-invoice-iban","code":"sch-KamuFaturaCheck-1","family":"Schematron / kamu","status":"real_xml_verified"}
+  ,{"id":"withholding-calculation","code":"hesap-tevkifat-toplam","family":"Aritmetik","status":"real_xml_verified"}
+  ,{"id":"withholding-subtotal-calculation","code":"hesap-tevkifat","family":"Aritmetik","status":"real_xml_verified"}
 ]

@@ -123,12 +123,92 @@ COMPLETE_SIGNATURE = (
             "hesap-vergi",
         ),
         (
+            "zero-vat-exemption-reason",
+            BASELINE.replace(b'<cbc:TaxAmount currencyID="TRY">2.73', b'<cbc:TaxAmount currencyID="TRY">0.00', 2),
+            "sch-TaxExemptionReasonCheck-1",
+        ),
+        (
+            "invalid-exemption-code",
+            _mutate(
+                b"<cac:TaxCategory><cac:TaxScheme>",
+                b"<cac:TaxCategory><cbc:TaxExemptionReason>Exemption</cbc:TaxExemptionReason>"
+                b"<cbc:TaxExemptionReasonCode>999</cbc:TaxExemptionReasonCode><cac:TaxScheme>",
+            ),
+            "sch-TaxExemptionReasonCodeCheck-2",
+        ),
+        (
+            "incompatible-exemption-invoice-type",
+            _mutate(
+                b"<cac:TaxCategory><cac:TaxScheme>",
+                b"<cac:TaxCategory><cbc:TaxExemptionReason>Exemption</cbc:TaxExemptionReason>"
+                b"<cbc:TaxExemptionReasonCode>001</cbc:TaxExemptionReasonCode><cac:TaxScheme>",
+            ),
+            "sch-TaxExemptionReasonCodeCheck-3",
+        ),
+        (
             "withholding-type",
             _mutate(
                 b"</cac:TaxTotal>\n  <cac:LegalMonetaryTotal>",
                 b"</cac:TaxTotal>\n  <cac:WithholdingTaxTotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount></cac:WithholdingTaxTotal>\n  <cac:LegalMonetaryTotal>",
             ),
             "sch-GeneralWithholdingTaxTotalCheck-1",
+        ),
+        (
+            "withholding-invalid-code",
+            _mutate(
+                b"</cac:TaxTotal>\n  <cac:LegalMonetaryTotal>",
+                b"</cac:TaxTotal><cac:WithholdingTaxTotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount>"
+                b"<cac:TaxSubtotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount><cbc:Percent>50</cbc:Percent>"
+                b"<cac:TaxCategory><cac:TaxScheme><cbc:TaxTypeCode>999</cbc:TaxTypeCode></cac:TaxScheme>"
+                b"</cac:TaxCategory></cac:TaxSubtotal></cac:WithholdingTaxTotal>\n  <cac:LegalMonetaryTotal>",
+            ),
+            "sch-WithholdingTaxTotalCheck-2",
+        ),
+        (
+            "withholding-invalid-percent",
+            _mutate(
+                b"</cac:TaxTotal>\n  <cac:LegalMonetaryTotal>",
+                b"</cac:TaxTotal><cac:WithholdingTaxTotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount>"
+                b"<cac:TaxSubtotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount><cbc:Percent>99</cbc:Percent>"
+                b"<cac:TaxCategory><cac:TaxScheme><cbc:TaxTypeCode>601</cbc:TaxTypeCode></cac:TaxScheme>"
+                b"</cac:TaxCategory></cac:TaxSubtotal></cac:WithholdingTaxTotal>\n  <cac:LegalMonetaryTotal>",
+            ),
+            "sch-WithholdingTaxTotalCheck-3",
+        ),
+        (
+            "payment-means-code",
+            _mutate(
+                b"  <cac:PaymentTerms>",
+                b"  <cac:PaymentMeans><cbc:PaymentMeansCode>999</cbc:PaymentMeansCode></cac:PaymentMeans>\n  <cac:PaymentTerms>",
+            ),
+            "sch-PaymentMeansCodeCheck-1",
+        ),
+        (
+            "public-invoice-iban",
+            _mutate(b"<cbc:ProfileID>TEMELFATURA", b"<cbc:ProfileID>KAMU"),
+            "sch-KamuFaturaCheck-1",
+        ),
+        (
+            "withholding-calculation",
+            _mutate(
+                b"</cac:TaxTotal>\n  <cac:LegalMonetaryTotal>",
+                b"</cac:TaxTotal><cac:WithholdingTaxTotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount>"
+                b"<cac:TaxSubtotal><cbc:TaxAmount currencyID=\"TRY\">1.37</cbc:TaxAmount><cbc:Percent>50</cbc:Percent>"
+                b"<cac:TaxCategory><cac:TaxScheme><cbc:TaxTypeCode>601</cbc:TaxTypeCode></cac:TaxScheme>"
+                b"</cac:TaxCategory></cac:TaxSubtotal></cac:WithholdingTaxTotal>\n  <cac:LegalMonetaryTotal>",
+            ),
+            "hesap-tevkifat-toplam",
+        ),
+        (
+            "withholding-subtotal-calculation",
+            _mutate(
+                b"</cac:TaxTotal>\n  <cac:LegalMonetaryTotal>",
+                b"</cac:TaxTotal><cac:WithholdingTaxTotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount>"
+                b"<cac:TaxSubtotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount><cbc:Percent>50</cbc:Percent>"
+                b"<cac:TaxCategory><cac:TaxScheme><cbc:TaxTypeCode>601</cbc:TaxTypeCode></cac:TaxScheme>"
+                b"</cac:TaxCategory></cac:TaxSubtotal></cac:WithholdingTaxTotal>\n  <cac:LegalMonetaryTotal>",
+            ),
+            "hesap-tevkifat",
         ),
         (
             "xades-structure",
