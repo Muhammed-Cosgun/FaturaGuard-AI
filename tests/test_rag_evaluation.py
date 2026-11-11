@@ -1,4 +1,6 @@
-from faturaguard.services.rag_evaluation import GoldenQuery, evaluate_retriever
+from pathlib import Path
+
+from faturaguard.services.rag_evaluation import GoldenQuery, evaluate_retriever, load_golden_queries
 
 
 class Result:
@@ -29,3 +31,14 @@ def test_evaluation_calculates_metrics() -> None:
     assert result.recall_at_k == 1.0
     assert result.mrr_at_k == 0.75
     assert result.citation_coverage == 1.0
+
+
+def test_project_golden_queries_are_unique_and_cover_core_validation_topics() -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    queries = load_golden_queries(project_root / "resources" / "evaluation" / "golden_queries.json")
+
+    assert len(queries) >= 10
+    assert len({query.query_id for query in queries}) == len(queries)
+    assert {"schema-schematron", "tax-exclusive-total", "xades-extension-content"} <= {
+        query.query_id for query in queries
+    }

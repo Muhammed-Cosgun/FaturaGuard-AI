@@ -1,8 +1,13 @@
 [
   {"id": "schema-schematron", "query": "UBL-TR şema XSD schematron kontrolü", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 7},
-  {"id": "mali-muhur", "query": "e-fatura mali mühür sertifikası ile onaylanmalı", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 7},
+  {"id": "uygulama-yaniti-schema", "query": "uygulama yanıtı şema XSD schematron kontrolü", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 10},
   {"id": "gonderici-birim", "query": "gönderici birim e-fatura zarf şema schematron kontrolü", "expected_source_id": "gib-efatura-test-plani-v13", "expected_page": 12},
   {"id": "legal-monetary-total", "query": "LegalMonetaryTotal parasal toplamlar LineExtensionAmount TaxExclusiveAmount", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 35},
-  {"id": "invoice-line-extension", "query": "InvoiceLine mal hizmet kalemleri LineExtensionAmount", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 36},
-  {"id": "tax-exclusive-total", "query": "TaxExclusiveAmount vergi hariç tutar LegalMonetaryTotal", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 35}
+  {"id": "invoice-line", "query": "InvoiceLine mal hizmet kalemleri fatura", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 36},
+  {"id": "line-extension-amount", "query": "LineExtensionAmount mal hizmet miktarı birim fiyat", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 47},
+  {"id": "tax-exclusive-total", "query": "TaxExclusiveAmount vergi hariç tutar iskonto artırım", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 47},
+  {"id": "xades-extension-content", "query": "XAdES mali mühür elektronik imza ExtensionContent", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 32},
+  {"id": "xades-ubl-extension", "query": "UBL-TR fatura UBLExtensions XAdES elektronik imza", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 80},
+  {"id": "party-identification", "query": "PartyIdentification vergi kimlik numarası schemeID", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 52},
+  {"id": "tax-scheme", "query": "TaxScheme TaxTypeCode schematron vergi tipi kodu", "expected_source_id": "gib-ubltr-121-kilavuzlari", "expected_page": 71}
 ]
