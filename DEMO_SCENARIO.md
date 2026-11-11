@@ -6,7 +6,7 @@ Bu senaryo; doğrulama, insan onayı, sınırlı düzeltme, yeniden doğrulama, 
 
 - `.venv-runtime` etkin olmalı.
 - `efatura-kontrol` ve proje bağımlılıkları kurulu olmalı.
-- Daha önce oluşturulan GİB RAG indeksi korunmalı; AI açıklaması gösterilecekse Ollama servisi açık olmalı.
+- Daha önce oluşturulan GİB RAG indeksi korunmalı. AI açıklaması için sunum modunda Gemini Flash Lite ve Groq GPT-OSS 120B anahtarları aynı CMD oturumunda tanımlanmalı; anahtar yoksa yerel Ollama/Gemma modu kullanılabilir.
 
 ## Ana senaryo: aritmetik tutarsızlık
 
@@ -41,11 +41,16 @@ Beklenen davranış:
 ## Web arayüzü senaryosu
 
 ```cmd
+set "LLM_PROVIDER=auto"
+set "GEMINI_API_KEY=KENDI_GEMINI_ANAHTARIN"
+set "GEMINI_MODEL=gemini-3.5-flash-lite"
+set "GROQ_API_KEY=KENDI_GROQ_ANAHTARIN"
+set "GROQ_MODEL=openai/gpt-oss-120b"
 uvicorn faturaguard.main:app --reload
 ```
 
 1. `http://127.0.0.1:8000` adresini açın ve aynı XML'i yükleyin.
-2. Aritmetik bulguda **GİB kaynağıyla açıkla** düğmesine basın; kaynak, resmî URL ve sayfayı inceleyin.
+2. Aritmetik bulguda **Resmî GİB kaynağıyla açıkla** düğmesine basın; kaynak, resmî URL ve sayfayı inceleyin.
 3. Düzeltme kartındaki önce/sonra değerini kontrol edin.
 4. **Kabul et** ile çalışma kopyasının oluşturulduğunu, diff'i ve yeniden doğrulama özetini gösterin.
 5. İşlem raporunu HTML ve JSON olarak açın.
