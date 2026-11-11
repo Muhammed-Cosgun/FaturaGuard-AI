@@ -106,7 +106,16 @@ def test_agent_warmup_runs_a_small_retrieval_query() -> None:
             self.calls.append((query, limit))
             return []
 
+    class WarmupGenerator(FakeGenerator):
+        def __init__(self) -> None:
+            self.warmup_called = False
+
+        def warmup(self) -> None:
+            self.warmup_called = True
+
     retriever = WarmupRetriever()
-    SourceBackedAgent(retriever, FakeGenerator()).warmup()
+    generator = WarmupGenerator()
+    SourceBackedAgent(retriever, generator).warmup()
 
     assert retriever.calls == [("UBL-TR e-Fatura doğrulama", 1)]
+    assert generator.warmup_called is True

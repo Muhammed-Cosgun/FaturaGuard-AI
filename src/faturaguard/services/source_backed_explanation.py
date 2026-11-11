@@ -83,6 +83,21 @@ class OllamaStructuredGenerator:
                 continue
         return self._deterministic_fallback(finding, evidence)
 
+    def warmup(self) -> None:
+        """Yerel modelin ağırlıklarını ilk kullanıcı isteğinden önce belleğe alır."""
+
+        response = httpx.post(
+            f"{self._base_url}/api/chat",
+            json={
+                "model": self._model,
+                "stream": False,
+                "options": {"num_predict": 1},
+                "messages": [{"role": "user", "content": "hazır"}],
+            },
+            timeout=90.0,
+        )
+        response.raise_for_status()
+
     @staticmethod
     def _system_prompt() -> str:
         return """Sen FaturaGuard AI açıklama asistanısın.

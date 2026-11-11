@@ -50,9 +50,12 @@ class SourceBackedAgent:
         )
 
     def warmup(self) -> None:
-        """İlk kullanıcı isteğinden önce semantic retrieval hattını belleğe alır."""
+        """Semantic retrieval ve varsa yerel LLM hattını belleğe alır."""
 
         self._retriever.search("UBL-TR e-Fatura doğrulama", limit=1)
+        generator_warmup = getattr(self._generator, "warmup", None)
+        if callable(generator_warmup):
+            generator_warmup()
 
     def _build_graph(self):
         workflow = StateGraph(AgentState)
