@@ -35,6 +35,17 @@ class CorrectionWorkflow:
         )
         return job
 
+    def validate_stored(self, stored: StoredDocument):
+        """Agent'ın çağırabildiği güvenilir doğrulama aracı.
+
+        XML yalnızca yerel dosyadan okunur; bu sonuç LLM sağlayıcısına aktarılmaz.
+        """
+        return self._validator.validate(stored.path.read_bytes(), stored.original_filename)
+
+    def record_agent_event(self, job_id: str, event_type: str, detail: dict[str, object]) -> None:
+        """Agent'ın hangi izinli aracı kullandığını denetlenebilir biçimde kaydeder."""
+        self._store.append_event(job_id, event_type, detail)
+
     def decide(self, job_id: str, proposal_id: str, decision: str) -> CorrectionJob:
         job = self._store.load(job_id)
         proposal = next((item for item in job.proposals if item.proposal_id == proposal_id), None)

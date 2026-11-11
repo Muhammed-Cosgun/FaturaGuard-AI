@@ -1,7 +1,9 @@
+from types import SimpleNamespace
+
 import pytest
 
 from faturaguard.domain.validation import Finding, Priority, Severity
-from faturaguard.services.agent_workflow import SourceBackedAgent
+from faturaguard.services.agent_workflow import FaturaGuardAgent, SourceBackedAgent
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
 from faturaguard.services.official_rag import RagChunk
 from faturaguard.services.source_backed_explanation import (
@@ -161,3 +163,89 @@ def test_agent_warmup_runs_a_small_retrieval_query() -> None:
 
     assert retriever.calls == [("UBL-TR e-Fatura doğrulama", 1)]
     assert generator.warmup_called is True
+
+
+class OrchestrationWorkflow:
+    def __init__(self, report, proposals) -> None:
+        self.report = report
+        self.proposals = proposals
+        self.calls = []
+        self.events = []
+
+    def validate_stored(self, stored):
+        self.calls.append(("validate", stored))
+        return self.report
+
+    def create(self, stored, report):
+        self.calls.append(("propose", stored, report))
+        return SimpleNamespace(job_id="job-1", report=report, proposals=self.proposals)
+
+    def record_agent_event(self, job_id, event_type, detail):
+        self.events.append((job_id, event_type, detail))
+
+
+def test_orchestrator_calls_local_validation_then_safe_proposal_tool() -> None:
+    report = SimpleNamespace(findings=[_finding()])
+    workflow = OrchestrationWorkflow(report, proposals=[object()])
+
+    result = FaturaGuardAgent().process_uploaded_document(object(), workflow)
+
+    assert [call[0] for call in workflow.calls] == ["validate", "propose"]
+    assert result["status"] == "awaiting_human_review"
+    assert result["audit_events"] == [
+        "agent_tool_validate_document",
+        "agent_tool_propose_safe_corrections",
+        "agent_route_await_human_review",
+    ]
+    assert [event[1] for event in workflow.events] == [
+        "agent_tool_propose_safe_corrections",
+        "agent_route_await_human_review",
+    ]
+
+
+def test_orchestrator_routes_clean_document_to_report_ready() -> None:
+    report = SimpleNamespace(findings=[])
+    workflow = OrchestrationWorkflow(report, proposals=[])
+
+    result = FaturaGuardAgent().process_uploaded_document(object(), workflow)
+
+    assert result["status"] == "report_ready"
+    assert result["audit_events"][-1] == "agent_route_report_ready"
+
+
+class DecisionWorkflow:
+    def __init__(self) -> None:
+        self.calls = []
+        self.events = []
+
+    def decide(self, job_id, proposal_id, decision):
+        self.calls.append((job_id, proposal_id, decision))
+        proposal = SimpleNamespace(proposal_id=proposal_id, rule_id="recalculate-line-extension-total")
+        return SimpleNamespace(job_id=job_id, proposals=[proposal], corrected_report=object())
+
+    def record_agent_event(self, job_id, event_type, detail):
+        self.events.append((job_id, event_type, detail))
+
+
+def test_orchestrator_applies_only_after_explicit_approval_and_revalidates() -> None:
+    workflow = DecisionWorkflow()
+
+    result = FaturaGuardAgent().handle_correction_decision(workflow, "job-1", "proposal-1", "approve")
+
+    assert workflow.calls == [("job-1", "proposal-1", "approve")]
+    assert result["status"] == "approved"
+    assert result["audit_events"] == [
+        "agent_tool_apply_safe_correction",
+        "agent_tool_revalidate_corrected_copy",
+        "agent_tool_report_correction_result",
+    ]
+
+
+def test_orchestrator_records_rejection_without_applying_correction() -> None:
+    workflow = DecisionWorkflow()
+
+    result = FaturaGuardAgent().handle_correction_decision(workflow, "job-1", "proposal-1", "reject")
+
+    assert workflow.calls == [("job-1", "proposal-1", "reject")]
+    assert result["status"] == "rejected"
+    assert "agent_tool_apply_safe_correction" not in result["audit_events"]

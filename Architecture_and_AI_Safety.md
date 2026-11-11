@@ -26,7 +26,7 @@ FastAPI uygulaması
 - RAG: yalnızca doğrulanmış resmî GİB kaynaklarından açıklama getirir. e-Fatura PDF'lerinin yanında SHA-256 ile doğrulanan UBL-TR kılavuz arşivindeki Fatura ve Ortak Elemanlar dokümanları da indekslenir. Parçalar kaynak kimliği, başlık, resmî URL, sayfa numarası, sürüm ve hash ile saklanır.
 - Chroma: doğrulanmış GİB chunks'larının kalıcı vektör koleksiyonudur; içerik ve metadata filtreleri buradan getirilir.
 - Hibrit retrieval/rerank: semantic arama ile lexical arama ayrı üretilir; adaylar birleştirilir ve teknik-terim eşleşmesi, benzerlik ve belge bağlamıyla tekrar sıralanır.
-- Agent: LangGraph üzerinde tanımlı araçlar dışında işlem yapamaz. Akış: doğrula → önceliklendir → getir → rerank → kaynaklı açıkla → güvenlik denetimi → onay bekle → uygula → yeniden doğrula → raporla.
+- Agent: LangGraph üzerinde tanımlı araçlar dışında işlem yapamaz. Belge kabul grafiği yerel `validate_document` → `propose_safe_corrections` → `await_human_review` / `report_ready` düğümlerini çalıştırır. Karar grafiği ise kullanıcı onayı sonrasında `apply_safe_correction` → `revalidate_corrected_copy` → `report_correction_result` sırasını yürütür; red kararı yalnızca kaydedilir. Kaynaklı açıklama için alt akış: getir → rerank → kaynaklı açıkla → insan incelemesi. Bu araçların her çağrısı SQLite audit trail'e yazılır.
 - Kaynaklı açıklama: Ollama yerel API'sine JSON şeması gönderilir. LLM çıktısındaki her atıf, retrieval ile dönen GİB kanıtlarıyla bire bir eşleşmek zorundadır; eşleşmeyen atıf reddedilir.
 - Model sağlayıcısı: yerel LLM veya API sağlayıcısı, aynı yapılandırılmış çıktı sözleşmesini uygulayan değiştirilebilir bir adaptör üzerinden bağlanır. Varsayılan demo sağlayıcısı yerel Ollama `gemma3:4b` modelidir; dört gerçek bulgu vakasındaki %100 geçerli yapılandırılmış çıktı sonucu nedeniyle seçilmiştir. Model çevresel ayarla değiştirilebilir.
 - Hızlı API modu: `GEMINI_API_KEY` tanımlandığında düşük gecikmeli Gemini Flash-Lite, en güçlü iki GİB kanıt parçası ve 12 saniyelik istek bütçesiyle birincil üretici olur. Süre aşımı veya API hatasında yapılandırılmış çıktıyı Groq GPT-OSS 120B ikinci sağlayıcısı dener; o da başarısızsa uzun yerel LLM beklenmeden doğrulanmış atıflarla deterministik kaynak özeti gösterilir. Anahtar yoksa uygulama tamamen yerel Ollama moduna döner. API sınırından yalnızca statik doğrulama kuralı ve retrieval/rerank ile seçilmiş GİB kanıt parçaları geçer; XML, dosya adı, SHA-256, taraf/tutar bilgileri ve yerel yol geçmez. API anahtarı kaynak kodda, raporda veya audit kaydında tutulmaz.
@@ -39,6 +39,7 @@ FastAPI uygulaması
 
 - Orijinal dosya salt okunur korunur.
 - Kullanıcı onayı olmadan XML değiştirilemez.
+- Agent, kullanıcıdan açık `approve` kararı gelmeden düzeltme aracını çağıramaz; LLM metni hiçbir zaman XML değişikliği komutu değildir.
 - E-imza, taraf bilgileri, vergi kimlik bilgileri, fatura numarası, tarih ve ticari tutarı değiştiren alanlar otomatik düzeltilmez.
 - Her işlem, dosya bütünlük özeti ve karar kaydıyla ilişkilendirilir.
 - Kaynak bulunmadığında agent kesin bir yönlendirme yapmaz.

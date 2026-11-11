@@ -1,10 +1,12 @@
-"""LangGraph üzerinde kaynaklı açıklama üreten tek-agent iş akışı."""
+"""LangGraph üzerinde kaynak açıklaması ve güvenli belge orkestrasyonu."""
 
 from typing import Literal, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
 from faturaguard.domain.validation import Finding
+from faturaguard.services.correction_workflow import CorrectionWorkflow
+from faturaguard.services.document_storage import StoredDocument
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
 from faturaguard.services.source_backed_explanation import (
     ExplanationGenerator,
@@ -20,6 +22,27 @@ class AgentState(TypedDict):
     explanation: SourceBackedExplanation | None
     status: str
     generation_error: str | None
+    audit_events: list[str]
+
+
+class DocumentAgentState(TypedDict):
+    """Belge verisini yalnızca yerel araçlar arasında taşıyan agent durumu."""
+
+    stored: StoredDocument
+    workflow: CorrectionWorkflow
+    report: object | None
+    job: object | None
+    status: str
+    audit_events: list[str]
+
+
+class DecisionAgentState(TypedDict):
+    workflow: CorrectionWorkflow
+    job_id: str
+    proposal_id: str
+    decision: str
+    job: object | None
+    status: str
     audit_events: list[str]
 
 
@@ -202,4 +225,198 @@ class SourceBackedAgent:
         return {
             "status": "insufficient_official_evidence",
             "audit_events": [*state["audit_events"], "insufficient_evidence"],
+        }
+
+
+class FaturaGuardAgent:
+    """FaturaGuard'ın araç kullanan, insan onaylı iş akışı orkestratörü.
+
+    Bu sınıf bir LLM'e XML vermez. LangGraph yalnızca yerel doğrulama/düzeltme
+    araçlarının çağrılma sırasını ve insan kararına göre yönlendirmeyi yönetir.
+    Kaynaklı doğal dil açıklaması gerektiğinde ``SourceBackedAgent`` alt aracını
+    kullanır.
+    """
+
+    def __init__(self, source_agent: SourceBackedAgent | None = None) -> None:
+        self._source_agent = source_agent
+        self.intake_graph = self._build_intake_graph()
+        self.decision_graph = self._build_decision_graph()
+
+    def process_uploaded_document(
+        self, stored: StoredDocument, workflow: CorrectionWorkflow
+    ) -> DocumentAgentState:
+        """Doğrula → güvenli teklif üret → insan incelemesine yönlendir."""
+        return self.intake_graph.invoke(
+            {
+                "stored": stored,
+                "workflow": workflow,
+                "report": None,
+                "job": None,
+                "status": "started",
+                "audit_events": [],
+            }
+        )
+
+    def handle_correction_decision(
+        self,
+        workflow: CorrectionWorkflow,
+        job_id: str,
+        proposal_id: str,
+        decision: str,
+    ) -> DecisionAgentState:
+        """İnsan kararından sonra yalnızca izinli düzeltme aracını çalıştırır."""
+        return self.decision_graph.invoke(
+            {
+                "workflow": workflow,
+                "job_id": job_id,
+                "proposal_id": proposal_id,
+                "decision": decision,
+                "job": None,
+                "status": "started",
+                "audit_events": [],
+            }
+        )
+
+    def explain_finding(self, job_id: str, finding_code: str, workflow: CorrectionWorkflow):
+        if self._source_agent is None:
+            raise RuntimeError("GİB RAG indeksi hazır değil; kaynaklı açıklama üretilemez.")
+        return workflow.explain_finding(job_id, finding_code, self._source_agent)
+
+    def _build_intake_graph(self):
+        graph = StateGraph(DocumentAgentState)
+        graph.add_node("validate_document", self._validate_document)
+        graph.add_node("propose_safe_corrections", self._propose_safe_corrections)
+        graph.add_node("await_human_review", self._await_human_review)
+        graph.add_node("report_ready", self._report_ready)
+        graph.add_edge(START, "validate_document")
+        graph.add_edge("validate_document", "propose_safe_corrections")
+        graph.add_conditional_edges(
+            "propose_safe_corrections",
+            self._route_after_intake,
+            {"review": "await_human_review", "complete": "report_ready"},
+        )
+        graph.add_edge("await_human_review", END)
+        graph.add_edge("report_ready", END)
+        return graph.compile()
+
+    @staticmethod
+    def _validate_document(state: DocumentAgentState) -> dict[str, object]:
+        report = state["workflow"].validate_stored(state["stored"])
+        return {
+            "report": report,
+            "audit_events": [*state["audit_events"], "agent_tool_validate_document"],
+        }
+
+    @staticmethod
+    def _propose_safe_corrections(state: DocumentAgentState) -> dict[str, object]:
+        report = state["report"]
+        if report is None:
+            raise RuntimeError("Agent doğrulama sonucu olmadan düzeltme teklifi üretemez.")
+        workflow = state["workflow"]
+        job = workflow.create(state["stored"], report)
+        workflow.record_agent_event(
+            job.job_id,
+            "agent_tool_propose_safe_corrections",
+            {"proposal_count": len(job.proposals)},
+        )
+        return {
+            "job": job,
+            "audit_events": [*state["audit_events"], "agent_tool_propose_safe_corrections"],
+        }
+
+    @staticmethod
+    def _route_after_intake(state: DocumentAgentState) -> Literal["review", "complete"]:
+        job = state["job"]
+        if job is None:
+            raise RuntimeError("Agent işlem kaydı oluşturmadan rota belirleyemez.")
+        return "review" if job.report.findings or job.proposals else "complete"
+
+    @staticmethod
+    def _await_human_review(state: DocumentAgentState) -> dict[str, object]:
+        job = state["job"]
+        if job is not None:
+            state["workflow"].record_agent_event(
+                job.job_id, "agent_route_await_human_review", {"reason": "findings_or_proposals"}
+            )
+        return {
+            "status": "awaiting_human_review",
+            "audit_events": [*state["audit_events"], "agent_route_await_human_review"],
+        }
+
+    @staticmethod
+    def _report_ready(state: DocumentAgentState) -> dict[str, object]:
+        job = state["job"]
+        if job is not None:
+            state["workflow"].record_agent_event(
+                job.job_id, "agent_route_report_ready", {"reason": "no_findings"}
+            )
+        return {
+            "status": "report_ready",
+            "audit_events": [*state["audit_events"], "agent_route_report_ready"],
+        }
+
+    def _build_decision_graph(self):
+        graph = StateGraph(DecisionAgentState)
+        graph.add_node("apply_safe_correction", self._apply_safe_correction)
+        graph.add_node("record_rejection", self._record_rejection)
+        graph.add_node("report_correction_result", self._report_correction_result)
+        graph.add_edge(START, "apply_safe_correction")
+        graph.add_conditional_edges(
+            "apply_safe_correction",
+            self._route_after_decision,
+            {"approved": "report_correction_result", "rejected": "record_rejection"},
+        )
+        graph.add_edge("record_rejection", "report_correction_result")
+        graph.add_edge("report_correction_result", END)
+        return graph.compile()
+
+    @staticmethod
+    def _apply_safe_correction(state: DecisionAgentState) -> dict[str, object]:
+        if state["decision"] != "approve":
+            return {"status": "rejected", "audit_events": [*state["audit_events"], "agent_received_rejection"]}
+        job = state["workflow"].decide(state["job_id"], state["proposal_id"], "approve")
+        proposal = next(p for p in job.proposals if p.proposal_id == state["proposal_id"])
+        state["workflow"].record_agent_event(
+            job.job_id,
+            "agent_tool_apply_safe_correction",
+            {"proposal_id": state["proposal_id"], "rule_id": proposal.rule_id},
+        )
+        state["workflow"].record_agent_event(
+            job.job_id, "agent_tool_revalidate_corrected_copy", {"revalidated": job.corrected_report is not None}
+        )
+        return {
+            "job": job,
+            "status": "approved",
+            "audit_events": [
+                *state["audit_events"],
+                "agent_tool_apply_safe_correction",
+                "agent_tool_revalidate_corrected_copy",
+            ],
+        }
+
+    @staticmethod
+    def _route_after_decision(state: DecisionAgentState) -> Literal["approved", "rejected"]:
+        return "approved" if state["status"] == "approved" else "rejected"
+
+    @staticmethod
+    def _record_rejection(state: DecisionAgentState) -> dict[str, object]:
+        job = state["workflow"].decide(state["job_id"], state["proposal_id"], "reject")
+        state["workflow"].record_agent_event(
+            job.job_id, "agent_tool_record_rejection", {"proposal_id": state["proposal_id"]}
+        )
+        return {
+            "job": job,
+            "status": "rejected",
+            "audit_events": [*state["audit_events"], "agent_tool_record_rejection"],
+        }
+
+    @staticmethod
+    def _report_correction_result(state: DecisionAgentState) -> dict[str, object]:
+        job = state["job"]
+        if job is not None:
+            state["workflow"].record_agent_event(
+                job.job_id, "agent_tool_report_correction_result", {"status": state["status"]}
+            )
+        return {
+            "audit_events": [*state["audit_events"], "agent_tool_report_correction_result"],
         }

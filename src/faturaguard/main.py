@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from faturaguard.config import Settings, settings
-from faturaguard.services.agent_workflow import SourceBackedAgent
+from faturaguard.services.agent_workflow import FaturaGuardAgent, SourceBackedAgent
 from faturaguard.services.correction_workflow import CorrectionWorkflow
 from faturaguard.services.document_storage import DocumentStorage, FilePolicyError
 from faturaguard.services.hybrid_retrieval import (
@@ -142,6 +142,7 @@ def create_app() -> FastAPI:
     app.state.validator = EfaturaKontrolAdapter()
     app.state.correction_workflow = CorrectionWorkflow(settings.data_directory, app.state.validator)
     app.state.source_backed_agent = _create_agent()
+    app.state.workflow_agent = FaturaGuardAgent(app.state.source_backed_agent)
     app.state.n8n_notifier = N8nWebhookNotifier(settings.n8n_webhook_url)
 
     @app.get("/health", tags=["system"])
@@ -163,8 +164,13 @@ def create_app() -> FastAPI:
         contents = await file.read(settings.max_upload_bytes + 1)
         try:
             stored = app.state.document_storage.store_original(contents, filename)
-            report = app.state.validator.validate(contents, stored.original_filename)
-            job = app.state.correction_workflow.create(stored, report)
+            agent_result = app.state.workflow_agent.process_uploaded_document(
+                stored, app.state.correction_workflow
+            )
+            job = agent_result["job"]
+            if job is None:
+                raise RuntimeError("Agent doğrulama işlemi kayıt oluşturamadı.")
+            report = job.report
         except FilePolicyError as error:
             return templates.TemplateResponse(
                 request, "validation_result.html", {"error": str(error)}, status_code=400
@@ -191,7 +197,12 @@ def create_app() -> FastAPI:
         request: Request, job_id: str, proposal_id: str, decision: str = Form(...)
     ) -> HTMLResponse:
         try:
-            job = app.state.correction_workflow.decide(job_id, proposal_id, decision)
+            agent_result = app.state.workflow_agent.handle_correction_decision(
+                app.state.correction_workflow, job_id, proposal_id, decision
+            )
+            job = agent_result["job"]
+            if job is None:
+                raise RuntimeError("Agent düzeltme işlemi sonuç üretmedi.")
         except (ValueError, OSError) as error:
             return templates.TemplateResponse(
                 request, "validation_result.html", {"error": str(error)}, status_code=400
@@ -242,8 +253,7 @@ def create_app() -> FastAPI:
         include_in_schema=False,
     )
     async def explain_finding(request: Request, job_id: str, finding_code: str) -> HTMLResponse:
-        agent = app.state.source_backed_agent
-        if agent is None:
+        if app.state.source_backed_agent is None:
             return templates.TemplateResponse(
                 request,
                 "validation_result.html",
@@ -251,7 +261,9 @@ def create_app() -> FastAPI:
                 status_code=503,
             )
         try:
-            job = app.state.correction_workflow.explain_finding(job_id, finding_code, agent)
+            job = app.state.workflow_agent.explain_finding(
+                job_id, finding_code, app.state.correction_workflow
+            )
         except (ValueError, LLMUnavailableError) as error:
             return templates.TemplateResponse(
                 request, "validation_result.html", {"error": str(error)}, status_code=503

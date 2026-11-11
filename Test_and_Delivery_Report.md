@@ -66,6 +66,7 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Gerçek demo sırasında fark edilen geniş XML yeniden-serileştirme diff'i düzeltildi. Düzeltme motoru artık yalnızca onaylanan dip toplam metnini byte düzeyinde değiştiriyor; aynı XML ile yeni uçtan uca çalıştırmada diff yalnızca `25.15 → 15.15` satırını içerdi ve yeniden doğrulama 0 uyarı verdi.
 - Kullanıcıya HTML/JSON işlem raporu ve XML içeriği taşımayan isteğe bağlı n8n webhook bildirim altyapısı eklendi.
 - Doğrulayıcının belgelenmiş 64 hata/bilgi kodunun tamamı kapsam matrisine alındı. Belgelenmiş kodların 61'i gerçek XML, e‑Arşiv veya zarf fixture'ı ile doğrulandı; genel `xsd`, Schematron değerlendirme hatası ve ApplicationResponse imza çıktısı ise kural çıktısını uygulamaya taşıyan çalışma zamanı/SVRL işleyicisi testleriyle doğrulandı. Genel XSD ailesi için buna ek olarak gerçek `xsd-element-content` XML senaryosu bulunur; dolayısıyla matriste 62 gerçek senaryo ve toplam 65 ayrı doğrulama kaydı vardır. Ayrıntı: `resources/evaluation/error_coverage_matrix.json`.
+- LangGraph agent orkestrasyonu genişletildi: belge yüklemede agent yerel doğrulama aracını çağırır, yalnızca izinli düzeltme teklifini üretir ve bulgular varsa insan incelemesine yönlendirir. Kullanıcı onay/red kararında ikinci graph güvenli düzeltme, yeniden doğrulama ve raporlama araçlarını koşullu olarak yürütür. Araç çağrıları SQLite audit trail'e kaydedilir; akış sırası ve onaysız düzeltmenin engellendiği otomatik testlerle doğrulandı.
 
 ## Planlanan test senaryoları
 
