@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sh:StandardBusinessDocument xmlns:sh="http://www.unece.org/cefact/namespaces/StandardBusinessDocumentHeader" xmlns:ef="http://www.efatura.gov.tr/package-namespace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:example:invalid">
+  <sh:StandardBusinessDocumentHeader>
+    <sh:DocumentIdentification>
+      <sh:Type>SENDERENVELOPE</sh:Type>
+      <sh:TypeVersion>9.9</sh:TypeVersion>
+    </sh:DocumentIdentification>
+    <sh:Sender>
+      <sh:ContactInformation>
+        <sh:ContactTypeIdentifier>VKN_TCKN</sh:ContactTypeIdentifier>
+        <sh:Contact>123</sh:Contact>
+      </sh:ContactInformation>
+    </sh:Sender>
+  </sh:StandardBusinessDocumentHeader>
+  <ef:Package/>
+</sh:StandardBusinessDocument>

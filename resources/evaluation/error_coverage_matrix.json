@@ -57,4 +57,11 @@
   ,{"id":"public-invoice-iban","code":"sch-KamuFaturaCheck-1","family":"Schematron / kamu","status":"real_xml_verified"}
   ,{"id":"withholding-calculation","code":"hesap-tevkifat-toplam","family":"Aritmetik","status":"real_xml_verified"}
   ,{"id":"withholding-subtotal-calculation","code":"hesap-tevkifat","family":"Aritmetik","status":"real_xml_verified"}
+  ,{"id":"generic-xsd-catalog","code":"xsd","family":"XSD","status":"runtime_handler_verified"}
+  ,{"id":"schematron-evaluation-error","code":"sch-degerlendirme","family":"Schematron / çalışma zamanı","status":"runtime_handler_verified"}
+  ,{"id":"earsiv-profile","code":"sch-ProfileIDCheck-2","family":"Schematron / e-Arşiv","status":"real_xml_verified"}
+  ,{"id":"application-response-signature","code":"sch-ARSignatureCheck-1","family":"Schematron / uygulama yanıtı","status":"runtime_svrl_verified"}
+  ,{"id":"envelope-schema-location","code":"sch-DocumentCheck-3","family":"Schematron / zarf","status":"real_xml_verified"}
+  ,{"id":"envelope-type-version","code":"sch-TypeVersionCheck-1","family":"Schematron / zarf","status":"real_xml_verified"}
+  ,{"id":"envelope-contact","code":"sch-ContactCheck-3","family":"Schematron / zarf","status":"real_xml_verified"}
 ]

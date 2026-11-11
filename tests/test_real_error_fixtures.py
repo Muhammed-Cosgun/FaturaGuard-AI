@@ -1,10 +1,14 @@
 from pathlib import Path
 
 import pytest
+from efatura_kontrol import kod, sematron
+from efatura_kontrol.kontrol import kontrol_et
+from lxml import etree
 
 from faturaguard.services.validation_adapter import EfaturaKontrolAdapter
 
 BASELINE = Path("resources/fixtures/baseline_invoice.xml").read_bytes()
+INVALID_ENVELOPE = Path("resources/fixtures/invalid_envelope.xml").read_bytes()
 
 
 def _mutate(old: bytes, new: bytes) -> bytes:
@@ -275,3 +279,35 @@ def test_real_mutated_xml_fixture_produces_expected_validator_code(
     report = EfaturaKontrolAdapter().validate(document, f"{case_id}.xml")
 
     assert expected_code in {finding.code for finding in report.findings}
+
+
+@pytest.mark.parametrize(
+    "expected_code",
+    ["sch-DocumentCheck-3", "sch-TypeVersionCheck-1", "sch-ContactCheck-3"],
+)
+def test_real_envelope_fixture_produces_expected_header_code(expected_code: str) -> None:
+    report = kontrol_et(INVALID_ENVELOPE)
+
+    assert expected_code in {finding.kod for finding in report.bulgular}
+
+
+def test_earsiv_profile_rule_is_checked_with_the_librarys_earsiv_mode() -> None:
+    report = kontrol_et(BASELINE, tur="earsiv")
+
+    assert "sch-ProfileIDCheck-2" in {finding.kod for finding in report.bulgular}
+
+
+def test_generic_xsd_and_evaluation_failure_handlers_are_covered() -> None:
+    """Bazı katalog kodları kural değil, hata/eşleme katmanının güvenli yollarıdır."""
+    assert kod.acikla("xsd") is not None
+
+    evaluation_error = etree.fromstring(
+        b'<svrl:error xmlns:svrl="http://purl.oclc.org/dsdl/svrl" code="FORG0001">invalid value</svrl:error>'
+    )
+    application_response_assert = etree.fromstring(
+        b'<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" id="ARSignatureCheck-1">'
+        b"<svrl:text>Uygulama yaniti imzasi zorunludur.</svrl:text></svrl:failed-assert>"
+    )
+
+    assert sematron._degerlendirme_hatasi(evaluation_error).kod == "sch-degerlendirme"
+    assert sematron._bulgu(None, application_response_assert, "hata").kod == "sch-ARSignatureCheck-1"

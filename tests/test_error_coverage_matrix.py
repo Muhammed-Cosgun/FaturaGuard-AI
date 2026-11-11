@@ -12,7 +12,9 @@ def test_error_coverage_matrix_has_real_cases_across_core_families() -> None:
     real_families = {item["family"] for item in cases if item["status"] == "real_xml_verified"}
 
     assert {"XML", "XSD", "Aritmetik", "İmza"} <= real_families
-    assert len([item for item in cases if item["status"] == "real_xml_verified"]) >= 58
+    assert len([item for item in cases if item["status"] == "real_xml_verified"]) >= 62
+    # 64 katalog koduna ek olarak, genel ``xsd`` ailesinin somut XSD hata örneği tutulur.
+    assert len({item["code"] for item in cases}) == 65
 
 
 def test_each_coverage_matrix_code_has_a_nonempty_safe_retrieval_query() -> None:
