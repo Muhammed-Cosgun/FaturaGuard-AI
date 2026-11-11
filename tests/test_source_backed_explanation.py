@@ -207,6 +207,12 @@ def test_groq_generator_uses_strict_schema_and_marks_api_mode(monkeypatch) -> No
     assert schema["schema"]["additionalProperties"] is False
 
 
+def test_groq_qwen_uses_json_mode_and_keeps_client_side_validation() -> None:
+    response_format = GroqStructuredGenerator._response_format(False)
+
+    assert response_format == {"type": "json_object"}
+
+
 def _finding_for_fallback() -> Finding:
     return Finding(
         code="xml-bicim",

@@ -304,6 +304,7 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
         self, finding: Finding, evidence: Sequence[RetrievedEvidence]
     ) -> SourceBackedExplanation:
         request = self._request_payload(finding, evidence)
+        strict_schema_supported = self._model.startswith("openai/gpt-oss-")
         payload = {
             "model": self._model,
             "reasoning_effort": "low",
@@ -318,14 +319,7 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
                     ),
                 },
             ],
-            "response_format": {
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "faturaguard_explanation",
-                    "strict": True,
-                    "schema": self._strict_schema(),
-                },
-            },
+            "response_format": self._response_format(strict_schema_supported),
         }
         headers = {"Authorization": f"Bearer {self._api_key}"}
         last_error: Exception | None = None
@@ -339,13 +333,29 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
                 explanation = SourceBackedExplanation.model_validate_json(content)
                 self._validate_citations(explanation, evidence)
                 normalized = self._remove_reasoning_repetition(explanation)
-                return normalized.model_copy(update={"generation_mode": "groq_api"})
+                mode = "groq_api" if strict_schema_supported else "groq_api_best_effort"
+                return normalized.model_copy(update={"generation_mode": mode})
             except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
                 last_error = error
         raise LLMUnavailableError(
             "Groq API kaynaklı açıklama üretemedi"
             f" ({type(last_error).__name__ if last_error else 'bilinmeyen hata'})."
         )
+
+    @staticmethod
+    def _response_format(strict_schema_supported: bool) -> dict[str, object]:
+        if not strict_schema_supported:
+            # Qwen gibi strict schema desteklemeyen Groq modellerinde geçerli JSON istenir;
+            # şema ve atıf güvenliği istemci tarafındaki Pydantic kontrolleriyle korunur.
+            return {"type": "json_object"}
+        return {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "faturaguard_explanation",
+                "strict": True,
+                "schema": GroqStructuredGenerator._strict_schema(),
+            },
+        }
 
     @staticmethod
     def _strict_schema() -> dict[str, object]:
