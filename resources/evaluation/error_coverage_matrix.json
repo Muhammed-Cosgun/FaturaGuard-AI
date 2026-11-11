@@ -14,7 +14,7 @@
   {"id":"currency","code":"sch-CurrencyCodeCheck-1","family":"Schematron / kod listesi","status":"real_xml_verified"},
   {"id":"unit","code":"sch-GeneralUnitCodeCheck-1","family":"Schematron / kod listesi","status":"real_xml_verified"},
   {"id":"tax-code","code":"sch-TaxTypeCheck-1","family":"Schematron / vergi","status":"real_xml_verified"},
-  {"id":"withholding","code":"sch-WithholdingTaxTotalCheck-3","family":"Schematron / tevkifat","status":"planned_fixture"},
-  {"id":"xades-structure","code":"sch-XadesSignatureCheckForInvoice-1","family":"Schematron / imza","status":"planned_fixture"},
+  {"id":"withholding","code":"sch-GeneralWithholdingTaxTotalCheck-1","family":"Schematron / tevkifat","status":"real_xml_verified"},
+  {"id":"xades-structure","code":"sch-XadesSignatureCheckForInvoice-1","family":"Schematron / imza","status":"real_xml_verified"},
   {"id":"payable","code":"hesap-dip-odenecek","family":"Aritmetik","status":"real_xml_verified"}
 ]

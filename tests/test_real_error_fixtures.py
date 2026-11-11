@@ -23,6 +23,22 @@ def _mutate(old: bytes, new: bytes) -> bytes:
         ("tax-code", _mutate(b"<cbc:TaxTypeCode>0015", b"<cbc:TaxTypeCode>9999"), "sch-TaxTypeCheck-1"),
         ("party-tckn", _mutate(b' schemeID="TCKN">10000000146', b' schemeID="TCKN">123'), "sch-PartyIdentificationTCKNVKNCheck-2"),
         ("return-reference", _mutate(b"<cbc:InvoiceTypeCode>SATIS", b"<cbc:InvoiceTypeCode>IADE"), "sch-IADEInvioceCheck-1"),
+        (
+            "withholding-type",
+            _mutate(
+                b"</cac:TaxTotal>\n  <cac:LegalMonetaryTotal>",
+                b"</cac:TaxTotal>\n  <cac:WithholdingTaxTotal><cbc:TaxAmount currencyID=\"TRY\">1.00</cbc:TaxAmount></cac:WithholdingTaxTotal>\n  <cac:LegalMonetaryTotal>",
+            ),
+            "sch-GeneralWithholdingTaxTotalCheck-1",
+        ),
+        (
+            "xades-structure",
+            _mutate(
+                b'xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">\n  <ext:UBLExtensions>',
+                b'xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">\n  <ext:UBLExtensions>',
+            ).replace(b"<n4:auto-generated_for_wildcard/>", b"<ds:Signature/>", 1),
+            "sch-XadesSignatureCheckForInvoice-1",
+        ),
         ("payable", _mutate(b"<cbc:PayableAmount currencyID=\"TRY\">17.88", b"<cbc:PayableAmount currencyID=\"TRY\">17.00"), "hesap-dip-odenecek"),
     ],
 )
