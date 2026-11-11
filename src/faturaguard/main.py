@@ -1,5 +1,8 @@
 """FastAPI uygulama giriş noktası."""
 
+import asyncio
+import logging
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -33,6 +36,7 @@ from faturaguard.services.validation_adapter import EfaturaKontrolAdapter, Valid
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
+logger = logging.getLogger(__name__)
 
 
 def format_turkey_time(value: str) -> str:
@@ -73,9 +77,33 @@ def _create_agent() -> SourceBackedAgent | None:
     return SourceBackedAgent(retriever, generator)
 
 
+@asynccontextmanager
+async def application_lifespan(app: FastAPI):
+    """RAG soğuk başlangıcını ilk tıklama yerine sunucu açılışına taşır."""
+
+    agent = app.state.source_backed_agent
+    if agent is None:
+        app.state.rag_warmup_status = "skipped"
+    else:
+        app.state.rag_warmup_status = "running"
+        try:
+            await asyncio.to_thread(agent.warmup)
+        except Exception as error:  # Uygulama, ısıtma başarısız olsa da güvenle açılabilmeli.
+            app.state.rag_warmup_status = "failed"
+            logger.warning("RAG başlangıç ısıtması tamamlanamadı: %s", type(error).__name__)
+        else:
+            app.state.rag_warmup_status = "ready"
+            logger.info("RAG başlangıç ısıtması tamamlandı.")
+    yield
+
+
 def create_app() -> FastAPI:
     """Bağımsız test edilebilir uygulama örneği oluşturur."""
-    app = FastAPI(title=settings.application_name, version=settings.application_version)
+    app = FastAPI(
+        title=settings.application_name,
+        version=settings.application_version,
+        lifespan=application_lifespan,
+    )
     app.mount("/static", StaticFiles(directory=PACKAGE_DIR / "static"), name="static")
     app.state.document_storage = DocumentStorage(settings.data_directory, settings.max_upload_bytes)
     app.state.validator = EfaturaKontrolAdapter()

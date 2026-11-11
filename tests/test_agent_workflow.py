@@ -95,3 +95,18 @@ def test_agent_preserves_official_evidence_when_generation_is_unavailable() -> N
     assert result["evidence"] == [evidence]
     assert result["generation_error"] == "Yerel model yanıt veremedi."
     assert "source_generation_unavailable" in result["audit_events"]
+
+
+def test_agent_warmup_runs_a_small_retrieval_query() -> None:
+    class WarmupRetriever:
+        def __init__(self) -> None:
+            self.calls = []
+
+        def search(self, query, limit):
+            self.calls.append((query, limit))
+            return []
+
+    retriever = WarmupRetriever()
+    SourceBackedAgent(retriever, FakeGenerator()).warmup()
+
+    assert retriever.calls == [("UBL-TR e-Fatura doğrulama", 1)]

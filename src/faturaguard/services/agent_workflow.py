@@ -49,6 +49,11 @@ class SourceBackedAgent:
             }
         )
 
+    def warmup(self) -> None:
+        """İlk kullanıcı isteğinden önce semantic retrieval hattını belleğe alır."""
+
+        self._retriever.search("UBL-TR e-Fatura doğrulama", limit=1)
+
     def _build_graph(self):
         workflow = StateGraph(AgentState)
         workflow.add_node("retrieve_official_sources", self._retrieve_official_sources)
