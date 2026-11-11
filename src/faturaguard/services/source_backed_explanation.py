@@ -173,7 +173,8 @@ ve GİB'e gönderim öncesinde imza gerektiğini birlikte belirt.
     ) -> SourceBackedExplanation:
         """Model cevabında kaybolabilecek zorunlu ürün güvenlik notlarını tamamlar."""
 
-        normalized = cls._remove_reasoning_repetition(explanation)
+        normalized = cls._remove_internal_labels(cls._remove_reasoning_repetition(explanation))
+        normalized = cls._deduplicate_citations(normalized)
         if finding.code != "imza-yok":
             return normalized
 
@@ -188,6 +189,35 @@ ve GİB'e gönderim öncesinde imza gerektiğini birlikte belirt.
             "GİB'e gönderim öncesinde belge imzalanmalıdır."
         )
         return normalized.model_copy(update={"reasoning": f"{normalized.reasoning} {caveat}"})
+
+    @staticmethod
+    def _remove_internal_labels(explanation: SourceBackedExplanation) -> SourceBackedExplanation:
+        """Sağlayıcı prompt etiketlerini kullanıcı metnine sızdırırsa temizler."""
+
+        def clean(text: str) -> str:
+            cleaned = re.sub(r"\b(?:EVIDENCE|FINDING|JSON|PROMPT)\b\s*[:,]?\s*", "", text, flags=re.I)
+            return re.sub(r"\s{2,}", " ", cleaned).strip()
+
+        return explanation.model_copy(
+            update={
+                "summary": clean(explanation.summary),
+                "reasoning": clean(explanation.reasoning),
+                "recommendation": clean(explanation.recommendation),
+            }
+        )
+
+    @staticmethod
+    def _deduplicate_citations(explanation: SourceBackedExplanation) -> SourceBackedExplanation:
+        """Aynı resmî kaynak/sayfanın tekrarını rapordan çıkarır."""
+
+        unique: list[Citation] = []
+        seen: set[tuple[str, str, str, int]] = set()
+        for citation in explanation.citations:
+            key = (citation.source_id, citation.source_title, citation.source_url, citation.page)
+            if key not in seen:
+                seen.add(key)
+                unique.append(citation)
+        return explanation.model_copy(update={"citations": unique})
 
     @staticmethod
     def _deterministic_fallback(

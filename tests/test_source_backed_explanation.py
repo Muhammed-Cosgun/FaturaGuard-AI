@@ -61,6 +61,30 @@ def test_generator_restores_draft_caveat_for_missing_signature() -> None:
     assert "Taslak veya test aşamasında" in normalized.reasoning
 
 
+def test_generator_removes_internal_labels_and_duplicate_citations() -> None:
+    citation = Citation(
+        source_id="gib",
+        source_title="GİB Kılavuzu",
+        source_url="https://ebelge.gib.gov.tr/x",
+        page=47,
+    )
+    explanation = SourceBackedExplanation(
+        summary="FINDING: Dip toplam kontrol edilmelidir.",
+        reasoning="EVIDENCE, ilgili alanın tanımını verir.",
+        recommendation="JSON: Hesabı inceleyin.",
+        citations=[citation, citation],
+    )
+
+    normalized = OllamaStructuredGenerator._finalize_explanation(
+        explanation, _finding_for_fallback()
+    )
+
+    assert normalized.summary == "Dip toplam kontrol edilmelidir."
+    assert normalized.reasoning == "ilgili alanın tanımını verir."
+    assert normalized.recommendation == "Hesabı inceleyin."
+    assert normalized.citations == [citation]
+
+
 def test_generator_uses_deterministic_fallback_after_invalid_llm_json(monkeypatch) -> None:
     class Response:
         def raise_for_status(self) -> None:
