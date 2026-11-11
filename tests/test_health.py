@@ -1,6 +1,6 @@
 from starlette.requests import Request
 
-from faturaguard.main import create_app, format_turkey_time
+from faturaguard.main import create_app, format_turkey_time, templates
 
 
 def _app_and_route_endpoint(path: str):
@@ -38,3 +38,8 @@ def test_history_page_is_available() -> None:
 
     assert response.status_code == 200
     assert "İşlem geçmişi".encode() in response.body
+
+
+def test_presentation_templates_compile() -> None:
+    for template_name in ("home.html", "validation_result.html", "history.html", "report.html"):
+        assert templates.get_template(template_name) is not None

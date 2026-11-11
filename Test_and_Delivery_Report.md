@@ -46,7 +46,8 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Güvenlik negatif testleri genişletildi: onaysız ve izin listesi dışındaki düzeltme kuralı reddedilir; retrieval ile dönmeyen citation reddedilir; Gemini başarısızlığında ikinci API sağlayıcısının sonucu korunur.
 - Sağlayıcı seçimi birim testine ayrıldı: `auto` modunun Gemini → Groq → deterministik kaynak özeti zinciri, Cohere'in yalnızca açık deneysel seçimde kullanılması ve `local` modunun API sağlayıcısı kurmaması doğrulanır.
 - Sunum öncesi preflight komutu eklendi: RAG indeksinin varlığını ve anahtar değerlerini göstermeden aktif üretim/fallback zincirini denetler.
-- Uygulama kodu biçim/lint denetiminden geçti; güncel otomatik test paketi 50/50 başarılıdır.
+- Sunum arayüzü; durum rozetleri, hata/uyarı/bilgi sayaçları, güvenlik ilkeleri, okunur AI açıklama kartları ve ham JSON göstermeyen denetim raporuyla iyileştirildi. Tüm Jinja şablonları derleme testiyle doğrulanır.
+- Uygulama kodu biçim/lint denetiminden geçti; güncel otomatik test paketi 51/51 başarılıdır.
 - Gerçek `test_hesap_hata.xml` ile komut satırı uçtan uca demo çalıştırıldı. Onaysız akışta teklif oluşturulup giriş XML'i değiştirilmedi; onaylı akışta izinli dip toplam düzeltmesi çalışma kopyasına uygulandı, uyarı sayısı `2`'den `0`'a indi ve giriş dosyasının SHA-256 özeti değişmeden kaldı.
 - Gerçek `test_duzeltilmis.xml` ile geçerli belge kabul senaryosu çalıştırıldı: 0 hata, 0 uyarı, 0 düzeltme teklifi ve değişmeyen SHA-256 özeti doğrulandı.
 - Güncel sürümde üçlü uçtan uca kabul paketi tekrarlandı: `test_bozuk_xml.xml` 1 hata ve 0 teklif ile reddedildi; `test_hesap_hata.xml` kullanıcı onayıyla 2 uyarıdan 0 uyarıya indi, orijinal SHA-256 korundu ve diff yalnızca `25.15 → 15.15` satırını içerdi; `test_duzeltilmis.xml` 0 hata/0 uyarı ve 0 teklif ile kabul edildi.

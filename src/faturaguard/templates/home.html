@@ -8,10 +8,10 @@
   </head>
   <body>
     <main class="container">
-      <p class="eyebrow">E-FATURA DOĞRULAMA</p>
-      <h1>FaturaGuard AI</h1>
-      <p class="lead">Güvenli, kaynaklı ve kullanıcı onaylı XML kontrolü.</p>
-      <p><a href="/history">İşlem geçmişini görüntüle</a></p>
+      <nav class="site-nav" aria-label="Ana menü"><a class="brand" href="/">FaturaGuard <span>AI</span></a><a href="/history">İşlem geçmişi</a></nav>
+      <p class="eyebrow">E-FATURA DOĞRULAMA · GÜVENLİ AI İŞ AKIŞI</p>
+      <h1>Faturanızı doğrulayın, <em>kontrolü sizde tutun.</em></h1>
+      <p class="lead">Resmî GİB kaynaklarıyla açıklama, sınırlı düzeltme ve zorunlu kullanıcı onayı.</p>
       <section class="notice" aria-labelledby="upload-title">
         <h2 id="upload-title">XML belgesini doğrula</h2>
         <p>Dosyanın orijinali korunur; hiçbir düzeltme kullanıcı onayı olmadan uygulanmaz.</p>
@@ -20,6 +20,11 @@
           <input id="document" name="file" type="file" accept=".xml,application/xml,text/xml" required>
           <button type="submit">Doğrulamayı başlat</button>
         </form>
+      </section>
+      <section class="trust-grid" aria-label="Güvenlik ilkeleri">
+        <article><strong>01</strong><span>Orijinal XML korunur</span></article>
+        <article><strong>02</strong><span>Kaynaklar resmî GİB belgeleridir</span></article>
+        <article><strong>03</strong><span>Düzeltme yalnızca onayla uygulanır</span></article>
       </section>
     </main>
   </body>

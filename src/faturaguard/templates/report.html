@@ -8,6 +8,7 @@
   </head>
   <body>
     <main class="container report">
+      <nav class="site-nav" aria-label="Ana menü"><a class="brand" href="/">FaturaGuard <span>AI</span></a><a href="/history">İşlem geçmişi</a></nav>
       <p class="eyebrow">DENETİM RAPORU</p>
       <h1>FaturaGuard AI işlem raporu</h1>
       <section class="notice">
@@ -25,7 +26,19 @@
         <h2>Kullanıcı kararları</h2>
         {% for proposal in job.proposals %}<p>{{ proposal.title }}: <strong>{{ proposal.status }}</strong></p>{% else %}<p>Teklif üretilmedi.</p>{% endfor %}
       </section>
-      {% if job.agent_outputs %}<section class="notice"><h2>Kaynaklı AI açıklamaları</h2><pre>{{ job.agent_outputs | tojson(indent=2) }}</pre></section>{% endif %}
+      {% if job.agent_outputs %}
+      <section class="notice"><h2>Kaynaklı AI açıklamaları</h2>
+        {% for code, output in job.agent_outputs.items() %}
+          <article class="agent-output report-agent-output"><h3>{{ code }}</h3>
+          {% if output.explanation %}
+            <p>{{ output.explanation.summary }}</p><p>{{ output.explanation.reasoning }}</p>
+            <p><strong>Öneri:</strong> {{ output.explanation.recommendation }}</p>
+            <p class="metadata">Kaynaklar: {% for citation in output.explanation.citations %}<a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a>{% if not loop.last %}; {% endif %}{% endfor %}</p>
+          {% else %}<p class="metadata">Açıklama üretilemedi; insan incelemesi gerekir.</p>{% endif %}
+          </article>
+        {% endfor %}
+      </section>
+      {% endif %}
       {% if job.diff %}<section class="notice"><h2>XML farkı</h2><pre>{{ job.diff }}</pre></section>{% endif %}
       {% if audit_events %}
       <section class="notice">
