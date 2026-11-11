@@ -144,6 +144,14 @@ python scripts\run_demo_e2e.py C:\Users\Muhammed\Desktop\efatura_kutuphane_testi
 
 Ayrıntılı demo ve web arayüzü sunum akışı için [DEMO_SCENARIO.md](DEMO_SCENARIO.md) dosyasına bakın.
 
+## Sunum öncesi kontrol
+
+API anahtarlarını göstermeden RAG indeksini ve aktif sağlayıcı/fallback zincirini doğrulamak için:
+
+```cmd
+python scripts\run_demo_preflight.py
+```
+
 ## Proje belgeleri
 
 | Belge | Amaç |
