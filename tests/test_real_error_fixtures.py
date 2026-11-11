@@ -16,6 +16,7 @@ def _mutate(old: bytes, new: bytes) -> bytes:
     ("case_id", "document", "expected_code"),
     [
         ("invoice-id", _mutate(b"GIB2009000000001", b"HATALI"), "sch-InvoiceIDCheck-1"),
+        ("profile", _mutate(b"<cbc:ProfileID>TEMELFATURA", b"<cbc:ProfileID>GECERSIZ"), "sch-ProfileIDCheck-1"),
         ("uuid", _mutate(b"F47AC10B-58CC-4372-A567-0E02B2C3D479", b"GECERSIZ-UUID"), "sch-UUIDCheck-1"),
         ("date", _mutate(b"2009-01-05", b"2009-02-30"), "sch-TarihBicimi-1"),
         ("currency", _mutate(b"<cbc:DocumentCurrencyCode>TRY", b"<cbc:DocumentCurrencyCode>ZZZ"), "sch-CurrencyCodeCheck-1"),
@@ -23,6 +24,22 @@ def _mutate(old: bytes, new: bytes) -> bytes:
         ("tax-code", _mutate(b"<cbc:TaxTypeCode>0015", b"<cbc:TaxTypeCode>9999"), "sch-TaxTypeCheck-1"),
         ("party-tckn", _mutate(b' schemeID="TCKN">10000000146', b' schemeID="TCKN">123'), "sch-PartyIdentificationTCKNVKNCheck-2"),
         ("return-reference", _mutate(b"<cbc:InvoiceTypeCode>SATIS", b"<cbc:InvoiceTypeCode>IADE"), "sch-IADEInvioceCheck-1"),
+        (
+            "line-calculation",
+            _mutate(
+                b'<cbc:InvoicedQuantity unitCode="KWH">101</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="TRY">15.15',
+                b'<cbc:InvoicedQuantity unitCode="KWH">101</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="TRY">15.13',
+            ),
+            "hesap-satir",
+        ),
+        (
+            "tax-calculation",
+            _mutate(
+                b'<cbc:TaxableAmount currencyID="TRY">15.15</cbc:TaxableAmount><cbc:TaxAmount currencyID="TRY">2.73</cbc:TaxAmount><cbc:Percent>18.0',
+                b'<cbc:TaxableAmount currencyID="TRY">15.15</cbc:TaxableAmount><cbc:TaxAmount currencyID="TRY">2.00</cbc:TaxAmount><cbc:Percent>18.0',
+            ),
+            "hesap-vergi",
+        ),
         (
             "withholding-type",
             _mutate(
@@ -38,6 +55,14 @@ def _mutate(old: bytes, new: bytes) -> bytes:
                 b'xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">\n  <ext:UBLExtensions>',
             ).replace(b"<n4:auto-generated_for_wildcard/>", b"<ds:Signature/>", 1),
             "sch-XadesSignatureCheckForInvoice-1",
+        ),
+        (
+            "tax-inclusive",
+            _mutate(
+                b'<cbc:TaxInclusiveAmount currencyID="TRY">17.88',
+                b'<cbc:TaxInclusiveAmount currencyID="TRY">17.00',
+            ),
+            "hesap-dip-vergi-dahil",
         ),
         ("payable", _mutate(b"<cbc:PayableAmount currencyID=\"TRY\">17.88", b"<cbc:PayableAmount currencyID=\"TRY\">17.00"), "hesap-dip-odenecek"),
     ],
