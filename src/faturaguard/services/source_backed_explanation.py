@@ -78,7 +78,7 @@ class OllamaStructuredGenerator:
                 content = response.json()["message"]["content"]
                 explanation = SourceBackedExplanation.model_validate_json(content)
                 self._validate_citations(explanation, evidence)
-                return self._remove_reasoning_repetition(explanation)
+                return self._finalize_explanation(explanation, finding)
             except (httpx.HTTPError, KeyError, ValueError):
                 continue
         return self._deterministic_fallback(finding, evidence)
@@ -111,6 +111,11 @@ alanında ver. Bir GİB kuralını desteklemeyen kanıttan kural çıkarma veya 
 summary bulguyu bir kez açıklar; reasoning yalnızca kanıtın belge alanını nasıl desteklediğini
 açıklar; recommendation yalnızca sonraki kullanıcı adımını söyler. Aynı cümleyi alanlar arasında
 tekrar etme.
+Belgede görmediğin bir XML alanının boş/dolu olduğunu, bir örnek tutarın bu belgeye ait olduğunu
+veya kanıtta bulunmayan bir hesap ilişkisinin gerçekleştiğini söyleme. Kaynaktaki örnek sayıları
+yalnızca örnektir; kullanıcı belgesinin değeri gibi aktarma. FINDING, EVIDENCE, JSON veya prompt
+etiketlerini kullanıcıya gösterme. imza-yok bulgusunda, taslak/test aşamasında imzanın olmayabileceğini
+ve GİB'e gönderim öncesinde imza gerektiğini birlikte belirt.
 Çıktıyı yalnızca verilen JSON şemasına uygun üret ve en az bir EVIDENCE kaynağını aynen cite et."""
 
     @staticmethod
@@ -161,6 +166,28 @@ tekrar etme.
         if not unique_reasoning:
             unique_reasoning = ["Seçilen resmî kaynaklar ilgili UBL-TR alanlarını tanımlar."]
         return explanation.model_copy(update={"reasoning": " ".join(unique_reasoning)})
+
+    @classmethod
+    def _finalize_explanation(
+        cls, explanation: SourceBackedExplanation, finding: Finding
+    ) -> SourceBackedExplanation:
+        """Model cevabında kaybolabilecek zorunlu ürün güvenlik notlarını tamamlar."""
+
+        normalized = cls._remove_reasoning_repetition(explanation)
+        if finding.code != "imza-yok":
+            return normalized
+
+        combined = " ".join(
+            (normalized.summary, normalized.reasoning, normalized.recommendation)
+        ).casefold()
+        if "taslak" in combined or "test aşama" in combined:
+            return normalized
+
+        caveat = (
+            "Taslak veya test aşamasında imzanın bulunmaması normal olabilir; "
+            "GİB'e gönderim öncesinde belge imzalanmalıdır."
+        )
+        return normalized.model_copy(update={"reasoning": f"{normalized.reasoning} {caveat}"})
 
     @staticmethod
     def _deterministic_fallback(
@@ -241,7 +268,7 @@ class GeminiStructuredGenerator(OllamaStructuredGenerator):
                     self._output_text(response.json())
                 )
                 self._validate_citations(explanation, evidence)
-                normalized = self._remove_reasoning_repetition(explanation)
+                normalized = self._finalize_explanation(explanation, finding)
                 return normalized.model_copy(update={"generation_mode": "gemini_api"})
             except (httpx.HTTPError, KeyError, TypeError, ValueError) as error:
                 last_error = error
@@ -337,7 +364,7 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
                 content = response.json()["choices"][0]["message"]["content"]
                 explanation = SourceBackedExplanation.model_validate_json(content)
                 self._validate_citations(explanation, evidence)
-                normalized = self._remove_reasoning_repetition(explanation)
+                normalized = self._finalize_explanation(explanation, finding)
                 mode = "groq_api" if strict_schema_supported else "groq_api_best_effort"
                 return normalized.model_copy(update={"generation_mode": mode})
             except httpx.HTTPStatusError as error:

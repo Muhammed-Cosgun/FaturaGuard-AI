@@ -32,6 +32,34 @@ def test_generator_removes_summary_sentence_repeated_in_reasoning() -> None:
     assert normalized.reasoning == "Resmî kılavuz ilgili alanları tanımlar."
 
 
+def test_generator_restores_draft_caveat_for_missing_signature() -> None:
+    explanation = SourceBackedExplanation(
+        summary="Belgede XAdES imzası yok.",
+        reasoning="Resmî kılavuz imzanın ExtensionContent alanında yer aldığını tanımlar.",
+        recommendation="Belgeyi imzalayın.",
+        citations=[
+            Citation(
+                source_id="gib",
+                source_title="GİB Kılavuzu",
+                source_url="https://ebelge.gib.gov.tr/x",
+                page=32,
+            )
+        ],
+    )
+    finding = Finding(
+        code="imza-yok",
+        severity=Severity.INFO,
+        priority=Priority.HIGH,
+        priority_reason="Gönderim öncesi imza gerekir.",
+        source="imza",
+        message="Belge elektronik imza taşımıyor.",
+    )
+
+    normalized = OllamaStructuredGenerator._finalize_explanation(explanation, finding)
+
+    assert "Taslak veya test aşamasında" in normalized.reasoning
+
+
 def test_generator_uses_deterministic_fallback_after_invalid_llm_json(monkeypatch) -> None:
     class Response:
         def raise_for_status(self) -> None:
