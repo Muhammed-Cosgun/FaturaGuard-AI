@@ -23,6 +23,10 @@ class Settings:
     # Resmî model kataloğunda düşük gecikmeli yapılandırılmış çıktı için Flash-Lite seçilir.
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
     gemini_timeout_seconds: float = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "12"))
+    # Bağımsız ücretsiz API yedeği; yalnızca ana Gemini sağlayıcısı başarısız olursa kullanılır.
+    groq_api_key: str | None = os.getenv("GROQ_API_KEY") or None
+    groq_model: str = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+    groq_timeout_seconds: float = float(os.getenv("GROQ_TIMEOUT_SECONDS", "12"))
     n8n_webhook_url: str | None = os.getenv("N8N_WEBHOOK_URL") or None
 
 

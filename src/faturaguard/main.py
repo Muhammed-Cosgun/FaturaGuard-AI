@@ -29,6 +29,7 @@ from faturaguard.services.source_backed_explanation import (
     DeterministicSourceGenerator,
     FallbackExplanationGenerator,
     GeminiStructuredGenerator,
+    GroqStructuredGenerator,
     LLMUnavailableError,
     OllamaStructuredGenerator,
 )
@@ -63,17 +64,33 @@ def _create_agent() -> SourceBackedAgent | None:
         Bm25LexicalRetriever(chunks),
     )
     local_generator = OllamaStructuredGenerator(settings.ollama_model, settings.ollama_base_url)
-    if settings.llm_provider in {"auto", "gemini"} and settings.gemini_api_key:
-        generator = FallbackExplanationGenerator(
+    deterministic_generator = DeterministicSourceGenerator()
+    if settings.llm_provider == "local":
+        generator = local_generator
+    else:
+        fallback_generator = deterministic_generator
+        if settings.groq_api_key:
+            fallback_generator = FallbackExplanationGenerator(
+                GroqStructuredGenerator(
+                    settings.groq_api_key,
+                    settings.groq_model,
+                    timeout_seconds=settings.groq_timeout_seconds,
+                ),
+                deterministic_generator,
+            )
+        if settings.llm_provider != "groq" and settings.gemini_api_key:
+            generator = FallbackExplanationGenerator(
             GeminiStructuredGenerator(
                 settings.gemini_api_key,
                 settings.gemini_model,
                 timeout_seconds=settings.gemini_timeout_seconds,
             ),
-            DeterministicSourceGenerator(),
-        )
-    else:
-        generator = local_generator
+                fallback_generator,
+            )
+        elif settings.groq_api_key:
+            generator = fallback_generator
+        else:
+            generator = local_generator
     return SourceBackedAgent(retriever, generator)
 
 

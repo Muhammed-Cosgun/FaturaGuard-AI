@@ -78,6 +78,18 @@ Uygulama açılırken RAG/embedding modeli ve küçük bir semantic retrieval so
 
 Yerel model karşılaştırmasında `LLM_PROVIDER=local` ile başlatıldığında aynı başlangıç ısıtması Ollama modeline de bir tokenlık kısa çağrı yapar. Bu sayede Gemma ölçümü, model ağırlıklarının ilk yüklenmesini değil sıcak durumdaki gerçek açıklama süresini gösterir.
 
+## Bağımsız ücretsiz API yedeği: Groq
+
+`GROQ_API_KEY` tanımlıysa `LLM_PROVIDER=auto` akışında Gemini başarısız olduğunda Groq ikinci sağlayıcı olarak denenir; iki API de başarısız olursa uygulama anında resmî GİB kaynak özeti gösterir. Yerel Gemma bu otomatik yedek zincirinde kullanılmaz. Varsayılan Groq modeli `openai/gpt-oss-20b`'dir ve seçim gerçek vakalarla benchmark edilmelidir.
+
+```cmd
+set "GROQ_API_KEY=Groq-anahtarınız"
+set "GROQ_MODEL=openai/gpt-oss-20b"
+python scripts\run_groq_smoke_test.py
+```
+
+Anahtarı kaynak koduna, `.env` dışındaki izlenen bir dosyaya veya Git'e yazmayın.
+
 ## RAG kalite değerlendirmesi
 
 RAG kalitesi yalnızca örnek bir sorguyla değil, beklenen resmî kaynak ve sayfa bilgisi tanımlanmış küçük bir golden sorgu setiyle de ölçülür. Aşağıdaki komut semantic, BM25 lexical ve hibrit retrieve→rerank akışlarını karşılaştırır:
