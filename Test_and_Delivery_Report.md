@@ -65,6 +65,7 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Tarayıcıdaki son kabul testinde `qwen2.5:3b-instruct`, hesap bulgusunda 10–15 saniye içinde `insufficient_official_evidence` ile güvenli biçimde durdu; imza bulgusunda 13 saniyede Entegrasyon Kılavuzu v1.10, sayfa 17 atfıyla kaynaklı açıklama üretti. Onaylı dip toplam düzeltmesi sonrası uyarılar 2'den 0'a indi ve minimal diff doğrulandı.
 - Gerçek demo sırasında fark edilen geniş XML yeniden-serileştirme diff'i düzeltildi. Düzeltme motoru artık yalnızca onaylanan dip toplam metnini byte düzeyinde değiştiriyor; aynı XML ile yeni uçtan uca çalıştırmada diff yalnızca `25.15 → 15.15` satırını içerdi ve yeniden doğrulama 0 uyarı verdi.
 - Kullanıcıya HTML/JSON işlem raporu ve XML içeriği taşımayan isteğe bağlı n8n webhook bildirim altyapısı eklendi.
+- Doğrulayıcının belgelenmiş 64 hata/bilgi kodunun tamamı kapsam matrisine alındı. 62 kod gerçek XML, e‑Arşiv veya zarf fixture'ı ile doğrulandı; genel `xsd`, Schematron değerlendirme hatası ve ApplicationResponse imza çıktısı ise kural çıktısını uygulamaya taşıyan çalışma zamanı/SVRL işleyicisi testleriyle doğrulandı. Genel XSD ailesi için buna ek olarak gerçek `xsd-element-content` XML senaryosu bulunur; dolayısıyla matriste 65 ayrı doğrulama kaydı vardır. Ayrıntı: `resources/evaluation/error_coverage_matrix.json`.
 
 ## Planlanan test senaryoları
 
