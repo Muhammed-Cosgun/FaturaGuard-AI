@@ -12,11 +12,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 def _chain_names(generator: object) -> list[str]:
     names: list[str] = []
     current = generator
-    while True:
-        names.append(type(current).__name__)
-        if not isinstance(current, FallbackExplanationGenerator):
-            return names
+    while isinstance(current, FallbackExplanationGenerator):
+        names.append(type(current._primary).__name__)
         current = current._fallback
+    names.append(type(current).__name__)
+    return names
 
 
 def main() -> None:
