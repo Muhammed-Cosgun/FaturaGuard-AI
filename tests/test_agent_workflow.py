@@ -198,6 +198,7 @@ def test_orchestrator_calls_local_validation_then_safe_proposal_tool() -> None:
         "agent_route_await_human_review",
     ]
     assert [event[1] for event in workflow.events] == [
+        "agent_tool_validate_document",
         "agent_tool_propose_safe_corrections",
         "agent_route_await_human_review",
     ]

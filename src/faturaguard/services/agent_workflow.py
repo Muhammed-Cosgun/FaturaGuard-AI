@@ -314,6 +314,13 @@ class FaturaGuardAgent:
             raise RuntimeError("Agent doğrulama sonucu olmadan düzeltme teklifi üretemez.")
         workflow = state["workflow"]
         job = workflow.create(state["stored"], report)
+        # İş kaydı doğrulamadan sonra oluşur; bu nedenle doğrulama aracının
+        # gerçekleştiğini kayda oluşturulduktan hemen sonra açıkça ekleriz.
+        workflow.record_agent_event(
+            job.job_id,
+            "agent_tool_validate_document",
+            {"execution_scope": "local_only", "executed_before_job_creation": True},
+        )
         workflow.record_agent_event(
             job.job_id,
             "agent_tool_propose_safe_corrections",
