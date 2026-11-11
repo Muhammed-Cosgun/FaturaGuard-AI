@@ -58,7 +58,7 @@ Farklı bir yüklü model seçmek için `OLLAMA_MODEL` ortam değişkeni kullan�
 
 ## Hızlı API modu ve yerel fallback
 
-Sunumda daha kısa ilk-yanıt süresi istenirse `GEMINI_API_KEY` tanımlandığında uygulama düşük gecikmeli `gemini-3.5-flash-lite` modelini birincil açıklama üreticisi olarak kullanır. API 12 saniye içinde yanıt vermezse uygulama yerel modeli beklemez; doğrulanmış GİB atıflarıyla anında güvenli kaynak özeti gösterir. Anahtar tanımlı değilse uygulama tamamen yerel `gemma3:4b` modunda çalışır. API'ye XML, dosya adı, fatura taraf/tutar bilgileri, SHA-256 özeti veya yerel dosya yolu gönderilmez; yalnızca doğrulama kuralı ve yerelde seçilmiş resmî GİB kanıt parçaları gönderilir.
+Sunumda daha kısa ilk-yanıt süresi istenirse `GEMINI_API_KEY` tanımlandığında uygulama düşük gecikmeli `gemini-3.5-flash-lite` modelini birincil açıklama üreticisi olarak kullanır. `COHERE_API_KEY` tanımlıysa Command A+ ikinci; `GROQ_API_KEY` tanımlıysa GPT-OSS 120B üçüncü uzak üretim katmanıdır. Tüm uzak API'ler başarısız olursa uygulama yerel modeli beklemez; doğrulanmış GİB atıflarıyla anında güvenli kaynak özeti gösterir. Anahtar tanımlı değilse uygulama tamamen yerel `gemma3:4b` modunda çalışır. API'ye XML, dosya adı, fatura taraf/tutar bilgileri, SHA-256 özeti veya yerel dosya yolu gönderilmez; yalnızca doğrulama kuralı ve yerelde seçilmiş resmî GİB kanıt parçaları gönderilir.
 
 ```powershell
 $env:GEMINI_API_KEY = "AI-Studio-anahtarınız"
@@ -78,13 +78,25 @@ Uygulama açılırken RAG/embedding modeli ve küçük bir semantic retrieval so
 
 Yerel model karşılaştırmasında `LLM_PROVIDER=local` ile başlatıldığında aynı başlangıç ısıtması Ollama modeline de bir tokenlık kısa çağrı yapar. Bu sayede Gemma ölçümü, model ağırlıklarının ilk yüklenmesini değil sıcak durumdaki gerçek açıklama süresini gösterir.
 
-## Bağımsız ücretsiz API yedeği: Groq
+## Bağımsız RAG odaklı API yedeği: Cohere Command A+
 
-`GROQ_API_KEY` tanımlıysa `LLM_PROVIDER=auto` akışında Gemini başarısız olduğunda Groq ikinci sağlayıcı olarak denenir; iki API de başarısız olursa uygulama anında resmî GİB kaynak özeti gösterir. Yerel Gemma bu otomatik yedek zincirinde kullanılmaz. Varsayılan Groq modeli `openai/gpt-oss-20b`'dir ve seçim gerçek vakalarla benchmark edilmelidir. GPT-OSS strict JSON Schema kullanır; Qwen 3.8 27B ise JSON Schema best-effort ve `reasoning_effort=none` ile çağrılır. Her iki yolda da çıktı uygulama tarafında Pydantic şeması ve GİB atıflarıyla doğrulanır.
+`COHERE_API_KEY` tanımlıysa `LLM_PROVIDER=auto` akışında Gemini başarısız olduğunda Cohere Command A+ denenir. Cohere yanıtı da aynı Pydantic şeması, uygulama tarafındaki GİB atıf doğrulaması ve insan incelemesi zorunluluğundan geçer.
+
+```cmd
+set "COHERE_API_KEY=Cohere-anahtarınız"
+set "COHERE_MODEL=command-a-plus-05-2026"
+python scripts\run_cohere_smoke_test.py
+```
+
+Anahtarı kaynak koduna, `.env` dışındaki izlenen bir dosyaya veya Git'e yazmayın.
+
+## Üçüncü uzak API yedeği: Groq
+
+`GROQ_API_KEY` tanımlıysa `LLM_PROVIDER=auto` akışında Gemini ve Cohere başarısız olduğunda Groq denenir. Üç API de başarısız olursa uygulama anında resmî GİB kaynak özeti gösterir. Yerel Gemma bu otomatik yedek zincirinde kullanılmaz. Varsayılan Groq modeli `openai/gpt-oss-120b`'dir ve strict JSON Schema kullanır. Çıktı uygulama tarafında Pydantic şeması ve GİB atıflarıyla doğrulanır.
 
 ```cmd
 set "GROQ_API_KEY=Groq-anahtarınız"
-set "GROQ_MODEL=openai/gpt-oss-20b"
+set "GROQ_MODEL=openai/gpt-oss-120b"
 python scripts\run_groq_smoke_test.py
 ```
 

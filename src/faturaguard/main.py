@@ -26,6 +26,7 @@ from faturaguard.services.n8n_webhook import N8nWebhookNotifier
 from faturaguard.services.official_rag import OfficialRagIndex
 from faturaguard.services.reporting import build_report_payload
 from faturaguard.services.source_backed_explanation import (
+    CohereStructuredGenerator,
     DeterministicSourceGenerator,
     FallbackExplanationGenerator,
     GeminiStructuredGenerator,
@@ -78,13 +79,24 @@ def _create_agent() -> SourceBackedAgent | None:
                 ),
                 deterministic_generator,
             )
-        if settings.llm_provider != "groq" and settings.gemini_api_key:
+        if settings.llm_provider != "groq" and settings.cohere_api_key:
+            fallback_generator = FallbackExplanationGenerator(
+                CohereStructuredGenerator(
+                    settings.cohere_api_key,
+                    settings.cohere_model,
+                    timeout_seconds=settings.cohere_timeout_seconds,
+                ),
+                fallback_generator,
+            )
+        if settings.llm_provider == "cohere":
+            generator = fallback_generator
+        elif settings.llm_provider != "groq" and settings.gemini_api_key:
             generator = FallbackExplanationGenerator(
-            GeminiStructuredGenerator(
-                settings.gemini_api_key,
-                settings.gemini_model,
-                timeout_seconds=settings.gemini_timeout_seconds,
-            ),
+                GeminiStructuredGenerator(
+                    settings.gemini_api_key,
+                    settings.gemini_model,
+                    timeout_seconds=settings.gemini_timeout_seconds,
+                ),
                 fallback_generator,
             )
         elif settings.groq_api_key:

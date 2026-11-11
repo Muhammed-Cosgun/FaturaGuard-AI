@@ -3,6 +3,7 @@ from faturaguard.services.hybrid_retrieval import RetrievedEvidence
 from faturaguard.services.official_rag import RagChunk
 from faturaguard.services.source_backed_explanation import (
     Citation,
+    CohereStructuredGenerator,
     FallbackExplanationGenerator,
     GeminiStructuredGenerator,
     GroqStructuredGenerator,
@@ -233,6 +234,58 @@ def test_groq_generator_uses_strict_schema_and_marks_api_mode(monkeypatch) -> No
     schema = observed["json"]["response_format"]["json_schema"]
     assert schema["strict"] is True
     assert schema["schema"]["additionalProperties"] is False
+
+
+def test_cohere_generator_uses_json_schema_and_marks_api_mode(monkeypatch) -> None:
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, object]:
+            return {
+                "message": {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                '{"summary":"Satır toplamı uyumsuz.",'
+                                '"reasoning":"GİB kaynağı ilgili alanı tanımlar.",'
+                                '"recommendation":"Satırları yeniden hesaplayın.",'
+                                '"requires_user_review":true,'
+                                '"citations":[{"source_id":"gib","source_title":'
+                                '"GİB Kılavuzu","source_url":'
+                                '"https://ebelge.gib.gov.tr/x","page":35}]}'
+                            ),
+                        }
+                    ]
+                }
+            }
+
+    observed: dict[str, object] = {}
+
+    def fake_post(*args, **kwargs):
+        observed.update(kwargs)
+        return Response()
+
+    monkeypatch.setattr("faturaguard.services.source_backed_explanation.httpx.post", fake_post)
+    finding = _finding_for_fallback()
+    evidence = [
+        RetrievedEvidence(
+            RagChunk("gib", "GİB Kılavuzu", "https://ebelge.gib.gov.tr/x", 35, "Kanıt"),
+            0.9,
+            0.8,
+            0.5,
+            0.8,
+        )
+    ]
+
+    result = CohereStructuredGenerator("secret", "command-a-plus-05-2026").generate(
+        finding, evidence
+    )
+
+    assert result.generation_mode == "cohere_api"
+    assert observed["headers"]["Authorization"] == "Bearer secret"
+    assert observed["json"]["response_format"]["type"] == "json_object"
 
 
 def test_groq_qwen_uses_json_schema_best_effort_and_keeps_client_side_validation() -> None:
