@@ -322,7 +322,7 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
             "response_format": self._response_format(strict_schema_supported),
         }
         headers = {"Authorization": f"Bearer {self._api_key}"}
-        last_error: Exception | None = None
+        last_error: str | None = None
         for _ in range(self._retries):
             try:
                 response = httpx.post(
@@ -335,11 +335,14 @@ class GroqStructuredGenerator(GeminiStructuredGenerator):
                 normalized = self._remove_reasoning_repetition(explanation)
                 mode = "groq_api" if strict_schema_supported else "groq_api_best_effort"
                 return normalized.model_copy(update={"generation_mode": mode})
+            except httpx.HTTPStatusError as error:
+                # Anahtar veya kullanıcı girdisi gibi hassas hata gövdesi saklanmaz.
+                last_error = f"HTTP {error.response.status_code}"
             except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
-                last_error = error
+                last_error = type(error).__name__
         raise LLMUnavailableError(
             "Groq API kaynaklı açıklama üretemedi"
-            f" ({type(last_error).__name__ if last_error else 'bilinmeyen hata'})."
+            f" ({last_error or 'bilinmeyen hata'})."
         )
 
     @staticmethod

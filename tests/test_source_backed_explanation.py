@@ -213,6 +213,40 @@ def test_groq_qwen_uses_json_mode_and_keeps_client_side_validation() -> None:
     assert response_format == {"type": "json_object"}
 
 
+def test_groq_generator_records_http_status_without_response_body(monkeypatch) -> None:
+    import httpx
+
+    request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+    response = httpx.Response(400, request=request, text="hassas hata gövdesi")
+
+    class FailingResponse:
+        def raise_for_status(self) -> None:
+            raise httpx.HTTPStatusError("bad request", request=request, response=response)
+
+    monkeypatch.setattr(
+        "faturaguard.services.source_backed_explanation.httpx.post",
+        lambda *args, **kwargs: FailingResponse(),
+    )
+    finding = _finding_for_fallback()
+    evidence = [
+        RetrievedEvidence(
+            RagChunk("gib", "GİB Kılavuzu", "https://ebelge.gib.gov.tr/x", 7, "Kanıt"),
+            0.9,
+            0.8,
+            0.5,
+            0.8,
+        )
+    ]
+
+    try:
+        GroqStructuredGenerator("secret", "qwen/qwen3.8-27b").generate(finding, evidence)
+    except LLMUnavailableError as error:
+        assert "HTTP 400" in str(error)
+        assert "hassas hata gövdesi" not in str(error)
+    else:
+        raise AssertionError("HTTP durum hatasının LLMUnavailableError'a dönüşmesi bekleniyordu.")
+
+
 def _finding_for_fallback() -> Finding:
     return Finding(
         code="xml-bicim",
