@@ -79,8 +79,8 @@ def _create_agent() -> SourceBackedAgent | None:
                 ),
                 deterministic_generator,
             )
-        if settings.llm_provider != "groq" and settings.cohere_api_key:
-            fallback_generator = FallbackExplanationGenerator(
+        if settings.llm_provider == "cohere" and settings.cohere_api_key:
+            generator = FallbackExplanationGenerator(
                 CohereStructuredGenerator(
                     settings.cohere_api_key,
                     settings.cohere_model,
@@ -88,8 +88,6 @@ def _create_agent() -> SourceBackedAgent | None:
                 ),
                 fallback_generator,
             )
-        if settings.llm_provider == "cohere":
-            generator = fallback_generator
         elif settings.llm_provider != "groq" and settings.gemini_api_key:
             generator = FallbackExplanationGenerator(
                 GeminiStructuredGenerator(
