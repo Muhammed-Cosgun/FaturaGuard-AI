@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from faturaguard.config import settings
+from faturaguard.config import Settings, settings
 from faturaguard.services.agent_workflow import SourceBackedAgent
 from faturaguard.services.correction_workflow import CorrectionWorkflow
 from faturaguard.services.document_storage import DocumentStorage, FilePolicyError
@@ -54,6 +54,49 @@ def format_turkey_time(value: str) -> str:
 templates.env.filters["turkey_time"] = format_turkey_time
 
 
+def _select_explanation_generator(app_settings: Settings):
+    """Yapılandırılmış açıklama için güvenli, test edilebilir sağlayıcı zincirini kurar."""
+
+    local_generator = OllamaStructuredGenerator(
+        app_settings.ollama_model, app_settings.ollama_base_url
+    )
+    deterministic_generator = DeterministicSourceGenerator()
+    if app_settings.llm_provider == "local":
+        return local_generator
+
+    fallback_generator = deterministic_generator
+    if app_settings.groq_api_key:
+        fallback_generator = FallbackExplanationGenerator(
+            GroqStructuredGenerator(
+                app_settings.groq_api_key,
+                app_settings.groq_model,
+                timeout_seconds=app_settings.groq_timeout_seconds,
+            ),
+            deterministic_generator,
+        )
+    if app_settings.llm_provider == "cohere" and app_settings.cohere_api_key:
+        return FallbackExplanationGenerator(
+            CohereStructuredGenerator(
+                app_settings.cohere_api_key,
+                app_settings.cohere_model,
+                timeout_seconds=app_settings.cohere_timeout_seconds,
+            ),
+            fallback_generator,
+        )
+    if app_settings.llm_provider != "groq" and app_settings.gemini_api_key:
+        return FallbackExplanationGenerator(
+            GeminiStructuredGenerator(
+                app_settings.gemini_api_key,
+                app_settings.gemini_model,
+                timeout_seconds=app_settings.gemini_timeout_seconds,
+            ),
+            fallback_generator,
+        )
+    if app_settings.groq_api_key:
+        return fallback_generator
+    return local_generator
+
+
 def _create_agent() -> SourceBackedAgent | None:
     chunks_path = settings.data_directory / "rag" / "official_gib_chunks.json"
     chroma_path = settings.data_directory / "chroma"
@@ -64,44 +107,7 @@ def _create_agent() -> SourceBackedAgent | None:
         ChromaSemanticStore(chroma_path, SentenceTransformerEmbedder()),
         Bm25LexicalRetriever(chunks),
     )
-    local_generator = OllamaStructuredGenerator(settings.ollama_model, settings.ollama_base_url)
-    deterministic_generator = DeterministicSourceGenerator()
-    if settings.llm_provider == "local":
-        generator = local_generator
-    else:
-        fallback_generator = deterministic_generator
-        if settings.groq_api_key:
-            fallback_generator = FallbackExplanationGenerator(
-                GroqStructuredGenerator(
-                    settings.groq_api_key,
-                    settings.groq_model,
-                    timeout_seconds=settings.groq_timeout_seconds,
-                ),
-                deterministic_generator,
-            )
-        if settings.llm_provider == "cohere" and settings.cohere_api_key:
-            generator = FallbackExplanationGenerator(
-                CohereStructuredGenerator(
-                    settings.cohere_api_key,
-                    settings.cohere_model,
-                    timeout_seconds=settings.cohere_timeout_seconds,
-                ),
-                fallback_generator,
-            )
-        elif settings.llm_provider != "groq" and settings.gemini_api_key:
-            generator = FallbackExplanationGenerator(
-                GeminiStructuredGenerator(
-                    settings.gemini_api_key,
-                    settings.gemini_model,
-                    timeout_seconds=settings.gemini_timeout_seconds,
-                ),
-                fallback_generator,
-            )
-        elif settings.groq_api_key:
-            generator = fallback_generator
-        else:
-            generator = local_generator
-    return SourceBackedAgent(retriever, generator)
+    return SourceBackedAgent(retriever, _select_explanation_generator(settings))
 
 
 @asynccontextmanager
