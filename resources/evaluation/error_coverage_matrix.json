@@ -4,6 +4,7 @@
   {"id":"xsd-order","code":"xsd-element-content","family":"XSD","status":"real_xml_verified"},
   {"id":"ubl-version","code":"sch-UBLVersionIDCheck-1","family":"Schematron / sürüm","status":"real_xml_verified"},
   {"id":"customization","code":"sch-CustomizationIDCheck-1","family":"Schematron / sürüm","status":"real_xml_verified"},
+  {"id":"schema-location","code":"sch-ProfileIDCheck-4","family":"Schematron / şema","status":"real_xml_verified"},
   {"id":"invoice-id","code":"sch-InvoiceIDCheck-1","family":"Schematron / kimlik","status":"real_xml_verified"},
   {"id":"profile","code":"sch-ProfileIDCheck-1","family":"Schematron / senaryo","status":"real_xml_verified"},
   {"id":"party-tckn","code":"sch-PartyIdentificationTCKNVKNCheck-2","family":"Schematron / taraf","status":"real_xml_verified"},
@@ -21,6 +22,8 @@
   {"id":"uuid","code":"sch-UUIDCheck-1","family":"Schematron / kimlik","status":"real_xml_verified"},
   {"id":"date","code":"sch-TarihBicimi-1","family":"Schematron / tarih","status":"real_xml_verified"},
   {"id":"currency","code":"sch-CurrencyCodeCheck-1","family":"Schematron / kod listesi","status":"real_xml_verified"},
+  {"id":"amount-currency","code":"sch-GeneralCurrencyIDCheck-1","family":"Schematron / kod listesi","status":"real_xml_verified"},
+  {"id":"decimal","code":"sch-decimalCheck-1","family":"Schematron / tutar biçimi","status":"real_xml_verified"},
   {"id":"unit","code":"sch-GeneralUnitCodeCheck-1","family":"Schematron / kod listesi","status":"real_xml_verified"},
   {"id":"unit-missing","code":"sch-InvoicedQuantityCheck-1","family":"Schematron / kod listesi","status":"real_xml_verified"},
   {"id":"copy-indicator","code":"sch-CopyIndicatorCheck-1","family":"Schematron / belge","status":"real_xml_verified"},
@@ -28,5 +31,6 @@
   {"id":"tax-code","code":"sch-TaxTypeCheck-1","family":"Schematron / vergi","status":"real_xml_verified"},
   {"id":"withholding","code":"sch-GeneralWithholdingTaxTotalCheck-1","family":"Schematron / tevkifat","status":"real_xml_verified"},
   {"id":"xades-structure","code":"sch-XadesSignatureCheckForInvoice-1","family":"Schematron / imza","status":"real_xml_verified"},
+  {"id":"signature-scheme","code":"sch-SignatureCheck-1","family":"Schematron / imza","status":"real_xml_verified"},
   {"id":"payable","code":"hesap-dip-odenecek","family":"Aritmetik","status":"real_xml_verified"}
 ]

@@ -24,11 +24,14 @@ def _mutate(old: bytes, new: bytes) -> bytes:
         ),
         ("ubl-version", _mutate(b"<cbc:UBLVersionID>2.1", b"<cbc:UBLVersionID>2.0"), "sch-UBLVersionIDCheck-1"),
         ("customization", _mutate(b"<cbc:CustomizationID>TR1.2", b"<cbc:CustomizationID>TR9.9"), "sch-CustomizationIDCheck-1"),
+        ("schema-location", _mutate(b"UBL-Invoice-2.1.xsd", b"Gecersiz-Invoice.xsd"), "sch-ProfileIDCheck-4"),
         ("invoice-id", _mutate(b"GIB2009000000001", b"HATALI"), "sch-InvoiceIDCheck-1"),
         ("profile", _mutate(b"<cbc:ProfileID>TEMELFATURA", b"<cbc:ProfileID>GECERSIZ"), "sch-ProfileIDCheck-1"),
         ("uuid", _mutate(b"F47AC10B-58CC-4372-A567-0E02B2C3D479", b"GECERSIZ-UUID"), "sch-UUIDCheck-1"),
         ("date", _mutate(b"2009-01-05", b"2009-02-30"), "sch-TarihBicimi-1"),
         ("currency", _mutate(b"<cbc:DocumentCurrencyCode>TRY", b"<cbc:DocumentCurrencyCode>ZZZ"), "sch-CurrencyCodeCheck-1"),
+        ("amount-currency", _mutate(b'<cbc:TaxAmount currencyID="TRY">2.73', b'<cbc:TaxAmount currencyID="ZZZ">2.73'), "sch-GeneralCurrencyIDCheck-1"),
+        ("decimal", _mutate(b'<cbc:TaxInclusiveAmount currencyID="TRY">17.88', b'<cbc:TaxInclusiveAmount currencyID="TRY">17.888'), "sch-decimalCheck-1"),
         ("unit", _mutate(b'unitCode="KWH"', b'unitCode="ADET"'), "sch-GeneralUnitCodeCheck-1"),
         ("unit-missing", _mutate(b' unitCode="KWH"', b""), "sch-InvoicedQuantityCheck-1"),
         ("copy-indicator", _mutate(b"<cbc:CopyIndicator>false", b"<cbc:CopyIndicator>true"), "sch-CopyIndicatorCheck-1"),
@@ -45,6 +48,7 @@ def _mutate(old: bytes, new: bytes) -> bytes:
         ),
         ("party-tckn", _mutate(b' schemeID="TCKN">10000000146', b' schemeID="TCKN">123'), "sch-PartyIdentificationTCKNVKNCheck-2"),
         ("return-reference", _mutate(b"<cbc:InvoiceTypeCode>SATIS", b"<cbc:InvoiceTypeCode>IADE"), "sch-IADEInvioceCheck-1"),
+        ("signature-scheme", _mutate(b'<cac:Signature><cbc:ID schemeID="VKN_TCKN"', b'<cac:Signature><cbc:ID schemeID="HATALI"'), "sch-SignatureCheck-1"),
         (
             "line-calculation",
             _mutate(
