@@ -81,8 +81,9 @@ python scripts\run_correction_plan_smoke_test.py
 ```
 
 Bu komut yalnızca `decision`, sağlayıcı modu, atıf sayısı ve güvenli sağlayıcı
-izini gösterir. Correction-plan çağrılarında varsayılan süre bütçesi 6 saniyedir;
-gerekirse `CORRECTION_PLAN_TIMEOUT_SECONDS` ile değiştirilebilir.
+izini gösterir. Correction-plan çağrılarında varsayılan süre bütçesi 12 saniyedir;
+Gemini zaman aşımına uğrarsa Groq aynı güvenlik sözleşmesiyle devralır. Gerekirse
+`CORRECTION_PLAN_TIMEOUT_SECONDS` ile değiştirilebilir.
 
 Uygulama açılırken RAG/embedding modeli ve küçük bir semantic retrieval sorgusu otomatik ısıtılır. Böylece bu maliyet ilk “Resmî GİB kaynağıyla açıkla” tıklamasında değil, `Application startup complete` mesajından önce ödenir. Başlangıç logunda `RAG başlangıç ısıtması tamamlandı.` görülmesi hattın hazır olduğunu gösterir.
 

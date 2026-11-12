@@ -31,10 +31,11 @@ class Settings:
     groq_api_key: str | None = os.getenv("GROQ_API_KEY") or None
     groq_model: str = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     groq_timeout_seconds: float = float(os.getenv("GROQ_TIMEOUT_SECONDS", "12"))
-    # Düzeltme planı tek aday + tek kanıtla çalışır; yükleme ekranını uzun süre
-    # bekletmemek için açıklama çağrısından daha kısa ayrı bir bütçe kullanır.
+    # Düzeltme planı şemalı çıktı ve resmî atıf içerir. İlk Gemini isteğinin
+    # kararlı biçimde tamamlanabilmesi için açıklama hattıyla aynı süre bütçesi
+    # kullanılır; sağlayıcı başarısızsa Groq yedeği devralır.
     correction_plan_timeout_seconds: float = float(
-        os.getenv("CORRECTION_PLAN_TIMEOUT_SECONDS", "6")
+        os.getenv("CORRECTION_PLAN_TIMEOUT_SECONDS", "12")
     )
     n8n_webhook_url: str | None = os.getenv("N8N_WEBHOOK_URL") or None
 

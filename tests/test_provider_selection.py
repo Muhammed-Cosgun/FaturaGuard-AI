@@ -62,20 +62,20 @@ def test_local_mode_never_constructs_api_provider_chain() -> None:
     assert isinstance(generator, OllamaStructuredGenerator)
 
 
-def test_correction_planner_uses_short_independent_timeout_budget() -> None:
+def test_correction_planner_uses_independent_timeout_budget() -> None:
     app_settings = replace(
         settings,
         llm_provider="auto",
         gemini_api_key="gemini-test-key",
         groq_api_key="groq-test-key",
-        correction_plan_timeout_seconds=6.0,
+        correction_plan_timeout_seconds=12.0,
     )
 
     planner = _select_correction_planner(app_settings)
 
     assert isinstance(planner, FallbackCorrectionPlanGenerator)
     assert isinstance(planner._primary, GeminiCorrectionPlanGenerator)
-    assert planner._primary._timeout_seconds == 6.0
+    assert planner._primary._timeout_seconds == 12.0
     assert isinstance(planner._fallback, FallbackCorrectionPlanGenerator)
-    assert planner._fallback._primary._timeout_seconds == 6.0
+    assert planner._fallback._primary._timeout_seconds == 12.0
     assert isinstance(planner._fallback._fallback, DeterministicCorrectionPlanGenerator)
