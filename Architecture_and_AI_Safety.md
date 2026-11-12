@@ -33,7 +33,7 @@ FastAPI uygulaması
 - Hızlı API modu: `GEMINI_API_KEY` tanımlandığında düşük gecikmeli Gemini Flash-Lite, en güçlü iki GİB kanıt parçası ve 12 saniyelik istek bütçesiyle birincil üretici olur. Süre aşımı veya API hatasında yapılandırılmış çıktıyı Groq GPT-OSS 120B ikinci sağlayıcısı dener; o da başarısızsa uzun yerel LLM beklenmeden doğrulanmış atıflarla deterministik kaynak özeti gösterilir. Anahtar yoksa uygulama tamamen yerel Ollama moduna döner. API sınırından yalnızca statik doğrulama kuralı ve retrieval/rerank ile seçilmiş GİB kanıt parçaları geçer; XML, dosya adı, SHA-256, taraf/tutar bilgileri ve yerel yol geçmez. API anahtarı kaynak kodda, raporda veya audit kaydında tutulmaz.
 - Bağımsız ücretsiz yedek: `GROQ_API_KEY` tanımlı olduğunda Gemini başarısızlığı sonrası Groq Chat Completions API denenir. Groq çıktısı strict JSON Schema, Pydantic doğrulaması ve retrieval kanıtlarıyla bire bir citation kontrolünden geçer. İki sağlayıcı da başarısızsa deterministik GİB kaynak özeti gösterilir; ücretsiz kota hataları veya servis kesintileri kullanıcıyı uzun yerel LLM beklemesine sokmaz.
 - MCP: agent araçları için aynı sözleşmeyi dış sistemlere açabilecek standart adaptör sınırıdır; ilk sürümde uygulama içi araçlar esas alınır.
-- Düzeltme motoru: sadece izin listesinde bulunan, düşük riskli değişiklikleri çalışma kopyasına uygular.
+- Düzeltme motoru: sadece izin listesinde bulunan, düşük riskli aritmetik dip toplam değişikliklerini çalışma kopyasına uygular. Katalog `LineExtensionAmount`, `TaxExclusiveAmount`, `TaxInclusiveAmount` ve `PayableAmount` alanlarıyla sınırlıdır; bir alanın bağımlılığı olan alt toplamda bulgu varsa üst alan için teklif oluşturmaz.
 - İşlem geçmişi: iş özeti, doğrulama sonucu ve audit olayları yerel SQLite veritabanında saklanır. Tam XML diff'i veritabanı dışında, işlem kimliğiyle ilişkili ayrı bir dosyada tutulur.
 
 ## Güvenlik kuralları
@@ -42,7 +42,7 @@ FastAPI uygulaması
 - Kullanıcı onayı olmadan XML değiştirilemez.
 - Agent, kullanıcıdan açık `approve` kararı gelmeden düzeltme aracını çağıramaz; LLM metni hiçbir zaman XML değişikliği komutu değildir.
 - Kullanıcı onayı yalnızca `decision=propose` olan, maskeli patch tokenları güvenlik politikasıyla tam eşleşen LLM planlarında sunulur. Agent gerçek XML değerlerini yerel aday eşlemesiyle çözer; yeni değer veya XML yolu icat eden planlar reddedilir.
-- E-imza, taraf bilgileri, vergi kimlik bilgileri, fatura numarası, tarih ve ticari tutarı değiştiren alanlar otomatik düzeltilmez.
+- E-imza, taraf bilgileri, vergi kimlik bilgileri, fatura numarası, tarih, satır tutarları ve vergi oranları otomatik düzeltilmez. İzinli dip toplamlar yalnızca mevcut satır/vergi/indirim/artırım değerlerinden tekrar hesaplanır.
 - Her işlem, dosya bütünlük özeti ve karar kaydıyla ilişkilendirilir.
 - Kaynak bulunmadığında agent kesin bir yönlendirme yapmaz.
 - Agent, yalnızca yeterli rerank ve teknik-terim eşleşmesi olan kanıtta açıklama üretir; versiyon geçmişi gibi düşük bilgi değerli parçalar kaynak olarak elenir.

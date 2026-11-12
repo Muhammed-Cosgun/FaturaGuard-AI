@@ -70,6 +70,7 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - LLM tabanlı maskeli patch-plan katmanı eklendi. Gemini, başarısızlığında Groq, yalnızca aday kimliği ve `TARGET_FIELD_n`/`CURRENT_VALUE_n`/`RECALCULATED_VALUE_n` tokenlarını içeren yapılandırılmış düzeltme planı üretir. Agent planı yerel adayla ve GİB retrieval atıflarıyla doğrular; değer, XML yolu veya işlem türü icat eden planlar reddedilir. Kullanıcı onay düğmesi yalnızca LLM'in `propose` kararı güvenlik politikasıyla eşleştiğinde etkinleşir.
 - Merkezi `PrivacyRedactor` katmanı eklendi. Açıklama ve düzeltme-planı sağlayıcı istekleri tek noktada PII maskesinden geçer; VKN/TCKN, IBAN, e-posta, telefon ve hesap numarası tokenlaştırılır, XML/adres/kişi adı içeren alanlar bastırılır. Negatif testler, iç içe payload'larda da ham tanımlayıcıların taşınmadığını doğrular.
 - Agent intake graph'ına `assess_document_risk` kalite kapısı eklendi. Araç; kritik hata varsa belgeyi `blocked`, bulgu varsa `needs_human_review`, temiz teknik doğrulamada ise `ready_for_manual_submission_review` rotasına alır; öncelikli bulguları ve kullanıcıya önerilen sonraki adımları audit trail ile kaydeder.
+- Güvenli düzeltme kataloğu `TaxExclusiveAmount`, `TaxInclusiveAmount` ve `PayableAmount` dip toplamlarıyla genişletildi. Her kural gerçek `efatura-kontrol` doğrulayıcısıyla mutasyona uğratılmış fatura üzerinde onaylı patch → yeniden doğrulama testiyle doğrulandı. Alt toplam bulgusu varken bağımlı üst toplam teklifleri özellikle ertelenir.
 
 ## Planlanan test senaryoları
 
