@@ -286,6 +286,23 @@ def test_groq_correction_plan_uses_strict_schema_for_gpt_oss() -> None:
     }
 
 
+def test_groq_correction_plan_allows_enough_completion_tokens(monkeypatch) -> None:
+    observed: dict[str, object] = {}
+
+    def fake_post(*args, **kwargs):
+        observed.update(kwargs)
+        raise httpx.ConnectError("offline")
+
+    monkeypatch.setattr("faturaguard.services.source_backed_explanation.httpx.post", fake_post)
+
+    with pytest.raises(LLMUnavailableError):
+        GroqCorrectionPlanGenerator("secret", "openai/gpt-oss-120b").generate(
+            _finding_for_fallback(), [], []
+        )
+
+    assert observed["json"]["max_completion_tokens"] == 450
+
+
 def test_provider_error_detail_is_masked_and_bounded() -> None:
     response = httpx.Response(
         400,

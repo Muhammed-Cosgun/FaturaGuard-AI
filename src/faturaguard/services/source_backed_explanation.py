@@ -731,7 +731,9 @@ class GroqCorrectionPlanGenerator:
         payload = {
             "model": self._model,
             "reasoning_effort": "low",
-            "max_completion_tokens": 260,
+            # GPT-OSS'un düşük reasoning bütçesi ve zorunlu citation alanları için
+            # 260 token yetersiz kaldı; açıklama hattıyla uyumlu güvenli bütçe.
+            "max_completion_tokens": 450,
             "messages": [
                 {"role": "system", "content": _correction_plan_prompt()},
                 {"role": "user", "content": json.dumps(request, ensure_ascii=False)},
@@ -809,7 +811,9 @@ verilmez. TARGET_FIELD_n, CURRENT_VALUE_n ve RECALCULATED_VALUE_n tokenlarını
 aynen kullan. decision=propose ise tam olarak bir aday seç, tek replace_text patch'i
 üret ve requires_user_approval=true yap. Kanıt yalnızca EVIDENCE içinden gelmelidir.
 Emin değilsen human_review seç ve selected_candidate_id alanına boş metin yaz.
-Çıktıyı yalnızca JSON şemasına uygun üret."""
+Rationale alanını en fazla iki kısa Türkçe cümleyle yaz. decision=propose ise
+EVIDENCE içinden tam bir citation ekle; citations, patches ve diğer tüm zorunlu
+alanları mutlaka üret. Çıktıyı yalnızca JSON şemasına uygun üret."""
 
 
 def _correction_plan_json_schema() -> dict[str, object]:
