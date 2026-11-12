@@ -71,9 +71,10 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Merkezi `PrivacyRedactor` katmanı eklendi. Açıklama ve düzeltme-planı sağlayıcı istekleri tek noktada PII maskesinden geçer; VKN/TCKN, IBAN, e-posta, telefon ve hesap numarası tokenlaştırılır, XML/adres/kişi adı içeren alanlar bastırılır. Negatif testler, iç içe payload'larda da ham tanımlayıcıların taşınmadığını doğrular.
 - Agent intake graph'ına `assess_document_risk` kalite kapısı eklendi. Araç; kritik hata varsa belgeyi `blocked`, bulgu varsa `needs_human_review`, temiz teknik doğrulamada ise `ready_for_manual_submission_review` rotasına alır; öncelikli bulguları ve kullanıcıya önerilen sonraki adımları audit trail ile kaydeder.
 - Güvenli düzeltme kataloğu `TaxExclusiveAmount`, `TaxInclusiveAmount` ve `PayableAmount` dip toplamlarıyla genişletildi. Her kural gerçek `efatura-kontrol` doğrulayıcısıyla mutasyona uğratılmış fatura üzerinde onaylı patch → yeniden doğrulama testiyle doğrulandı. Alt toplam bulgusu varken bağımlı üst toplam teklifleri özellikle ertelenir.
-- 12.11.2026 yerel kalite çalıştırmasında `ruff check .` başarılı oldu; güncel paket 135 otomatik testi geçti. Bu sayı, eski geliştirme aşamasındaki `51/51` notunun yerine geçer.
+- 12.11.2026 yerel kalite çalıştırmasında `ruff check .` başarılı oldu; güncel paket 136 otomatik testi geçti. Bu sayı, eski geliştirme aşamasındaki `51/51` notunun yerine geçer.
 - HTML ve JSON işlem raporları agentın `blocked` / `needs_human_review` / `ready_for_manual_submission_review` risk rotasını, öncelikli bulgularını ve sonraki adımlarını ham XML taşımadan gösterir.
 - Correction-plan sağlayıcı zinciri için anahtar göstermeyen bağımsız smoke testi eklendi. Gemini/Groq hata zinciri planın `provider_trace` alanında ve audit kaydında korunur; yükleme ekranındaki plan çağrıları açıklama çağrılarından ayrı, varsayılan 6 saniyelik süre bütçesiyle sınırlandırılır.
+- Groq GPT-OSS correction-plan çağrısı strict JSON Schema moduna alındı. Böylece serbest JSON'un Pydantic `ValidationError`a düşmesi yerine, sağlayıcının `propose` / `human_review` sözleşmesine uygun yanıt üretmesi beklenir.
 
 ## Planlanan test senaryoları
 

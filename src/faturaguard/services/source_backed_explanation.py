@@ -693,7 +693,7 @@ class GeminiCorrectionPlanGenerator:
             "response_format": {
                 "type": "text",
                 "mime_type": "application/json",
-                "schema": AgentCorrectionPlan.model_json_schema(),
+                "schema": _correction_plan_json_schema(),
             },
         }
         try:
@@ -731,12 +731,12 @@ class GroqCorrectionPlanGenerator:
         payload = {
             "model": self._model,
             "reasoning_effort": "low",
-            "max_completion_tokens": 380,
+            "max_completion_tokens": 260,
             "messages": [
                 {"role": "system", "content": _correction_plan_prompt()},
                 {"role": "user", "content": json.dumps(request, ensure_ascii=False)},
             ],
-            "response_format": {"type": "json_object"},
+            "response_format": self._response_format(),
         }
         try:
             response = httpx.post(
@@ -753,6 +753,20 @@ class GroqCorrectionPlanGenerator:
             return plan.model_copy(update={"generation_mode": "groq_correction_plan"})
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
             raise LLMUnavailableError(f"Groq düzeltme planı üretilemedi ({type(error).__name__}).") from error
+
+    def _response_format(self) -> dict[str, object]:
+        """GPT-OSS strict şemayla serbest JSON kaynaklı doğrulama hatasını önler."""
+
+        if self._model.startswith("openai/gpt-oss-"):
+            return {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "faturaguard_correction_plan",
+                    "strict": True,
+                    "schema": _correction_plan_json_schema(),
+                },
+            }
+        return {"type": "json_object"}
 
 
 class FallbackCorrectionPlanGenerator:
@@ -789,6 +803,58 @@ verilmez. TARGET_FIELD_n, CURRENT_VALUE_n ve RECALCULATED_VALUE_n tokenlarını
 aynen kullan. decision=propose ise tam olarak bir aday seç, tek replace_text patch'i
 üret ve requires_user_approval=true yap. Kanıt yalnızca EVIDENCE içinden gelmelidir.
 Emin değilsen human_review seç. Çıktıyı yalnızca JSON şemasına uygun üret."""
+
+
+def _correction_plan_json_schema() -> dict[str, object]:
+    """Gemini ve Groq'un ortak kabul ettiği dar correction-plan JSON şeması.
+
+    Pydantic modeli nihai doğrulama katmanı olmaya devam eder. Buradaki açık
+    şema, sağlayıcıların ``default``/``anyOf`` içeren üretim şemalarında takılıp
+    geçersiz serbest JSON döndürmesini önler.
+    """
+
+    citation = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "source_id": {"type": "string"},
+            "source_title": {"type": "string"},
+            "source_url": {"type": "string"},
+            "page": {"type": "integer", "minimum": 1},
+        },
+        "required": ["source_id", "source_title", "source_url", "page"],
+    }
+    patch = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "operation": {"type": "string", "enum": ["replace_text"]},
+            "target_token": {"type": "string"},
+            "before_token": {"type": "string"},
+            "after_token": {"type": "string"},
+        },
+        "required": ["operation", "target_token", "before_token", "after_token"],
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "decision": {"type": "string", "enum": ["propose", "human_review"]},
+            "selected_candidate_id": {"type": ["string", "null"]},
+            "patches": {"type": "array", "maxItems": 1, "items": patch},
+            "rationale": {"type": "string"},
+            "requires_user_approval": {"type": "boolean"},
+            "citations": {"type": "array", "maxItems": 2, "items": citation},
+        },
+        "required": [
+            "decision",
+            "selected_candidate_id",
+            "patches",
+            "rationale",
+            "requires_user_approval",
+            "citations",
+        ],
+    }
 
 
 def _masked_correction_request(

@@ -8,11 +8,13 @@ from faturaguard.services.source_backed_explanation import (
     CohereStructuredGenerator,
     FallbackExplanationGenerator,
     GeminiStructuredGenerator,
+    GroqCorrectionPlanGenerator,
     GroqStructuredGenerator,
     LLMUnavailableError,
     OllamaStructuredGenerator,
     SourceBackedExplanation,
     UnsafeExplanationError,
+    _correction_plan_json_schema,
 )
 
 
@@ -269,6 +271,14 @@ def test_correction_plan_fallback_preserves_both_provider_failure_traces() -> No
 
     assert result.decision == "human_review"
     assert result.provider_trace == "API fallback: Gemini timeout -> API fallback: Groq timeout"
+
+
+def test_groq_correction_plan_uses_strict_schema_for_gpt_oss() -> None:
+    response_format = GroqCorrectionPlanGenerator("secret", "openai/gpt-oss-120b")._response_format()
+
+    assert response_format["type"] == "json_schema"
+    assert response_format["json_schema"]["strict"] is True
+    assert response_format["json_schema"]["schema"] == _correction_plan_json_schema()
 
 
 def test_generator_rejects_citation_not_returned_by_retrieval() -> None:
