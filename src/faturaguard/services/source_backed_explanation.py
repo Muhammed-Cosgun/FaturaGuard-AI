@@ -771,8 +771,12 @@ class FallbackCorrectionPlanGenerator:
         try:
             return self._primary.generate(finding, candidates, evidence)
         except LLMUnavailableError as error:
-            return self._fallback.generate(finding, candidates, evidence).model_copy(
-                update={"provider_trace": f"API fallback: {error}"}
+            fallback = self._fallback.generate(finding, candidates, evidence)
+            trace_parts = [f"API fallback: {error}"]
+            if fallback.provider_trace:
+                trace_parts.append(fallback.provider_trace)
+            return fallback.model_copy(
+                update={"provider_trace": " -> ".join(trace_parts)}
             )
 
 
@@ -809,7 +813,9 @@ def _masked_correction_request(
                 "page": item.chunk.page,
                 "text": item.chunk.text[:1200],
             }
-            for item in evidence[:2]
+            # Patch seçimi tek izinli adaydan ibarettir; bir güçlü kanıt yeterlidir.
+            # Daha dar bağlam, API gecikmesini ve sağlayıcı JSON zaman aşımı riskini azaltır.
+            for item in evidence[:1]
         ],
     })
 

@@ -109,7 +109,7 @@ def _select_correction_planner(app_settings: Settings):
             GroqCorrectionPlanGenerator(
                 app_settings.groq_api_key,
                 app_settings.groq_model,
-                timeout_seconds=app_settings.groq_timeout_seconds,
+                timeout_seconds=app_settings.correction_plan_timeout_seconds,
             ),
             planner,
         )
@@ -118,7 +118,7 @@ def _select_correction_planner(app_settings: Settings):
             GeminiCorrectionPlanGenerator(
                 app_settings.gemini_api_key,
                 app_settings.gemini_model,
-                timeout_seconds=app_settings.gemini_timeout_seconds,
+                timeout_seconds=app_settings.correction_plan_timeout_seconds,
             ),
             planner,
         )

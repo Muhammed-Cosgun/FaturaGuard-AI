@@ -504,6 +504,7 @@ class FaturaGuardAgent:
                         "proposal_id": proposal.proposal_id,
                         "decision": plan.decision,
                         "generation_mode": plan.generation_mode,
+                        "provider_trace": plan.provider_trace,
                         "uses_masked_tokens": True,
                     },
                 )

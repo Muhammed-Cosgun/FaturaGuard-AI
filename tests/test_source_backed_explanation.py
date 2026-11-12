@@ -246,6 +246,31 @@ def test_fallback_chain_uses_second_api_generator_after_primary_failure() -> Non
     assert result.provider_trace == "API fallback: Gemini timeout"
 
 
+def test_correction_plan_fallback_preserves_both_provider_failure_traces() -> None:
+    from faturaguard.services.source_backed_explanation import (
+        AgentCorrectionPlan,
+        DeterministicCorrectionPlanGenerator,
+        FallbackCorrectionPlanGenerator,
+    )
+
+    class FailingPrimary:
+        def generate(self, finding, candidates, evidence):
+            raise LLMUnavailableError("Gemini timeout")
+
+    class FailingSecondary:
+        def generate(self, finding, candidates, evidence):
+            raise LLMUnavailableError("Groq timeout")
+
+    generator = FallbackCorrectionPlanGenerator(
+        FailingPrimary(),
+        FallbackCorrectionPlanGenerator(FailingSecondary(), DeterministicCorrectionPlanGenerator()),
+    )
+    result: AgentCorrectionPlan = generator.generate(_finding_for_fallback(), [], [])
+
+    assert result.decision == "human_review"
+    assert result.provider_trace == "API fallback: Gemini timeout -> API fallback: Groq timeout"
+
+
 def test_generator_rejects_citation_not_returned_by_retrieval() -> None:
     explanation = SourceBackedExplanation(
         summary="Açıklama.",

@@ -74,6 +74,16 @@ Anahtarın, seçilen modelin ve yapılandırılmış çıktı sözleşmesinin ca
 python scripts\run_gemini_smoke_test.py
 ```
 
+Maskeli düzeltme-planı zincirinin ayrıca doğrulanması için:
+
+```cmd
+python scripts\run_correction_plan_smoke_test.py
+```
+
+Bu komut yalnızca `decision`, sağlayıcı modu, atıf sayısı ve güvenli sağlayıcı
+izini gösterir. Correction-plan çağrılarında varsayılan süre bütçesi 6 saniyedir;
+gerekirse `CORRECTION_PLAN_TIMEOUT_SECONDS` ile değiştirilebilir.
+
 Uygulama açılırken RAG/embedding modeli ve küçük bir semantic retrieval sorgusu otomatik ısıtılır. Böylece bu maliyet ilk “Resmî GİB kaynağıyla açıkla” tıklamasında değil, `Application startup complete` mesajından önce ödenir. Başlangıç logunda `RAG başlangıç ısıtması tamamlandı.` görülmesi hattın hazır olduğunu gösterir.
 
 Yerel model karşılaştırmasında `LLM_PROVIDER=local` ile başlatıldığında aynı başlangıç ısıtması Ollama modeline de bir tokenlık kısa çağrı yapar. Bu sayede Gemma ölçümü, model ağırlıklarının ilk yüklenmesini değil sıcak durumdaki gerçek açıklama süresini gösterir.

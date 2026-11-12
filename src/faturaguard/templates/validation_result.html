@@ -85,6 +85,7 @@
               <h4>AI Agent düzeltme planı<span>Maskeli bağlam · İnsan onayı zorunlu</span></h4>
               <p>{{ proposal.agent_plan.rationale }}</p>
               <p class="metadata">Plan kararı: <code>{{ proposal.agent_plan.decision }}</code> · Sağlayıcı: <code>{{ proposal.agent_plan.generation_mode }}</code></p>
+              {% if proposal.agent_plan.provider_trace %}<p class="metadata">Sağlayıcı izi: {{ proposal.agent_plan.provider_trace }}</p>{% endif %}
               {% if proposal.agent_plan.citations %}<p class="metadata">Kaynaklar:
                 {% for citation in proposal.agent_plan.citations %}
                 <a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a>{% if not loop.last %}; {% endif %}
@@ -97,7 +98,7 @@
               <button name="decision" value="reject" type="submit" class="secondary">Reddet</button>
             </form>
             {% elif proposal.status == 'proposed' %}
-            <p class="metadata">AI Agent güvenli bir patch planı üretmediği için düzeltme uygulanamaz; insan incelemesi gerekir.</p>
+            <p class="metadata">AI Agent güvenli bir patch planı üretmediği için düzeltme uygulanamaz; insan incelemesi gerekir. Sağlayıcı geri dönerse dosyayı yeniden yükleyip tekrar deneyebilirsiniz.</p>
             {% else %}<p><strong>Karar:</strong> <span class="status-badge neutral">{{ proposal.status }}</span></p>{% endif %}
           </article>
           {% endfor %}
