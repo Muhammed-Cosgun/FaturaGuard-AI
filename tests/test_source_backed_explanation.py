@@ -176,7 +176,13 @@ def test_gemini_generator_uses_structured_output_and_marks_api_mode(monkeypatch)
     )
     evidence = [
         RetrievedEvidence(
-            RagChunk("gib", "GİB Kılavuzu", "https://ebelge.gib.gov.tr/x", 35, "Kanıt"),
+            RagChunk(
+                "gib",
+                "GİB Kılavuzu",
+                "https://ebelge.gib.gov.tr/x",
+                35,
+                "Kanıt: VKN 1234567890, e-posta kisi@example.com",
+            ),
             0.9,
             0.8,
             0.5,
@@ -191,6 +197,8 @@ def test_gemini_generator_uses_structured_output_and_marks_api_mode(monkeypatch)
     assert "response_format" in observed["json"]
     assert "original_filename" not in observed["json"]["input"]
     assert finding.message not in observed["json"]["input"]
+    assert "1234567890" not in observed["json"]["input"]
+    assert "kisi@example.com" not in observed["json"]["input"]
 
 
 def test_fallback_generator_uses_local_generator_after_api_failure() -> None:

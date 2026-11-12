@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from faturaguard.domain.validation import Finding
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
+from faturaguard.services.privacy_redactor import privacy_redactor
 
 
 class Citation(BaseModel):
@@ -160,7 +161,7 @@ ve GİB'e gönderim öncesinde imza gerektiğini birlikte belirt.
         gerekmez ve güvenilmeyen metni model bağlamından uzak tutar.
         """
 
-        return {
+        return privacy_redactor.redact_payload({
             "finding": {
                 "code": finding.code,
                 "source": finding.source,
@@ -179,7 +180,7 @@ ve GİB'e gönderim öncesinde imza gerektiğini birlikte belirt.
                 }
                 for item in evidence
             ],
-        }
+        })
 
     @staticmethod
     def _validate_citations(
@@ -360,7 +361,7 @@ class GeminiStructuredGenerator(OllamaStructuredGenerator):
 
         # Sunum gecikmesini azaltmak için yalnızca en güçlü iki kanıtın sınırlı metni gönderilir.
         # Citation doğrulaması yine retrieval ile dönen tüm resmî kanıtlara karşı yapılır.
-        return {
+        return privacy_redactor.redact_payload({
             "finding": {
             "code": finding.code,
             "source": finding.source,
@@ -379,7 +380,7 @@ class GeminiStructuredGenerator(OllamaStructuredGenerator):
                 }
                 for item in evidence[:2]
             ],
-        }
+        })
 
     @staticmethod
     def _output_text(response: dict[str, object]) -> str:
@@ -792,7 +793,7 @@ def _masked_correction_request(
     evidence: Sequence[RetrievedEvidence],
 ) -> dict[str, object]:
     """Bulut sınırına kişisel/ticari XML verisi taşımayan planlama bağlamı."""
-    return {
+    return privacy_redactor.redact_payload({
         "finding": {
             "code": finding.code,
             "source": finding.source,
@@ -810,7 +811,7 @@ def _masked_correction_request(
             }
             for item in evidence[:2]
         ],
-    }
+    })
 
 
 def _validate_plan_citations(plan: AgentCorrectionPlan, evidence: Sequence[RetrievedEvidence]) -> None:
