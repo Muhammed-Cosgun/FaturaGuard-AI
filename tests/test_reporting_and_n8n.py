@@ -23,7 +23,16 @@ def _job() -> CorrectionJob:
 
 
 def test_report_excludes_xml_contents_and_private_path() -> None:
-    payload = build_report_payload(_job())
+    job = _job()
+    job.agent_triage = {
+        "route": "needs_human_review",
+        "priority_finding_codes": ["hesap-dip-satir"],
+        "safe_correction_ready_count": 1,
+        "recommended_next_actions": ["İnceleyin."],
+        "rationale": "İnsan incelemesi gerekir.",
+        "privacy_boundary": "ham_xml_local_only",
+    }
+    payload = build_report_payload(job)
 
     assert payload["document"]["original_sha256"] == "original-hash"
     assert "original_path" not in str(payload)
@@ -33,6 +42,8 @@ def test_report_excludes_xml_contents_and_private_path() -> None:
         "line_count": 4,
         "detail": "Tam XML diff'i yalnızca uygulama içi işlem görünümünde gösterilir.",
     }
+    assert payload["agent_triage"]["route"] == "needs_human_review"
+    assert "private/original.xml" not in str(payload["agent_triage"])
 
 
 def test_n8n_notification_is_disabled_without_webhook_url() -> None:

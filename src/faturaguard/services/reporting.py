@@ -20,6 +20,8 @@ def build_report_payload(job: CorrectionJob) -> dict[str, Any]:
         "validation_after": job.corrected_report.model_dump(mode="json")
         if job.corrected_report
         else None,
+        # Ham XML veya belge değerleri değil, agentın yerel risk/rota kararı taşınır.
+        "agent_triage": job.agent_triage,
         "agent_outputs": job.agent_outputs,
         "automation_events": job.automation_events,
         "diff_summary": {

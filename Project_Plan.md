@@ -86,9 +86,9 @@ V1; temiz ortamda çalıştırılabildiğinde, zorunlu akışı tamamladığınd
 - [ ] **P0 — Genişletilmiş düzeltme kataloğu manuel kabulü:** `TaxExclusiveAmount`, `TaxInclusiveAmount` ve `PayableAmount` tekil hata senaryolarını web arayüzünde yükle; LLM patch planı, kullanıcı onayı, minimal diff ve yeniden doğrulamayı kaydet.
 - [ ] **P0 — Temiz kurulum kanıtı:** Yeni sanal ortamda bağımlılık kurulumu, RAG indeks kontrolü, `pytest`, `ruff check .` ve uygulama açılışını tekrar doğrula.
 - [ ] **P0 — Sunum yapılandırması:** `run_demo_preflight.py` ile Gemini → Groq → deterministik fallback zincirini kontrol et; anahtarları ekrana veya Git'e yazma.
-- [ ] **P0 — Teslim raporu güncellemesi:** Güncel 132 otomatik testlik paket sonucunu, manuel kabul tarihlerini ve bilinen sınırlılıkları `Test_and_Delivery_Report.md` içine son kez işle.
+- [ ] **P0 — Teslim raporu güncellemesi:** Güncel 133 otomatik testlik paket sonucunu, manuel kabul tarihlerini ve bilinen sınırlılıkları `Test_and_Delivery_Report.md` içine son kez işle.
 - [ ] **P1 — Hız/kalite kanıtı:** Birincil ve fallback sağlayıcı için üçer kaynak açıklaması ölç; süre, sağlayıcı ve başarı/fallback sonucunu teslim raporuna ekle.
-- [ ] **P1 — Rapor bütünlüğü:** HTML rapora agent risk/işlem planı özetini ekle; JSON raporundaki agent triage alanıyla tutarlı olduğunu test et.
+- [x] **P1 — Rapor bütünlüğü:** HTML rapora agent risk/işlem planı özeti eklendi; JSON raporundaki agent triage alanıyla tutarlılığı test edildi.
 - [ ] **P1 — Gizlilik denetimi:** Redactor'ın açıklama ve patch-plan payload'larında maskelenen alan sayısını değerleri saklamadan audit olayına yazmayı değerlendir.
 - [ ] **P2 — RAG değerlendirmesi:** Golden sorgu setini, az temsil edilen hata aileleri (iade, tevkifat, ödeme, e-Arşiv/zarf) için genişlet ve metrikleri yeniden üret.
 - [ ] **P2 — İsteğe bağlı otomasyon:** n8n webhook örneğini gerçek yerel n8n akışında test et; yapılmazsa bunu bilinen sınırlılık olarak raporla.

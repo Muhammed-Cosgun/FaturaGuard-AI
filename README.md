@@ -148,6 +148,13 @@ python scripts\run_demo_e2e.py C:\Users\Muhammed\Desktop\efatura_kutuphane_testi
 
 Ayrıntılı demo ve web arayüzü sunum akışı için [DEMO_SCENARIO.md](DEMO_SCENARIO.md) dosyasına bakın.
 
+Genişletilmiş aritmetik düzeltme kuralları için tarayıcıda kullanılabilecek
+doğrulanmış demo dosyalarını oluşturmak için:
+
+```cmd
+python scripts\generate_arithmetic_demo_fixtures.py
+```
+
 ## Sunum öncesi kontrol
 
 API anahtarlarını göstermeden RAG indeksini ve aktif sağlayıcı/fallback zincirini doğrulamak için:

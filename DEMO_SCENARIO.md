@@ -55,6 +55,26 @@ uvicorn faturaguard.main:app --reload
 4. **Kabul et** ile çalışma kopyasının oluşturulduğunu, diff'i ve yeniden doğrulama özetini gösterin.
 5. İşlem raporunu HTML ve JSON olarak açın.
 
+## Genişletilmiş aritmetik katalog demosu
+
+Yeni dip toplam düzeltme kurallarını tarayıcıda göstermek için önce doğrulanmış
+demo dosyalarını üretin:
+
+```cmd
+python scripts\generate_arithmetic_demo_fixtures.py
+```
+
+Oluşan dosyalar `data\demo-fixtures\` altındadır. Bunları tek tek yükleyin:
+
+- `demo_tax_exclusive_error.xml`: Agent `TaxExclusiveAmount` teklifini üretir.
+- `demo_tax_inclusive_error.xml`: Agent `TaxInclusiveAmount` teklifini üretir.
+- `demo_payable_error.xml`: Agent `PayableAmount` teklifini üretir.
+
+Her vakada AI Agent işlem planını, maskeli LLM patch kararını, açık kullanıcı
+onayını, minimal diff'i ve yeniden doğrulama sonucunu gösterin. Alt toplam
+bulgusu bulunan belgede bağımlı üst toplamın teklif edilmemesi beklenen güvenlik
+davranışıdır.
+
 ## Negatif senaryo
 
 `test_bozuk_xml.xml` ile yükleme yapın. XML iyi biçimli olmadığından güvenli düzeltme teklifi üretilmemeli; sistem yalnızca doğrulama bulgusunu göstermelidir.

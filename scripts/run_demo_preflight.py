@@ -33,7 +33,9 @@ def main() -> None:
     print(f"LLM modu: {settings.llm_provider}")
     print("Gemini anahtarı: " + ("tanımlı" if settings.gemini_api_key else "tanımlı değil"))
     print("Groq anahtarı: " + ("tanımlı" if settings.groq_api_key else "tanımlı değil"))
-    print("Aktif üretim zinciri: " + " → ".join(_chain_names(generator)))
+    # Windows'un varsayılan CP1254 CMD kod sayfasında Unicode ok karakteri yazılamaz.
+    # Sunum öncesi kontrolün her standart Windows terminalinde çalışması için ASCII kullanılır.
+    print("Aktif üretim zinciri: " + " -> ".join(_chain_names(generator)))
     print("Preflight sonucu: hazır")
 
 

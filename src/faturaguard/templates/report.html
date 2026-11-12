@@ -24,6 +24,17 @@
         <h2>Kullanıcı kararları</h2>
         {% for proposal in job.proposals %}<p>{{ proposal.title }}: <strong>{{ proposal.status }}</strong></p>{% else %}<p>Teklif üretilmedi.</p>{% endfor %}
       </section>
+      {% if job.agent_triage %}
+      <section class="notice">
+        <p class="section-label">AI AGENT İŞLEM PLANI</p><h2>Risk ve sonraki adımlar</h2>
+        <p><strong>Rota:</strong> <code>{{ job.agent_triage.route }}</code></p>
+        <p>{{ job.agent_triage.rationale }}</p>
+        {% if job.agent_triage.priority_finding_codes %}<p class="metadata">Öncelikli bulgular: {% for code in job.agent_triage.priority_finding_codes %}<code>{{ code }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+        {% if job.agent_triage.safe_correction_ready_count %}<p class="metadata">Onaya hazır güvenli düzeltme: {{ job.agent_triage.safe_correction_ready_count }}</p>{% endif %}
+        <ol>{% for action in job.agent_triage.recommended_next_actions %}<li>{{ action }}</li>{% endfor %}</ol>
+        <p class="metadata">Gizlilik sınırı: Ham XML yalnızca yerelde işlenir.</p>
+      </section>
+      {% endif %}
       {% if job.agent_outputs %}
       <section class="notice"><h2>Kaynaklı AI açıklamaları</h2>
         {% for code, output in job.agent_outputs.items() %}
