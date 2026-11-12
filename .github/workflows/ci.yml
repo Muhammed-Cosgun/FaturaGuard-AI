@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  PYTHONPATH: ${{ github.workspace }}
+
 jobs:
   quality:
     runs-on: ubuntu-latest
