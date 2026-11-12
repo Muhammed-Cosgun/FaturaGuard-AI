@@ -41,5 +41,7 @@ class CorrectionJob(BaseModel):
     corrected_report: ValidationReport | None = None
     diff: str | None = None
     diff_path: str | None = None
+    # Agent'ın belge alımında ürettiği, ham XML içermeyen risk ve işlem planı.
+    agent_triage: dict[str, object] | None = None
     agent_outputs: dict[str, dict[str, object]] = Field(default_factory=dict)
     automation_events: list[dict[str, object]] = Field(default_factory=list)

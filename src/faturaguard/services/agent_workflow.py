@@ -5,7 +5,7 @@ from typing import Literal, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from faturaguard.domain.correction import CorrectionProposal
-from faturaguard.domain.validation import Finding
+from faturaguard.domain.validation import Finding, Priority, Severity
 from faturaguard.services.correction_workflow import CorrectionWorkflow
 from faturaguard.services.document_storage import StoredDocument
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
@@ -358,15 +358,17 @@ class FaturaGuardAgent:
         graph = StateGraph(DocumentAgentState)
         graph.add_node("validate_document", self._validate_document)
         graph.add_node("propose_safe_corrections", self._propose_safe_corrections)
+        graph.add_node("assess_document_risk", self._assess_document_risk)
         graph.add_node("await_human_review", self._await_human_review)
         graph.add_node("report_ready", self._report_ready)
         graph.add_edge(START, "validate_document")
         graph.add_edge("validate_document", "propose_safe_corrections")
         graph.add_conditional_edges(
-            "propose_safe_corrections",
+            "assess_document_risk",
             self._route_after_intake,
             {"review": "await_human_review", "complete": "report_ready"},
         )
+        graph.add_edge("propose_safe_corrections", "assess_document_risk")
         graph.add_edge("await_human_review", END)
         graph.add_edge("report_ready", END)
         return graph.compile()
@@ -377,6 +379,93 @@ class FaturaGuardAgent:
         return {
             "report": report,
             "audit_events": [*state["audit_events"], "agent_tool_validate_document"],
+        }
+
+    @staticmethod
+    def _assess_document_risk(state: DocumentAgentState) -> dict[str, object]:
+        """Agent'ın yerel bulgulardan sonraki işlem planını ve kalite kapısını üretir.
+
+        Bu araç LLM'e veya ham XML'e erişmez. Böylece agent, riskli belgeleri
+        önceliklendirirken gizlilik sınırını ve kararların tekrarlanabilirliğini korur.
+        """
+        job = state["job"]
+        if job is None:
+            raise RuntimeError("Agent işlem planı için iş kaydı bulamadı.")
+
+        findings = list(job.report.findings)
+        priority_findings = sorted(
+            findings,
+            key=lambda item: (
+                item.priority is not Priority.CRITICAL,
+                item.priority is not Priority.HIGH,
+                item.code,
+            ),
+        )
+        blocking = [
+            item.code
+            for item in priority_findings
+            if item.severity is Severity.ERROR or item.priority is Priority.CRITICAL
+        ]
+        ready_proposals = sum(
+            1
+            for proposal in job.proposals
+            if proposal.agent_plan and proposal.agent_plan.get("decision") == "propose"
+        )
+
+        if blocking:
+            triage = {
+                "route": "blocked",
+                "priority_finding_codes": blocking[:3],
+                "safe_correction_ready_count": 0,
+                "recommended_next_actions": [
+                    "Önce doğrulamayı durduran bulguları inceleyin.",
+                    "Gerekliyse ilgili bulgu için resmî GİB kaynağıyla açıklama isteyin.",
+                    "Belgeyi düzelttikten sonra yeniden doğrulayın.",
+                ],
+                "rationale": "Kritik veya hata seviyesindeki bulgular belgeyi gönderim için bloke eder.",
+                "privacy_boundary": "ham_xml_local_only",
+            }
+        elif findings:
+            actions = ["Öncelikli bulguları resmî GİB kaynaklarıyla inceleyin."]
+            if ready_proposals:
+                actions.append("AI Agent'ın önerdiği düşük riskli düzeltmeyi onaylayın veya reddedin.")
+            actions.append("Gönderimden önce yeniden doğrulama sonucunu inceleyin.")
+            triage = {
+                "route": "needs_human_review",
+                "priority_finding_codes": [item.code for item in priority_findings[:3]],
+                "safe_correction_ready_count": ready_proposals,
+                "recommended_next_actions": actions,
+                "rationale": "Belge teknik olarak okunabilir; ancak bulgular insan incelemesi gerektirir.",
+                "privacy_boundary": "ham_xml_local_only",
+            }
+        else:
+            triage = {
+                "route": "ready_for_manual_submission_review",
+                "priority_finding_codes": [],
+                "safe_correction_ready_count": 0,
+                "recommended_next_actions": [
+                    "Belge teknik doğrulamayı geçti.",
+                    "Gönderim öncesi iş süreci ve yetkili imza kontrollerini tamamlayın.",
+                ],
+                "rationale": "Doğrulama bulgusu bulunmadı; GİB'e gönderim kararı yine kullanıcı/kurum sorumluluğundadır.",
+                "privacy_boundary": "ham_xml_local_only",
+            }
+
+        job.agent_triage = triage
+        state["workflow"].save_agent_plan(job)
+        state["workflow"].record_agent_event(
+            job.job_id,
+            "agent_tool_assess_document_risk",
+            {
+                "route": triage["route"],
+                "priority_finding_codes": triage["priority_finding_codes"],
+                "safe_correction_ready_count": ready_proposals,
+                "privacy_boundary": "ham_xml_local_only",
+            },
+        )
+        return {
+            "job": job,
+            "audit_events": [*state["audit_events"], "agent_tool_assess_document_risk"],
         }
 
     def _propose_safe_corrections(self, state: DocumentAgentState) -> dict[str, object]:
@@ -434,7 +523,12 @@ class FaturaGuardAgent:
         job = state["job"]
         if job is None:
             raise RuntimeError("Agent işlem kaydı oluşturmadan rota belirleyemez.")
-        return "review" if job.report.findings or job.proposals else "complete"
+        triage = job.agent_triage or {}
+        return (
+            "complete"
+            if triage.get("route") == "ready_for_manual_submission_review"
+            else "review"
+        )
 
     @staticmethod
     def _await_human_review(state: DocumentAgentState) -> dict[str, object]:

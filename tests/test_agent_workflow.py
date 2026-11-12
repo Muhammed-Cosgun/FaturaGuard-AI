@@ -238,10 +238,13 @@ class OrchestrationWorkflow:
     def record_agent_event(self, job_id, event_type, detail):
         self.events.append((job_id, event_type, detail))
 
+    def save_agent_plan(self, job):
+        return None
+
 
 def test_orchestrator_calls_local_validation_then_safe_proposal_tool() -> None:
     report = SimpleNamespace(findings=[_finding()])
-    workflow = OrchestrationWorkflow(report, proposals=[object()])
+    workflow = OrchestrationWorkflow(report, proposals=[SimpleNamespace(agent_plan=None)])
 
     result = FaturaGuardAgent().process_uploaded_document(object(), workflow)
 
@@ -250,13 +253,16 @@ def test_orchestrator_calls_local_validation_then_safe_proposal_tool() -> None:
     assert result["audit_events"] == [
         "agent_tool_validate_document",
         "agent_tool_propose_safe_corrections",
+        "agent_tool_assess_document_risk",
         "agent_route_await_human_review",
     ]
     assert [event[1] for event in workflow.events] == [
         "agent_tool_validate_document",
         "agent_tool_propose_safe_corrections",
+        "agent_tool_assess_document_risk",
         "agent_route_await_human_review",
     ]
+    assert result["job"].agent_triage["route"] == "blocked"
 
 
 def test_orchestrator_routes_clean_document_to_report_ready() -> None:
@@ -267,6 +273,7 @@ def test_orchestrator_routes_clean_document_to_report_ready() -> None:
 
     assert result["status"] == "report_ready"
     assert result["audit_events"][-1] == "agent_route_report_ready"
+    assert result["job"].agent_triage["route"] == "ready_for_manual_submission_review"
 
 
 class DecisionWorkflow:

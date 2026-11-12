@@ -24,6 +24,16 @@
           </div>
           <p class="metadata">SHA-256: <code>{{ job.original_sha256 }}</code><br>İşlem kimliği: <code>{{ job.job_id }}</code></p>
         </section>
+        {% if job.agent_triage %}
+        <section class="notice">
+          <div class="section-heading"><div><p class="section-label">AI AGENT İŞLEM PLANI</p><h2>Risk ve sonraki adımlar</h2></div><span class="status-badge neutral">{{ job.agent_triage.route }}</span></div>
+          <p>{{ job.agent_triage.rationale }}</p>
+          {% if job.agent_triage.priority_finding_codes %}<p class="metadata">Öncelikli bulgular: {% for code in job.agent_triage.priority_finding_codes %}<code>{{ code }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+          {% if job.agent_triage.safe_correction_ready_count %}<p class="metadata">Onaya hazır güvenli düzeltme: <strong>{{ job.agent_triage.safe_correction_ready_count }}</strong></p>{% endif %}
+          <ol>{% for action in job.agent_triage.recommended_next_actions %}<li>{{ action }}</li>{% endfor %}</ol>
+          <p class="metadata">Gizlilik sınırı: Ham XML yalnızca yerelde işlenir.</p>
+        </section>
+        {% endif %}
         <section class="notice findings-section"><div class="section-heading"><div><p class="section-label">DENETİM BULGULARI</p><h2>Bulgular</h2></div><span class="finding-count">{{ report.findings|length }} kayıt</span></div>
           {% for finding in report.findings %}
             <article class="finding {{ finding.severity }}">
