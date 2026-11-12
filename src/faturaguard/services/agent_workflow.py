@@ -107,7 +107,9 @@ class SourceBackedAgent:
             )
         candidates = [
             {
-                "candidate_id": proposal.proposal_id,
+                # Sağlayıcının uzun/rastgele UUID'yi karakter karakter kopyalaması
+                # gerekmez. Yerelde tek gerçek aday zaten proposal ile eşlenir.
+                "candidate_id": "CANDIDATE_1",
                 "finding_code": proposal.finding_code,
                 "rule_id": proposal.rule_id,
                 "operation": "replace_text",
@@ -134,7 +136,7 @@ class SourceBackedAgent:
             "after_token": "RECALCULATED_VALUE_1",
         }
         if (
-            plan.selected_candidate_id != proposal.proposal_id
+            plan.selected_candidate_id != "CANDIDATE_1"
             or not plan.requires_user_approval
             or not valid_patch
             or not plan.citations

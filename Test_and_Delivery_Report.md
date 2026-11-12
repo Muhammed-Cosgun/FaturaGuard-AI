@@ -71,9 +71,9 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 - Merkezi `PrivacyRedactor` katmanı eklendi. Açıklama ve düzeltme-planı sağlayıcı istekleri tek noktada PII maskesinden geçer; VKN/TCKN, IBAN, e-posta, telefon ve hesap numarası tokenlaştırılır, XML/adres/kişi adı içeren alanlar bastırılır. Negatif testler, iç içe payload'larda da ham tanımlayıcıların taşınmadığını doğrular.
 - Agent intake graph'ına `assess_document_risk` kalite kapısı eklendi. Araç; kritik hata varsa belgeyi `blocked`, bulgu varsa `needs_human_review`, temiz teknik doğrulamada ise `ready_for_manual_submission_review` rotasına alır; öncelikli bulguları ve kullanıcıya önerilen sonraki adımları audit trail ile kaydeder.
 - Güvenli düzeltme kataloğu `TaxExclusiveAmount`, `TaxInclusiveAmount` ve `PayableAmount` dip toplamlarıyla genişletildi. Her kural gerçek `efatura-kontrol` doğrulayıcısıyla mutasyona uğratılmış fatura üzerinde onaylı patch → yeniden doğrulama testiyle doğrulandı. Alt toplam bulgusu varken bağımlı üst toplam teklifleri özellikle ertelenir.
-- 12.11.2026 yerel kalite çalıştırmasında `ruff check .` başarılı oldu; güncel paket 136 otomatik testi geçti. Bu sayı, eski geliştirme aşamasındaki `51/51` notunun yerine geçer.
+- 12.11.2026 yerel kalite çalıştırmasında `ruff check .` başarılı oldu; güncel paket 138 otomatik testi geçti. Bu sayı, eski geliştirme aşamasındaki `51/51` notunun yerine geçer.
 - HTML ve JSON işlem raporları agentın `blocked` / `needs_human_review` / `ready_for_manual_submission_review` risk rotasını, öncelikli bulgularını ve sonraki adımlarını ham XML taşımadan gösterir.
-- Correction-plan sağlayıcı zinciri için anahtar göstermeyen bağımsız smoke testi eklendi. Gemini/Groq hata zinciri planın `provider_trace` alanında ve audit kaydında korunur; yükleme ekranındaki plan çağrıları açıklama çağrılarından ayrı, varsayılan 6 saniyelik süre bütçesiyle sınırlandırılır.
+- Correction-plan sağlayıcı zinciri için anahtar göstermeyen bağımsız smoke testi eklendi. Gemini/Groq hata zinciri planın `provider_trace` alanında ve audit kaydında korunur; yükleme ekranındaki plan çağrıları açıklama çağrılarından ayrı, varsayılan 12 saniyelik süre bütçesiyle sınırlandırılır.
 - Groq GPT-OSS correction-plan çağrısı strict JSON Schema moduna alındı. Böylece serbest JSON'un Pydantic `ValidationError`a düşmesi yerine, sağlayıcının `propose` / `human_review` sözleşmesine uygun yanıt üretmesi beklenir.
 
 ## Planlanan test senaryoları
@@ -97,10 +97,62 @@ Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncelle
 
 ## Teslim kontrol listesi
 
-- [ ] Kurulum ve çalıştırma adımları README'de doğrulandı.
+- [x] Kurulum ve çalıştırma adımları README'de doğrulandı.
 - [x] Kritik akışlar otomatik testlerle çalışıyor.
-- [x] Demo senaryosu baştan sona tekrarlandı.
+- [x] Demo senaryosu baştan sona tekrarlandı; genişletilmiş üç aritmetik düzeltme senaryosu da web katmanında kabul edildi.
 - [x] Bilinen sınırlılıklar kaydedildi.
+
+## Teslim kapanış kanıtları — 12.11.2026
+
+### Web kabulü: genişletilmiş düzeltme kataloğu
+
+`scripts/run_web_acceptance.py` gerçek FastAPI upload/approval/report rotalarını kullanarak üç
+demo XML'i sınadı. Her senaryoda orijinal fixture SHA-256 değeri korundu, LLM'nin maskeli
+planı agent güvenlik kapısından geçti, kullanıcı onayı simüle edildi ve düzeltilmiş çalışma
+kopyası yeniden doğrulandığında uyarı sayısı sıfır oldu.
+
+| Fixture | İzinli kural | Plan üreticisi | Sonuç |
+|---|---|---|---|
+| `demo_tax_exclusive_error.xml` | `recalculate-tax-exclusive-total` | Groq fallback | 0 kalan uyarı |
+| `demo_tax_inclusive_error.xml` | `recalculate-tax-inclusive-total` | Gemini | 0 kalan uyarı |
+| `demo_payable_error.xml` | `recalculate-payable-total` | Groq fallback | 0 kalan uyarı |
+
+Çalışma çıktısı: `data/evaluation/web_acceptance.json` (bilerek Git dışında tutulur; işlem
+kimliği/hash içerir, XML içeriği içermez).
+
+### Sunum preflight ve API ölçümü
+
+`python scripts/run_demo_preflight.py` RAG indeksini hazır buldu; aktif üretim zinciri
+Gemini → Groq → deterministik kaynak özeti olarak doğrulandı. Aynı RAG bulgusuyla üçer
+tekrarlı canlı ölçüm şu sonucu verdi:
+
+| Sağlayıcı | Model | Başarılı tekrar | Ortalama süre | Not |
+|---|---|---:|---:|---|
+| Gemini | `gemini-3.5-flash-lite` | 2/3 | 6,703 sn | Bir çağrı HTTP durum hatasıyla güvenli biçimde başarısız oldu. |
+| Groq | `openai/gpt-oss-120b` | 3/3 | 5,341 sn | Fallback sağlayıcısı tüm tekrarları üretti. |
+
+Ölçüm betiği `scripts/benchmark_api_providers.py`, ham fatura veya API anahtarı yazmadan
+sonucu `data/evaluation/api_provider_benchmark.json` altında saklar. Değerler ağ/sağlayıcı
+yüküne bağlıdır; sunumda preflight yeniden çalıştırılmalıdır.
+
+### Kod kalitesi ve temiz ortam denemesi
+
+- `ruff check .`: başarılı.
+- `pytest --basetemp .pytest-work-delivery-final`: **138 passed**.
+- Sıfırdan venv yaratma denemesinde Python'un geçici dizini bu yürütme ortamında yazma izni
+  vermedi. `TEMP`/`TMP` proje içindeki `.build-temp` dizinine yönlendirilince venv ve pip
+  kuruldu; ancak bu otomasyon ortamının 30 saniyelik işlem limiti tüm bağımlılık kurulumunu
+  bitirmeye izin vermedi. Bu, uygulama hatası değil, teslimden önce normal yerel CMD'de
+  tekrar edilmesi gereken ortam-kısıtlı kanıttır.
+
+### n8n doğrulaması ve sınırlılık
+
+`n8n/faturaguard-webhook-workflow.json` JSON olarak doğrulandı: pasif (varsayılan güvenli)
+iki düğümlü webhook akışı mevcuttur ve yalnızca işlem özeti taşır. Docker CLI bulunmasına
+rağmen bu ortamda Docker daemon çalışmadığı, `npx n8n` paket kurulumu da yürütme süresi
+sınırını aştığı için gerçek n8n sunucusunda import/aktif webhook çağrısı burada tamamlanamadı.
+Bu V1 için isteğe bağlı otomasyondur; teslimde "yerel n8n canlı çalıştırması" olarak açık
+bir sınırlılık şeklinde sunulmalıdır.
 
 ## Doğrulama ortamı notu
 

@@ -191,6 +191,8 @@ def test_agent_sends_only_masked_patch_tokens_to_llm_correction_planner() -> Non
     )
 
     assert plan.decision == "propose"
+    assert planner.candidates[0]["candidate_id"] == "CANDIDATE_1"
+    assert proposal.proposal_id not in str(planner.candidates)
     assert "25.15" not in str(planner.candidates)
     assert "15.15" not in str(planner.candidates)
     assert planner.candidates[0]["before_token"] == "CURRENT_VALUE_1"

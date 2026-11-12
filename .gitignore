@@ -9,10 +9,12 @@ htmlcov/
 
 # Environments and local settings
 .venv/
+.venv-*/
 .env
 .build-temp/
 .verification-data/
 .tooling/
+.pytest-work-*/
 
 # Runtime data
 data/*
