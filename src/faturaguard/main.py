@@ -27,9 +27,13 @@ from faturaguard.services.official_rag import OfficialRagIndex
 from faturaguard.services.reporting import build_report_payload
 from faturaguard.services.source_backed_explanation import (
     CohereStructuredGenerator,
+    DeterministicCorrectionPlanGenerator,
     DeterministicSourceGenerator,
+    FallbackCorrectionPlanGenerator,
     FallbackExplanationGenerator,
+    GeminiCorrectionPlanGenerator,
     GeminiStructuredGenerator,
+    GroqCorrectionPlanGenerator,
     GroqStructuredGenerator,
     LLMUnavailableError,
     OllamaStructuredGenerator,
@@ -97,6 +101,30 @@ def _select_explanation_generator(app_settings: Settings):
     return local_generator
 
 
+def _select_correction_planner(app_settings: Settings):
+    """Maskeli XML patch planı için API sağlayıcısı ve güvenli fallback zinciri."""
+    planner = DeterministicCorrectionPlanGenerator()
+    if app_settings.groq_api_key:
+        planner = FallbackCorrectionPlanGenerator(
+            GroqCorrectionPlanGenerator(
+                app_settings.groq_api_key,
+                app_settings.groq_model,
+                timeout_seconds=app_settings.groq_timeout_seconds,
+            ),
+            planner,
+        )
+    if app_settings.gemini_api_key and app_settings.llm_provider != "groq":
+        planner = FallbackCorrectionPlanGenerator(
+            GeminiCorrectionPlanGenerator(
+                app_settings.gemini_api_key,
+                app_settings.gemini_model,
+                timeout_seconds=app_settings.gemini_timeout_seconds,
+            ),
+            planner,
+        )
+    return planner
+
+
 def _create_agent() -> SourceBackedAgent | None:
     chunks_path = settings.data_directory / "rag" / "official_gib_chunks.json"
     chroma_path = settings.data_directory / "chroma"
@@ -107,7 +135,11 @@ def _create_agent() -> SourceBackedAgent | None:
         ChromaSemanticStore(chroma_path, SentenceTransformerEmbedder()),
         Bm25LexicalRetriever(chunks),
     )
-    return SourceBackedAgent(retriever, _select_explanation_generator(settings))
+    return SourceBackedAgent(
+        retriever,
+        _select_explanation_generator(settings),
+        _select_correction_planner(settings),
+    )
 
 
 @asynccontextmanager

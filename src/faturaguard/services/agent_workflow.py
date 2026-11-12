@@ -4,11 +4,15 @@ from typing import Literal, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from faturaguard.domain.correction import CorrectionProposal
 from faturaguard.domain.validation import Finding
 from faturaguard.services.correction_workflow import CorrectionWorkflow
 from faturaguard.services.document_storage import StoredDocument
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
 from faturaguard.services.source_backed_explanation import (
+    AgentCorrectionPlan,
+    CorrectionPlanGenerator,
+    DeterministicCorrectionPlanGenerator,
     ExplanationGenerator,
     LLMUnavailableError,
     SourceBackedExplanation,
@@ -49,9 +53,15 @@ class DecisionAgentState(TypedDict):
 class SourceBackedAgent:
     """Araç allowlist'iyle sınırlı, koşullu yönlendirmeli bir LangGraph agent'ı."""
 
-    def __init__(self, retriever, generator: ExplanationGenerator) -> None:
+    def __init__(
+        self,
+        retriever,
+        generator: ExplanationGenerator,
+        correction_planner: CorrectionPlanGenerator | None = None,
+    ) -> None:
         self._retriever = retriever
         self._generator = generator
+        self._correction_planner = correction_planner or DeterministicCorrectionPlanGenerator()
         self.graph = self._build_graph()
 
     def explain(self, finding: Finding) -> AgentState:
@@ -75,6 +85,68 @@ class SourceBackedAgent:
         generator_warmup = getattr(self._generator, "warmup", None)
         if callable(generator_warmup):
             generator_warmup()
+
+    def plan_safe_correction(
+        self, finding: Finding, proposal: CorrectionProposal
+    ) -> AgentCorrectionPlan:
+        """LLM'e yalnızca maskeli aday patch göndererek düzeltme planı alır."""
+        query = self._trusted_retrieval_query(finding)
+        evidence = [
+            item
+            for item in self._retriever.search(query, limit=3)
+            if not self._is_version_history(item)
+        ]
+        if not self._has_sufficient_evidence(evidence):
+            return AgentCorrectionPlan(
+                decision="human_review",
+                rationale="Yeterli resmî GİB kanıtı bulunamadı; insan incelemesi gerekir.",
+                requires_user_approval=True,
+                citations=[],
+                generation_mode="insufficient_official_evidence",
+            )
+        candidates = [
+            {
+                "candidate_id": proposal.proposal_id,
+                "finding_code": proposal.finding_code,
+                "rule_id": proposal.rule_id,
+                "operation": "replace_text",
+                "target_token": "TARGET_FIELD_1",
+                "before_token": "CURRENT_VALUE_1",
+                "after_token": "RECALCULATED_VALUE_1",
+                "risk": "low",
+            }
+        ]
+        plan = self._correction_planner.generate(finding, candidates, evidence)
+        return self._guard_correction_plan(plan, proposal)
+
+    @staticmethod
+    def _guard_correction_plan(
+        plan: AgentCorrectionPlan, proposal: CorrectionProposal
+    ) -> AgentCorrectionPlan:
+        """LLM planını izinli adayla bire bir eşleştirmeden uygulatmaz."""
+        if plan.decision == "human_review":
+            return plan
+        valid_patch = len(plan.patches) == 1 and plan.patches[0].model_dump() == {
+            "operation": "replace_text",
+            "target_token": "TARGET_FIELD_1",
+            "before_token": "CURRENT_VALUE_1",
+            "after_token": "RECALCULATED_VALUE_1",
+        }
+        if (
+            plan.selected_candidate_id != proposal.proposal_id
+            or not plan.requires_user_approval
+            or not valid_patch
+            or not plan.citations
+        ):
+            return AgentCorrectionPlan(
+                decision="human_review",
+                rationale="LLM planı güvenlik politikasıyla eşleşmedi; insan incelemesi gerekir.",
+                requires_user_approval=True,
+                citations=plan.citations,
+                generation_mode="guard_rejected_correction_plan",
+                provider_trace=plan.provider_trace,
+            )
+        return plan
 
     @staticmethod
     def _trusted_retrieval_query(finding: Finding) -> str:
@@ -307,8 +379,7 @@ class FaturaGuardAgent:
             "audit_events": [*state["audit_events"], "agent_tool_validate_document"],
         }
 
-    @staticmethod
-    def _propose_safe_corrections(state: DocumentAgentState) -> dict[str, object]:
+    def _propose_safe_corrections(self, state: DocumentAgentState) -> dict[str, object]:
         report = state["report"]
         if report is None:
             raise RuntimeError("Agent doğrulama sonucu olmadan düzeltme teklifi üretemez.")
@@ -326,9 +397,36 @@ class FaturaGuardAgent:
             "agent_tool_propose_safe_corrections",
             {"proposal_count": len(job.proposals)},
         )
+        plans_created = 0
+        if self._source_agent is not None:
+            for proposal in job.proposals:
+                finding = next(
+                    (item for item in job.report.findings if item.code == proposal.finding_code), None
+                )
+                if finding is None:
+                    continue
+                plan = self._source_agent.plan_safe_correction(finding, proposal)
+                proposal.agent_plan = plan.model_dump(mode="json")
+                plans_created += 1
+                workflow.record_agent_event(
+                    job.job_id,
+                    "agent_llm_masked_patch_plan",
+                    {
+                        "proposal_id": proposal.proposal_id,
+                        "decision": plan.decision,
+                        "generation_mode": plan.generation_mode,
+                        "uses_masked_tokens": True,
+                    },
+                )
+        if plans_created:
+            workflow.save_agent_plan(job)
         return {
             "job": job,
-            "audit_events": [*state["audit_events"], "agent_tool_propose_safe_corrections"],
+            "audit_events": [
+                *state["audit_events"],
+                "agent_tool_propose_safe_corrections",
+                *(["agent_llm_masked_patch_plan"] if plans_created else []),
+            ],
         }
 
     @staticmethod
@@ -381,6 +479,13 @@ class FaturaGuardAgent:
     def _apply_safe_correction(state: DecisionAgentState) -> dict[str, object]:
         if state["decision"] != "approve":
             return {"status": "rejected", "audit_events": [*state["audit_events"], "agent_received_rejection"]}
+        pending_job = state["workflow"].load_job(state["job_id"])
+        pending_proposal = next(
+            (item for item in pending_job.proposals if item.proposal_id == state["proposal_id"]), None
+        )
+        plan = pending_proposal.agent_plan if pending_proposal is not None else None
+        if not plan or plan.get("decision") != "propose":
+            raise ValueError("AI Agent tarafından onaylanmış güvenli patch planı bulunamadı.")
         job = state["workflow"].decide(state["job_id"], state["proposal_id"], "approve")
         proposal = next(p for p in job.proposals if p.proposal_id == state["proposal_id"])
         state["workflow"].record_agent_event(

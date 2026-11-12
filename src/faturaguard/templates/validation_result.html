@@ -70,11 +70,24 @@
           <article class="finding proposal-card">
             <h3>{{ proposal.title }}</h3><p>{{ proposal.rationale }}</p>
             <p><code>{{ proposal.target_path }}</code>: <del>{{ proposal.before }}</del> → <ins>{{ proposal.after }}</ins></p>
-            {% if proposal.status == 'proposed' %}
+            {% if proposal.agent_plan %}
+            <div class="agent-output">
+              <h4>AI Agent düzeltme planı<span>Maskeli bağlam · İnsan onayı zorunlu</span></h4>
+              <p>{{ proposal.agent_plan.rationale }}</p>
+              <p class="metadata">Plan kararı: <code>{{ proposal.agent_plan.decision }}</code> · Sağlayıcı: <code>{{ proposal.agent_plan.generation_mode }}</code></p>
+              {% if proposal.agent_plan.citations %}<p class="metadata">Kaynaklar:
+                {% for citation in proposal.agent_plan.citations %}
+                <a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a>{% if not loop.last %}; {% endif %}
+                {% endfor %}</p>{% endif %}
+            </div>
+            {% endif %}
+            {% if proposal.status == 'proposed' and proposal.agent_plan and proposal.agent_plan.decision == 'propose' %}
             <form action="/jobs/{{ job.job_id }}/proposals/{{ proposal.proposal_id }}" method="post" class="decision-form">
               <button name="decision" value="approve" type="submit">Düzeltmeyi onayla</button>
               <button name="decision" value="reject" type="submit" class="secondary">Reddet</button>
             </form>
+            {% elif proposal.status == 'proposed' %}
+            <p class="metadata">AI Agent güvenli bir patch planı üretmediği için düzeltme uygulanamaz; insan incelemesi gerekir.</p>
             {% else %}<p><strong>Karar:</strong> <span class="status-badge neutral">{{ proposal.status }}</span></p>{% endif %}
           </article>
           {% endfor %}

@@ -24,6 +24,9 @@ class CorrectionProposal(BaseModel):
     before: str
     after: str
     status: CorrectionStatus = CorrectionStatus.PROPOSED
+    # LLM planı yalnızca maskeli token ve teknik gerekçe taşır; gerçek XML
+    # değerleri bu alan üzerinden uzak sağlayıcıya hiç gönderilmez.
+    agent_plan: dict[str, object] | None = None
 
 
 class CorrectionJob(BaseModel):

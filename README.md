@@ -130,6 +130,8 @@ Varsayılan karşılaştırma `qwen2.5:3b-instruct`, `qwen3:4b-instruct` ve `gem
 
 Orijinal XML değiştirilemez. Her düzeltme kullanıcı onayıyla çalışma kopyasına uygulanır ve belge yeniden doğrulanır.
 
+LLM düzeltme planı üretirken ham XML veya fatura kimlik bilgileri API'ye gönderilmez. Agent, yerelde hesaplanan izinli adayları maskeli alan/değer tokenlarıyla modele sunar; model yalnızca bir patch planı seçer. Plan, yereldeki gerçek adayla bire bir eşleşmezse kullanıcıya düzeltme onayı sunulmaz.
+
 İş özeti ve denetim olayları yerel `data/faturaguard.sqlite3` veritabanında tutulur. Tam XML diff'i veritabanına yazılmaz; yalnızca ilgili işlem klasöründe saklanır.
 
 Ana sayfadaki **İşlem geçmişi** bağlantısı, son 20 işlemi XML içeriğini göstermeden listeler. Her kaydın denetim izi, HTML ve JSON raporunda görüntülenebilir.

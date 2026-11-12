@@ -3,7 +3,7 @@
 import json
 import re
 from collections.abc import Sequence
-from typing import Protocol
+from typing import Literal, Protocol
 
 import httpx
 from pydantic import BaseModel, Field
@@ -29,10 +29,41 @@ class SourceBackedExplanation(BaseModel):
     provider_trace: str | None = None
 
 
+class MaskedXmlPatch(BaseModel):
+    """Uzak modele gönderilebilen, gerçek değer içermeyen patch tanımı."""
+
+    operation: Literal["replace_text"]
+    target_token: str = Field(pattern=r"^TARGET_FIELD_\d+$")
+    before_token: str = Field(pattern=r"^CURRENT_VALUE_\d+$")
+    after_token: str = Field(pattern=r"^RECALCULATED_VALUE_\d+$")
+
+
+class AgentCorrectionPlan(BaseModel):
+    """LLM'in yalnızca izinli adaylar arasından seçtiği düzeltme planı."""
+
+    decision: Literal["propose", "human_review"]
+    selected_candidate_id: str | None = None
+    patches: list[MaskedXmlPatch] = Field(default_factory=list, max_length=1)
+    rationale: str = Field(min_length=1, max_length=900)
+    requires_user_approval: bool = True
+    citations: list[Citation] = Field(default_factory=list, max_length=2)
+    generation_mode: str = "llm_correction_plan"
+    provider_trace: str | None = None
+
+
 class ExplanationGenerator(Protocol):
     def generate(
         self, finding: Finding, evidence: Sequence[RetrievedEvidence]
     ) -> SourceBackedExplanation: ...
+
+
+class CorrectionPlanGenerator(Protocol):
+    def generate(
+        self,
+        finding: Finding,
+        candidates: Sequence[dict[str, object]],
+        evidence: Sequence[RetrievedEvidence],
+    ) -> AgentCorrectionPlan: ...
 
 
 class LLMUnavailableError(RuntimeError):
@@ -615,3 +646,178 @@ class DeterministicSourceGenerator:
         self, finding: Finding, evidence: Sequence[RetrievedEvidence]
     ) -> SourceBackedExplanation:
         return OllamaStructuredGenerator._deterministic_fallback(finding, evidence)
+
+
+class DeterministicCorrectionPlanGenerator:
+    """LLM hattı kullanılamazsa asla serbest patch üretmeyen güvenli yedek."""
+
+    def generate(
+        self,
+        finding: Finding,
+        candidates: Sequence[dict[str, object]],
+        evidence: Sequence[RetrievedEvidence],
+    ) -> AgentCorrectionPlan:
+        return AgentCorrectionPlan(
+            decision="human_review",
+            rationale=(
+                "LLM düzeltme planı üretilemedi; aday düzeltme yalnızca insan incelemesiyle "
+                "değerlendirilebilir."
+            ),
+            requires_user_approval=True,
+            citations=[],
+            generation_mode="deterministic_correction_plan_fallback",
+        )
+
+
+class GeminiCorrectionPlanGenerator:
+    """Gemini ile maskeli adaylardan yapılandırılmış XML patch planı üretir."""
+
+    _endpoint = "https://generativelanguage.googleapis.com/v1beta/interactions"
+
+    def __init__(self, api_key: str, model: str, timeout_seconds: float = 12.0) -> None:
+        self._api_key = api_key
+        self._model = model
+        self._timeout_seconds = timeout_seconds
+
+    def generate(
+        self,
+        finding: Finding,
+        candidates: Sequence[dict[str, object]],
+        evidence: Sequence[RetrievedEvidence],
+    ) -> AgentCorrectionPlan:
+        request = _masked_correction_request(finding, candidates, evidence)
+        payload = {
+            "model": self._model,
+            "input": f"{_correction_plan_prompt()}\n\n{json.dumps(request, ensure_ascii=False)}",
+            "response_format": {
+                "type": "text",
+                "mime_type": "application/json",
+                "schema": AgentCorrectionPlan.model_json_schema(),
+            },
+        }
+        try:
+            response = httpx.post(
+                self._endpoint,
+                json=payload,
+                headers={"x-goog-api-key": self._api_key, "Api-Revision": "2026-05-20"},
+                timeout=self._timeout_seconds,
+            )
+            response.raise_for_status()
+            plan = AgentCorrectionPlan.model_validate_json(GeminiStructuredGenerator._output_text(response.json()))
+            _validate_plan_citations(plan, evidence)
+            return plan.model_copy(update={"generation_mode": "gemini_correction_plan"})
+        except (httpx.HTTPError, KeyError, TypeError, ValueError) as error:
+            raise LLMUnavailableError(f"Gemini düzeltme planı üretilemedi ({type(error).__name__}).") from error
+
+
+class GroqCorrectionPlanGenerator:
+    """Groq ile Gemini planlaması erişilemez olduğunda bağımsız yedek sağlar."""
+
+    _endpoint = "https://api.groq.com/openai/v1/chat/completions"
+
+    def __init__(self, api_key: str, model: str, timeout_seconds: float = 12.0) -> None:
+        self._api_key = api_key
+        self._model = model
+        self._timeout_seconds = timeout_seconds
+
+    def generate(
+        self,
+        finding: Finding,
+        candidates: Sequence[dict[str, object]],
+        evidence: Sequence[RetrievedEvidence],
+    ) -> AgentCorrectionPlan:
+        request = _masked_correction_request(finding, candidates, evidence)
+        payload = {
+            "model": self._model,
+            "reasoning_effort": "low",
+            "max_completion_tokens": 380,
+            "messages": [
+                {"role": "system", "content": _correction_plan_prompt()},
+                {"role": "user", "content": json.dumps(request, ensure_ascii=False)},
+            ],
+            "response_format": {"type": "json_object"},
+        }
+        try:
+            response = httpx.post(
+                self._endpoint,
+                json=payload,
+                headers={"Authorization": f"Bearer {self._api_key}"},
+                timeout=self._timeout_seconds,
+            )
+            response.raise_for_status()
+            plan = AgentCorrectionPlan.model_validate_json(
+                response.json()["choices"][0]["message"]["content"]
+            )
+            _validate_plan_citations(plan, evidence)
+            return plan.model_copy(update={"generation_mode": "groq_correction_plan"})
+        except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
+            raise LLMUnavailableError(f"Groq düzeltme planı üretilemedi ({type(error).__name__}).") from error
+
+
+class FallbackCorrectionPlanGenerator:
+    """Sağlayıcı zincirinde güvenli correction-plan fallback'i uygular."""
+
+    def __init__(self, primary: CorrectionPlanGenerator, fallback: CorrectionPlanGenerator) -> None:
+        self._primary = primary
+        self._fallback = fallback
+
+    def generate(
+        self,
+        finding: Finding,
+        candidates: Sequence[dict[str, object]],
+        evidence: Sequence[RetrievedEvidence],
+    ) -> AgentCorrectionPlan:
+        try:
+            return self._primary.generate(finding, candidates, evidence)
+        except LLMUnavailableError as error:
+            return self._fallback.generate(finding, candidates, evidence).model_copy(
+                update={"provider_trace": f"API fallback: {error}"}
+            )
+
+
+def _correction_plan_prompt() -> str:
+    return """Sen FaturaGuard AI güvenli düzeltme planı asistanısın.
+Yalnızca CANDIDATES içindeki mevcut adaylardan birini seçebilir veya human_review
+kararı verebilirsin. Yeni XML yolu, değer, hesaplama, alan veya patch icat etme.
+Gerçek XML, VKN/TCKN, isim, adres, IBAN, dosya adı, hash ve parasal değerler sana
+verilmez. TARGET_FIELD_n, CURRENT_VALUE_n ve RECALCULATED_VALUE_n tokenlarını
+aynen kullan. decision=propose ise tam olarak bir aday seç, tek replace_text patch'i
+üret ve requires_user_approval=true yap. Kanıt yalnızca EVIDENCE içinden gelmelidir.
+Emin değilsen human_review seç. Çıktıyı yalnızca JSON şemasına uygun üret."""
+
+
+def _masked_correction_request(
+    finding: Finding,
+    candidates: Sequence[dict[str, object]],
+    evidence: Sequence[RetrievedEvidence],
+) -> dict[str, object]:
+    """Bulut sınırına kişisel/ticari XML verisi taşımayan planlama bağlamı."""
+    return {
+        "finding": {
+            "code": finding.code,
+            "source": finding.source,
+            "severity": finding.severity.value,
+            "priority": finding.priority.value,
+        },
+        "candidates": list(candidates),
+        "evidence": [
+            {
+                "source_id": item.chunk.source_id,
+                "source_title": item.chunk.source_title,
+                "source_url": item.chunk.source_url,
+                "page": item.chunk.page,
+                "text": item.chunk.text[:1200],
+            }
+            for item in evidence[:2]
+        ],
+    }
+
+
+def _validate_plan_citations(plan: AgentCorrectionPlan, evidence: Sequence[RetrievedEvidence]) -> None:
+    allowed = {
+        (item.chunk.source_id, item.chunk.source_title, item.chunk.source_url, item.chunk.page)
+        for item in evidence
+    }
+    cited = {(item.source_id, item.source_title, item.source_url, item.page) for item in plan.citations}
+    if not cited.issubset(allowed):
+        raise UnsafeExplanationError("LLM doğrulanmamış bir düzeltme planı atfı üretti.")

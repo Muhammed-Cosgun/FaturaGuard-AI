@@ -2,11 +2,13 @@ from types import SimpleNamespace
 
 import pytest
 
+from faturaguard.domain.correction import CorrectionProposal
 from faturaguard.domain.validation import Finding, Priority, Severity
 from faturaguard.services.agent_workflow import FaturaGuardAgent, SourceBackedAgent
 from faturaguard.services.hybrid_retrieval import RetrievedEvidence
 from faturaguard.services.official_rag import RagChunk
 from faturaguard.services.source_backed_explanation import (
+    AgentCorrectionPlan,
     Citation,
     LLMUnavailableError,
     SourceBackedExplanation,
@@ -141,6 +143,59 @@ def test_agent_preserves_official_evidence_when_generation_is_unavailable() -> N
     assert "source_generation_unavailable" in result["audit_events"]
 
 
+def test_agent_sends_only_masked_patch_tokens_to_llm_correction_planner() -> None:
+    class CapturingPlanner:
+        def __init__(self) -> None:
+            self.candidates = []
+
+        def generate(self, finding, candidates, evidence):
+            self.candidates = candidates
+            return AgentCorrectionPlan(
+                decision="propose",
+                selected_candidate_id=candidates[0]["candidate_id"],
+                patches=[
+                    {
+                        "operation": "replace_text",
+                        "target_token": "TARGET_FIELD_1",
+                        "before_token": "CURRENT_VALUE_1",
+                        "after_token": "RECALCULATED_VALUE_1",
+                    }
+                ],
+                rationale="İzinli dip toplam adayı resmî kanıtla uyumludur.",
+                citations=[
+                    Citation(
+                        source_id="gib-test",
+                        source_title="GİB Test Planı",
+                        source_url="https://ebelge.gib.gov.tr/test.pdf",
+                        page=7,
+                    )
+                ],
+            )
+
+    chunk = RagChunk("gib-test", "GİB Test Planı", "https://ebelge.gib.gov.tr/test.pdf", 7, "Şema kontrolü")
+    evidence = RetrievedEvidence(chunk, 0.9, 1.0, 1.0, 0.95)
+    planner = CapturingPlanner()
+    proposal = CorrectionProposal(
+        proposal_id="candidate-1",
+        rule_id="recalculate-line-extension-total",
+        finding_code="hesap-dip-satir",
+        title="Dip toplamı hesapla",
+        rationale="Yerel hesaplama",
+        target_path="cac:LegalMonetaryTotal/cbc:LineExtensionAmount",
+        before="25.15",
+        after="15.15",
+    )
+
+    plan = SourceBackedAgent(FakeRetriever([evidence]), FakeGenerator(), planner).plan_safe_correction(
+        _finding().model_copy(update={"code": "hesap-dip-satir"}), proposal
+    )
+
+    assert plan.decision == "propose"
+    assert "25.15" not in str(planner.candidates)
+    assert "15.15" not in str(planner.candidates)
+    assert planner.candidates[0]["before_token"] == "CURRENT_VALUE_1"
+
+
 def test_agent_warmup_runs_a_small_retrieval_query() -> None:
     class WarmupRetriever:
         def __init__(self) -> None:
@@ -219,9 +274,21 @@ class DecisionWorkflow:
         self.calls = []
         self.events = []
 
+    def load_job(self, job_id):
+        proposal = SimpleNamespace(
+            proposal_id="proposal-1",
+            rule_id="recalculate-line-extension-total",
+            agent_plan={"decision": "propose"},
+        )
+        return SimpleNamespace(job_id=job_id, proposals=[proposal])
+
     def decide(self, job_id, proposal_id, decision):
         self.calls.append((job_id, proposal_id, decision))
-        proposal = SimpleNamespace(proposal_id=proposal_id, rule_id="recalculate-line-extension-total")
+        proposal = SimpleNamespace(
+            proposal_id=proposal_id,
+            rule_id="recalculate-line-extension-total",
+            agent_plan={"decision": "propose"},
+        )
         return SimpleNamespace(job_id=job_id, proposals=[proposal], corrected_report=object())
 
     def record_agent_event(self, job_id, event_type, detail):

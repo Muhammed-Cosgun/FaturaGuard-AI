@@ -46,6 +46,14 @@ class CorrectionWorkflow:
         """Agent'ın hangi izinli aracı kullandığını denetlenebilir biçimde kaydeder."""
         self._store.append_event(job_id, event_type, detail)
 
+    def save_agent_plan(self, job: CorrectionJob) -> None:
+        """Maskeli LLM planı iliştirilen işlem kaydını kalıcılaştırır."""
+        self._store.save(job)
+
+    def load_job(self, job_id: str) -> CorrectionJob:
+        """Agent karar kapısında bekleyen planı denetlemek için işlem kaydını döndürür."""
+        return self._store.load(job_id)
+
     def decide(self, job_id: str, proposal_id: str, decision: str) -> CorrectionJob:
         job = self._store.load(job_id)
         proposal = next((item for item in job.proposals if item.proposal_id == proposal_id), None)
