@@ -36,6 +36,7 @@ class DocumentAgentState(TypedDict):
     workflow: CorrectionWorkflow
     report: object | None
     job: object | None
+    correction_sequence: list[dict[str, object]]
     status: str
     audit_events: list[str]
 
@@ -324,6 +325,7 @@ class FaturaGuardAgent:
                 "workflow": workflow,
                 "report": None,
                 "job": None,
+                "correction_sequence": [],
                 "status": "started",
                 "audit_events": [],
             }
@@ -358,6 +360,7 @@ class FaturaGuardAgent:
         graph = StateGraph(DocumentAgentState)
         graph.add_node("validate_document", self._validate_document)
         graph.add_node("propose_safe_corrections", self._propose_safe_corrections)
+        graph.add_node("plan_correction_sequence", self._plan_correction_sequence)
         graph.add_node("assess_document_risk", self._assess_document_risk)
         graph.add_node("await_human_review", self._await_human_review)
         graph.add_node("report_ready", self._report_ready)
@@ -368,7 +371,8 @@ class FaturaGuardAgent:
             self._route_after_intake,
             {"review": "await_human_review", "complete": "report_ready"},
         )
-        graph.add_edge("propose_safe_corrections", "assess_document_risk")
+        graph.add_edge("propose_safe_corrections", "plan_correction_sequence")
+        graph.add_edge("plan_correction_sequence", "assess_document_risk")
         graph.add_edge("await_human_review", END)
         graph.add_edge("report_ready", END)
         return graph.compile()
@@ -379,6 +383,72 @@ class FaturaGuardAgent:
         return {
             "report": report,
             "audit_events": [*state["audit_events"], "agent_tool_validate_document"],
+        }
+
+    @staticmethod
+    def _plan_correction_sequence(state: DocumentAgentState) -> dict[str, object]:
+        """İzinli tekliflerin bağımlılıklarını analiz eder; XML'e erişmez veya yazmaz."""
+        job = state["job"]
+        if job is None:
+            raise RuntimeError("Agent düzeltme sıralaması için iş kaydı bulamadı.")
+
+        rule_metadata = {
+            "recalculate-line-extension-total": {
+                "rank": 10,
+                "depends_on": [],
+                "expected_effect": "Satır toplamını temel dip toplam ile eşitler; sonraki vergi hariç toplam kontrolünü etkileyebilir.",
+            },
+            "recalculate-tax-exclusive-total": {
+                "rank": 20,
+                "depends_on": ["recalculate-line-extension-total"],
+                "expected_effect": "Vergi hariç toplamı günceller; vergiler dahil ve ödenecek tutar kontrollerini etkileyebilir.",
+            },
+            "recalculate-tax-inclusive-total": {
+                "rank": 30,
+                "depends_on": ["recalculate-tax-exclusive-total"],
+                "expected_effect": "Vergiler dahil toplamı günceller; ödenecek tutar kontrolünü etkileyebilir.",
+            },
+            "recalculate-payable-total": {
+                "rank": 40,
+                "depends_on": ["recalculate-tax-inclusive-total"],
+                "expected_effect": "Yalnızca ödenecek tutarı günceller; ödeme bilgileri ve taraf verileri değişmez.",
+            },
+        }
+        present_rules = {proposal.rule_id for proposal in job.proposals}
+        sequence = []
+        for proposal in sorted(
+            job.proposals,
+            key=lambda item: (rule_metadata.get(item.rule_id, {"rank": 99})["rank"], item.proposal_id),
+        ):
+            metadata = rule_metadata.get(
+                proposal.rule_id,
+                {
+                    "depends_on": [],
+                    "expected_effect": "Bu izinli düzeltmenin etkisi yeniden doğrulama ile denetlenmelidir.",
+                },
+            )
+            dependencies = [rule for rule in metadata["depends_on"] if rule in present_rules]
+            agent_plan = proposal.agent_plan or {}
+            sequence.append(
+                {
+                    "order": len(sequence) + 1,
+                    "proposal_id": proposal.proposal_id,
+                    "finding_code": proposal.finding_code,
+                    "title": proposal.title,
+                    "rule_id": proposal.rule_id,
+                    "depends_on": dependencies,
+                    "approval_ready": agent_plan.get("decision") == "propose",
+                    "expected_effect": metadata["expected_effect"],
+                }
+            )
+        state["workflow"].record_agent_event(
+            job.job_id,
+            "agent_tool_plan_correction_sequence",
+            {"sequence_count": len(sequence), "execution_scope": "metadata_only"},
+        )
+        return {
+            "correction_sequence": sequence,
+            "audit_events": [*state["audit_events"], "agent_tool_plan_correction_sequence"],
         }
 
     @staticmethod
@@ -411,6 +481,8 @@ class FaturaGuardAgent:
             for proposal in job.proposals
             if proposal.agent_plan and proposal.agent_plan.get("decision") == "propose"
         )
+        sequence = state["correction_sequence"]
+        human_review_questions = FaturaGuardAgent._human_review_questions(findings, sequence)
 
         if blocking:
             triage = {
@@ -424,6 +496,8 @@ class FaturaGuardAgent:
                 ],
                 "rationale": "Kritik veya hata seviyesindeki bulgular belgeyi gönderim için bloke eder.",
                 "privacy_boundary": "ham_xml_local_only",
+                "correction_sequence": sequence,
+                "human_review_questions": human_review_questions,
             }
         elif findings:
             actions = ["Öncelikli bulguları resmî GİB kaynaklarıyla inceleyin."]
@@ -437,6 +511,8 @@ class FaturaGuardAgent:
                 "recommended_next_actions": actions,
                 "rationale": "Belge teknik olarak okunabilir; ancak bulgular insan incelemesi gerektirir.",
                 "privacy_boundary": "ham_xml_local_only",
+                "correction_sequence": sequence,
+                "human_review_questions": human_review_questions,
             }
         else:
             triage = {
@@ -449,6 +525,8 @@ class FaturaGuardAgent:
                 ],
                 "rationale": "Doğrulama bulgusu bulunmadı; GİB'e gönderim kararı yine kullanıcı/kurum sorumluluğundadır.",
                 "privacy_boundary": "ham_xml_local_only",
+                "correction_sequence": sequence,
+                "human_review_questions": human_review_questions,
             }
 
         job.agent_triage = triage
@@ -460,6 +538,8 @@ class FaturaGuardAgent:
                 "route": triage["route"],
                 "priority_finding_codes": triage["priority_finding_codes"],
                 "safe_correction_ready_count": ready_proposals,
+                "correction_sequence_count": len(sequence),
+                "human_review_question_count": len(human_review_questions),
                 "privacy_boundary": "ham_xml_local_only",
             },
         )
@@ -467,6 +547,23 @@ class FaturaGuardAgent:
             "job": job,
             "audit_events": [*state["audit_events"], "agent_tool_assess_document_risk"],
         }
+
+    @staticmethod
+    def _human_review_questions(
+        findings: list[Finding], sequence: list[dict[str, object]]
+    ) -> list[str]:
+        """Agentın insan onayı öncesi istediği, ham veri içermeyen karar soruları."""
+        codes = {finding.code for finding in findings}
+        questions: list[str] = []
+        if "imza-yok" in codes:
+            questions.append("Belge taslak/test belgesi mi, yoksa GİB'e gönderilecek nihai belge mi?")
+        if any("tevkifat" in code or "odenecek" in code for code in codes):
+            questions.append("Tevkifat ve varsa yuvarlama tutarlarının iş süreci tarafından onaylandığı doğrulandı mı?")
+        if any(item["depends_on"] for item in sequence):
+            questions.append("Bağımlı dip toplam düzeltmeleri önerilen sırayla uygulanıp her adım sonrası yeniden doğrulanacak mı?")
+        if not questions and findings:
+            questions.append("Belgeyi oluşturan kaynak sistemde ilgili iş kuralı ve tutarlar doğrulandı mı?")
+        return questions
 
     def _propose_safe_corrections(self, state: DocumentAgentState) -> dict[str, object]:
         report = state["report"]

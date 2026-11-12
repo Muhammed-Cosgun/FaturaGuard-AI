@@ -145,6 +145,8 @@ LLM düzeltme planı üretirken ham XML veya fatura kimlik bilgileri API'ye gön
 
 İzinli aritmetik düzeltme kataloğu yalnızca `LineExtensionAmount`, `TaxExclusiveAmount`, `TaxInclusiveAmount` ve `PayableAmount` dip toplamlarını kapsar. Agent alt toplam hatası varken ona bağımlı üst toplam için teklif üretmez; her adım kullanıcı onayı ve yeniden doğrulama ile ilerler.
 
+Agent, birden fazla izinli teklif olduğunda ayrıca düzeltme bağımlılık sırasını ve her değişikliğin beklenen etkisini çıkarır. İnsan incelemesi için bağlama uygun soruları üretir; bu plan yalnızca ham XML içermeyen teklif meta verisini kullanır ve otomatik değişiklik yetkisi vermez.
+
 İş özeti ve denetim olayları yerel `data/faturaguard.sqlite3` veritabanında tutulur. Tam XML diff'i veritabanına yazılmaz; yalnızca ilgili işlem klasöründe saklanır.
 
 Ana sayfadaki **İşlem geçmişi** bağlantısı, son 20 işlemi XML içeriğini göstermeden listeler. Her kaydın denetim izi, HTML ve JSON raporunda görüntülenebilir.
