@@ -751,6 +751,11 @@ class GroqCorrectionPlanGenerator:
             )
             _validate_plan_citations(plan, evidence)
             return plan.model_copy(update={"generation_mode": "groq_correction_plan"})
+        except httpx.HTTPStatusError as error:
+            raise LLMUnavailableError(
+                "Groq düzeltme planı üretilemedi (HTTP "
+                f"{error.response.status_code})."
+            ) from error
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
             raise LLMUnavailableError(f"Groq düzeltme planı üretilemedi ({type(error).__name__}).") from error
 
@@ -802,7 +807,8 @@ Gerçek XML, VKN/TCKN, isim, adres, IBAN, dosya adı, hash ve parasal değerler 
 verilmez. TARGET_FIELD_n, CURRENT_VALUE_n ve RECALCULATED_VALUE_n tokenlarını
 aynen kullan. decision=propose ise tam olarak bir aday seç, tek replace_text patch'i
 üret ve requires_user_approval=true yap. Kanıt yalnızca EVIDENCE içinden gelmelidir.
-Emin değilsen human_review seç. Çıktıyı yalnızca JSON şemasına uygun üret."""
+Emin değilsen human_review seç ve selected_candidate_id alanına boş metin yaz.
+Çıktıyı yalnızca JSON şemasına uygun üret."""
 
 
 def _correction_plan_json_schema() -> dict[str, object]:
@@ -840,7 +846,10 @@ def _correction_plan_json_schema() -> dict[str, object]:
         "additionalProperties": False,
         "properties": {
             "decision": {"type": "string", "enum": ["propose", "human_review"]},
-            "selected_candidate_id": {"type": ["string", "null"]},
+            # Groq strict mode nullable union şemasını reddedebildiği için
+            # human_review yolunda boş metin kullanılır. Pydantic yine güvenli
+            # biçimde string değeri kabul eder; guard propose dışında uygulama yapmaz.
+            "selected_candidate_id": {"type": "string"},
             "patches": {"type": "array", "maxItems": 1, "items": patch},
             "rationale": {"type": "string"},
             "requires_user_approval": {"type": "boolean"},

@@ -279,6 +279,9 @@ def test_groq_correction_plan_uses_strict_schema_for_gpt_oss() -> None:
     assert response_format["type"] == "json_schema"
     assert response_format["json_schema"]["strict"] is True
     assert response_format["json_schema"]["schema"] == _correction_plan_json_schema()
+    assert response_format["json_schema"]["schema"]["properties"]["selected_candidate_id"] == {
+        "type": "string"
+    }
 
 
 def test_generator_rejects_citation_not_returned_by_retrieval() -> None:
