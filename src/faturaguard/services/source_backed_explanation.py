@@ -752,9 +752,10 @@ class GroqCorrectionPlanGenerator:
             _validate_plan_citations(plan, evidence)
             return plan.model_copy(update={"generation_mode": "groq_correction_plan"})
         except httpx.HTTPStatusError as error:
+            detail = _safe_provider_error_detail(error.response)
             raise LLMUnavailableError(
                 "Groq düzeltme planı üretilemedi (HTTP "
-                f"{error.response.status_code})."
+                f"{error.response.status_code}{': ' + detail if detail else ''})."
             ) from error
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
             raise LLMUnavailableError(f"Groq düzeltme planı üretilemedi ({type(error).__name__}).") from error
@@ -864,6 +865,17 @@ def _correction_plan_json_schema() -> dict[str, object]:
             "citations",
         ],
     }
+
+
+def _safe_provider_error_detail(response: httpx.Response) -> str:
+    """Sağlayıcı hata gövdesini tanılama için PII maskeli ve sınırlı döndürür."""
+
+    try:
+        raw = response.text
+    except (RuntimeError, httpx.HTTPError):
+        return ""
+    normalized = re.sub(r"\s+", " ", raw).strip()
+    return privacy_redactor.redact_text(normalized)[:360]
 
 
 def _masked_correction_request(

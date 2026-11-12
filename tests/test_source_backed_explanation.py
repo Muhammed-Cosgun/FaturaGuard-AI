@@ -1,3 +1,4 @@
+import httpx
 import pytest
 
 from faturaguard.domain.validation import Finding, Priority, Severity
@@ -15,6 +16,7 @@ from faturaguard.services.source_backed_explanation import (
     SourceBackedExplanation,
     UnsafeExplanationError,
     _correction_plan_json_schema,
+    _safe_provider_error_detail,
 )
 
 
@@ -282,6 +284,21 @@ def test_groq_correction_plan_uses_strict_schema_for_gpt_oss() -> None:
     assert response_format["json_schema"]["schema"]["properties"]["selected_candidate_id"] == {
         "type": "string"
     }
+
+
+def test_provider_error_detail_is_masked_and_bounded() -> None:
+    response = httpx.Response(
+        400,
+        text="invalid schema for VKN 1234567890 and email kisi@example.com " + "x" * 500,
+    )
+
+    detail = _safe_provider_error_detail(response)
+
+    assert "1234567890" not in detail
+    assert "kisi@example.com" not in detail
+    assert "[MASKED_VKN]" in detail
+    assert "[MASKED_EMAIL]" in detail
+    assert len(detail) == 360
 
 
 def test_generator_rejects_citation_not_returned_by_retrieval() -> None:
