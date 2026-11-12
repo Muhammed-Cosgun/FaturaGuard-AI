@@ -72,7 +72,7 @@ V1; temiz ortamda çalıştırılabildiğinde, zorunlu akışı tamamladığınd
 
 | İş paketi | Durum | Tamamlanan kanıt | Açık takip maddesi |
 |---|---|---|---|
-| 1 — Temel kurulum | Tamamlandı | FastAPI uygulaması, bağımlılık tanımı, lint/test komutları ve GitHub Actions CI tanımı mevcut; temiz venv oluşturma ve proje içi TEMP/TMP yapılandırması doğrulandı. | Uzaktaki GitHub Actions çalışması, depo uzak sunucuya gönderilirse ayrıca kaydedilebilir. |
+| 1 — Temel kurulum | Tamamlandı | FastAPI uygulaması, bağımlılık tanımı, lint/test komutları ve GitHub Actions CI tanımı mevcut; temiz venv oluşturma ve proje içi TEMP/TMP yapılandırması doğrulandı. 12.11.2026'da private GitHub reposundaki Ubuntu CI koşusu başarıyla tamamlandı. | — |
 | 2 — Doğrulama entegrasyonu | Tamamlandı | `efatura-kontrol` adaptörü, önceliklendirme ve 64 belgelenmiş kod için 65 doğrulama kaydı/test kapsamı mevcut. | Yeni kütüphane sürümünde regresyon çalıştırılacak. |
 | 3 — Dosya yaşam döngüsü | Tamamlandı | Orijinal saklama, SHA-256, işlem kimliği, ayrı çalışma kopyası ve minimal XML diff uygulanıyor. | Demo öncesi depolama klasörleri temizlenip saklama notu doğrulanacak. |
 | 4 — Bulguların sunumu | Tamamlandı | Öncelikli bulgu kartları, işlem geçmişi, HTML/JSON raporları ve denetim izi mevcut. | Agent risk/işlem planının HTML işlem raporunda da görünmesi iyileştirilecek. |

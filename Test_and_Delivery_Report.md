@@ -135,6 +135,14 @@ tekrarlı canlı ölçüm şu sonucu verdi:
 sonucu `data/evaluation/api_provider_benchmark.json` altında saklar. Değerler ağ/sağlayıcı
 yüküne bağlıdır; sunumda preflight yeniden çalıştırılmalıdır.
 
+### Uzak CI kanıtı
+
+Private GitHub reposu `Muhammed-Cosgun/FaturaGuard-AI` oluşturuldu ve uzak Ubuntu runner
+üzerindeki GitHub Actions CI, `d093577` commit'i için başarıyla tamamlandı. İlk iki koşu,
+Linux runner'da `scripts` import yolunu açıkça tanımlamayan CI yapılandırmasının yakaladığı
+gerçek bir taşınabilirlik sorununu gösterdi; `scripts/__init__.py` ve CI `PYTHONPATH`
+tanımıyla düzeltildi. Başarılı üçüncü koşu lint ve 138 testi tamamladı.
+
 ### Kod kalitesi ve temiz ortam denemesi
 
 - `ruff check .`: başarılı.
