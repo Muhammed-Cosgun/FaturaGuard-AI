@@ -11,7 +11,7 @@
     <main class="container history">
       <p class="eyebrow">DENETLENEBİLİR İŞLEM GEÇMİŞİ</p>
       <h1>İşlem geçmişi</h1>
-      <p class="lead">Son 20 doğrulama işlemi; XML içeriği gösterilmeden listelenir.</p>
+      <p class="lead">Son 20 işlemin güncel sonucu gösterilir. Düzeltme varsa yeniden doğrulama sonucu esas alınır; ilk sonuç raporda korunur.</p>
       <section class="notice">
         {% if jobs %}
         <div class="history-table-wrap">
@@ -19,10 +19,10 @@
             <thead><tr><th>Belge</th><th>Durum</th><th>Bulgular</th><th>Güncellendi</th><th></th></tr></thead>
             <tbody>
             {% for item in jobs %}
-              {% set summary = item.report.summary %}
+              {% set summary = item.current_report.summary %}
               <tr>
                 <td><strong>{{ item.original_filename }}</strong><br><code>{{ item.original_sha256[:12] }}…</code></td>
-                <td>{% if summary.is_valid %}<span class="status-badge success">GEÇERLİ</span>{% else %}<span class="status-badge error">GEÇERSİZ</span>{% endif %}</td>
+                <td>{% if summary.is_valid %}<span class="status-badge success">GEÇERLİ</span>{% else %}<span class="status-badge error">GEÇERSİZ</span>{% endif %}{% if item.has_correction %}<br><small>Düzeltilmiş kopya</small>{% endif %}</td>
                 <td>{{ summary.error_count }} hata · {{ summary.warning_count }} uyarı</td>
                 <td>{{ item.updated_at | turkey_time }}</td>
                 <td><a href="/jobs/{{ item.job_id }}/report">Rapor</a></td>

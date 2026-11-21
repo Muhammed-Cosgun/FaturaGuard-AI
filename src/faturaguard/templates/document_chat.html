@@ -4,6 +4,7 @@
     <span class="step-chip">Yalnızca açıklama</span>
   </div>
   <p class="metadata">Bu işlemin sonuçlarını birlikte inceleyelim. Sohbet XML'i değiştirmez ve düzeltme onayı vermez. Sorularınız yerelde kalır; bulgu açıklamaları mevcut maskeli GİB kaynaklı AI hattını kullanır.</p>
+  <p class="metadata">Önceki yanıtlar soruldukları andaki durumu anlatır. Düzeltme sonrası güncel sonuç için yeniden sorun veya “Önce / sonra” seçeneğini kullanın.</p>
   <div class="chat-messages" role="log" aria-label="Bu belgenin sohbeti" aria-live="polite" tabindex="0">
     <p class="chat-empty" {% if job.chat_history %}hidden{% endif %}>Öncelikli sorunları sorabilir veya bir bulgu seçerek resmî kaynaklı açıklama isteyebilirsiniz.</p>
     {% for turn in job.chat_history %}

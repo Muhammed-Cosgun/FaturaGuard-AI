@@ -37,3 +37,19 @@ def test_sqlite_store_persists_job_audit_events_and_external_diff(tmp_path) -> N
     assert "<Invoice" not in (tmp_path / "faturaguard.sqlite3").read_bytes().decode(
         "latin-1", errors="ignore"
     )
+
+
+def test_history_uses_revalidation_without_overwriting_original_report(tmp_path):
+    store = SqliteCorrectionJobStore(tmp_path)
+    job = _job()
+    job.report.summary.warning_count = 2
+    store.save(job)
+    assert store.list_recent()[0]['current_report']['summary']['warning_count'] == 2
+    assert not store.list_recent()[0]['has_correction']
+    job.corrected_report = job.report.model_copy(deep=True)
+    job.corrected_report.summary.warning_count = 0
+    store.save(job)
+    item = store.list_recent()[0]
+    assert item['current_report']['summary']['warning_count'] == 0
+    assert item['report']['summary']['warning_count'] == 2
+    assert item['has_correction']

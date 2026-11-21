@@ -2,6 +2,11 @@
 
 ## Aktif geliştirme
 
+Son ekran iyileştirmesi: corrected_report varsa sonuç üst sayaçları ve işlem
+geçmişi onu gösterir; eski bulgular ve agent planı ilk değerlendirme olarak
+etiketlenir. İlk rapor değiştirilmez. 157 test geçti; kullanıcının gerçek
+tax-exclusive kaydında tarayıcı kontrolü tamamlandı.
+
 feature/document-assistant: kullanıcı isteğiyle belgeye bağlı, salt okunur
 Fatura İnceleme Asistanı eklendi. Soru yerelde yönlendirilir; teknik açıklama
 mevcut SourceBackedAgent'ı kullanır. Serbest soru ve geçmiş uzak modele gitmez.

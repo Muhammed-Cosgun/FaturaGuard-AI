@@ -26,11 +26,12 @@
       </section>
       {% if job.agent_triage %}
       <section class="notice">
-        <p class="section-label">AI AGENT İŞLEM PLANI</p><h2>Risk ve sonraki adımlar</h2>
+        <p class="section-label">{% if job.corrected_report %}İLK DOĞRULAMANIN AGENT PLANI · GEÇMİŞ KAYDI{% else %}AI AGENT İŞLEM PLANI{% endif %}</p><h2>Risk ve sonraki adımlar</h2>
+        {% if job.corrected_report %}<p class="metadata">Bu plan ilk doğrulamaya aittir. Güncel sonuç, yukarıdaki yeniden doğrulama özetindedir.</p>{% endif %}
         <p><strong>Rota:</strong> <code>{{ job.agent_triage.route }}</code></p>
         <p>{{ job.agent_triage.rationale }}</p>
         {% if job.agent_triage.priority_finding_codes %}<p class="metadata">Öncelikli bulgular: {% for code in job.agent_triage.priority_finding_codes %}<code>{{ code }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
-        {% if job.agent_triage.safe_correction_ready_count %}<p class="metadata">Onaya hazır güvenli düzeltme: {{ job.agent_triage.safe_correction_ready_count }}</p>{% endif %}
+        {% if job.agent_triage.safe_correction_ready_count %}<p class="metadata">{% if job.corrected_report %}İlk planda onaya hazır teklif{% else %}Onaya hazır güvenli düzeltme{% endif %}: {{ job.agent_triage.safe_correction_ready_count }}</p>{% endif %}
         <ol>{% for action in job.agent_triage.recommended_next_actions %}<li>{{ action }}</li>{% endfor %}</ol>
         {% if job.agent_triage.correction_sequence %}<h3>Düzeltme sırası ve beklenen etki</h3><ol>{% for step in job.agent_triage.correction_sequence %}<li><strong>{{ step.title }}</strong>{% if step.depends_on %} · Ön koşul: <code>{{ step.depends_on|join(', ') }}</code>{% endif %}<br><span class="metadata">{{ step.expected_effect }}</span></li>{% endfor %}</ol>{% endif %}
         {% if job.agent_triage.human_review_questions %}<h3>İnsan incelemesi soruları</h3><ul>{% for question in job.agent_triage.human_review_questions %}<li>{{ question }}</li>{% endfor %}</ul>{% endif %}

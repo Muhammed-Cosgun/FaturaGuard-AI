@@ -13,30 +13,40 @@
       {% if error %}
         <section class="notice error"><h2>İşlem tamamlanamadı</h2><p>{{ error }}</p></section>
       {% else %}
+        {% set current_report = job.corrected_report or report %}
         <section class="notice result-hero">
-          <div class="result-title"><div><p class="section-label">YÜKLENEN BELGE</p><h2>{{ report.original_filename }}</h2></div>
-          <span class="status-badge {% if report.summary.is_valid %}success{% else %}error{% endif %}">{% if report.summary.is_valid %}GEÇERLİ{% else %}GEÇERSİZ{% endif %}</span>
+          <div class="result-title"><div><p class="section-label">{% if job.corrected_report %}DÜZELTİLMİŞ KOPYA · GÜNCEL SONUÇ{% else %}YÜKLENEN BELGE · İLK DOĞRULAMA{% endif %}</p><h2>{{ report.original_filename }}</h2></div>
+          <span class="status-badge {% if current_report.summary.is_valid %}success{% else %}error{% endif %}">{% if current_report.summary.is_valid %}GEÇERLİ{% else %}GEÇERSİZ{% endif %}</span>
           </div>
-          <div class="metric-grid" aria-label="Doğrulama özeti">
-            <div class="metric error"><strong>{{ report.summary.error_count }}</strong><span>Hata</span></div>
-            <div class="metric warning"><strong>{{ report.summary.warning_count }}</strong><span>Uyarı</span></div>
-            <div class="metric info"><strong>{{ report.summary.info_count }}</strong><span>Bilgi</span></div>
+          <div class="metric-grid" aria-label="Güncel doğrulama özeti">
+            <div class="metric error"><strong>{{ current_report.summary.error_count }}</strong><span>Hata</span></div>
+            <div class="metric warning"><strong>{{ current_report.summary.warning_count }}</strong><span>Uyarı</span></div>
+            <div class="metric info"><strong>{{ current_report.summary.info_count }}</strong><span>Bilgi</span></div>
           </div>
-          <p class="metadata">SHA-256: <code>{{ job.original_sha256 }}</code><br>İşlem kimliği: <code>{{ job.job_id }}</code></p>
+          {% if job.corrected_report %}<p class="metadata">İlk doğrulama: {{ report.summary.error_count }} hata, {{ report.summary.warning_count }} uyarı. Üstteki sayaçlar düzeltilmiş kopyanın yeniden doğrulamasını gösterir. İlk bulgular ve plan aşağıda işlem geçmişi olarak korunur.</p>{% endif %}
+          <p class="metadata">Orijinal SHA-256: <code>{{ job.original_sha256 }}</code>{% if job.corrected_sha256 %}<br>Düzeltilmiş kopya SHA-256: <code>{{ job.corrected_sha256 }}</code>{% endif %}<br>İşlem kimliği: <code>{{ job.job_id }}</code></p>
         </section>
+        {% if job.corrected_report %}
+        <section class="notice">
+          <p class="section-label">DÜZELTME SONRASI</p><h2>Güncel bulgular</h2>
+          {% for finding in current_report.findings %}<article class="finding {{ finding.severity }}"><h3>{{ finding.code }}</h3><p>{{ finding.message }}</p></article>{% else %}<p>Teknik doğrulamada bulgu kalmadı.</p>{% endfor %}
+          <p class="metadata">Teknik doğrulama sonucu, GİB'e gönderim veya imza onayı değildir.</p>
+        </section>
+        {% endif %}
         {% if job.agent_triage %}
         <section class="notice">
-          <div class="section-heading"><div><p class="section-label">AI AGENT İŞLEM PLANI</p><h2>Risk ve sonraki adımlar</h2></div><span class="status-badge neutral">{{ job.agent_triage.route }}</span></div>
+          <div class="section-heading"><div><p class="section-label">{% if job.corrected_report %}İLK DOĞRULAMANIN AGENT PLANI · GEÇMİŞ KAYDI{% else %}AI AGENT İŞLEM PLANI{% endif %}</p><h2>Risk ve sonraki adımlar</h2></div><span class="status-badge neutral">{{ job.agent_triage.route }}</span></div>
+          {% if job.corrected_report %}<p class="metadata">Bu plan yükleme sırasında hazırlanmıştır; yeniden hesaplanmış güncel plan değildir. Güncel doğrulama sonucu yukarıdadır.</p>{% endif %}
           <p>{{ job.agent_triage.rationale }}</p>
           {% if job.agent_triage.priority_finding_codes %}<p class="metadata">Öncelikli bulgular: {% for code in job.agent_triage.priority_finding_codes %}<code>{{ code }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
-          {% if job.agent_triage.safe_correction_ready_count %}<p class="metadata">Onaya hazır güvenli düzeltme: <strong>{{ job.agent_triage.safe_correction_ready_count }}</strong></p>{% endif %}
+          {% if job.agent_triage.safe_correction_ready_count %}<p class="metadata">{% if job.corrected_report %}İlk planda onaya hazır teklif{% else %}Onaya hazır güvenli düzeltme{% endif %}: <strong>{{ job.agent_triage.safe_correction_ready_count }}</strong></p>{% endif %}
           <ol>{% for action in job.agent_triage.recommended_next_actions %}<li>{{ action }}</li>{% endfor %}</ol>
           {% if job.agent_triage.correction_sequence %}<h3>Düzeltme sırası ve beklenen etki</h3><ol>{% for step in job.agent_triage.correction_sequence %}<li><strong>{{ step.title }}</strong>{% if step.depends_on %} · Ön koşul: <code>{{ step.depends_on|join(', ') }}</code>{% endif %}<br><span class="metadata">{{ step.expected_effect }}{% if not step.approval_ready %} Bu adım için AI planı insan incelemesinde.{% endif %}</span></li>{% endfor %}</ol>{% endif %}
           {% if job.agent_triage.human_review_questions %}<h3>İnsan incelemesi soruları</h3><ul>{% for question in job.agent_triage.human_review_questions %}<li>{{ question }}</li>{% endfor %}</ul>{% endif %}
           <p class="metadata">Gizlilik sınırı: Ham XML yalnızca yerelde işlenir.</p>
         </section>
         {% endif %}
-        <section class="notice findings-section"><div class="section-heading"><div><p class="section-label">DENETİM BULGULARI</p><h2>Bulgular</h2></div><span class="finding-count">{{ report.findings|length }} kayıt</span></div>
+        <section class="notice findings-section"><div class="section-heading"><div><p class="section-label">{% if job.corrected_report %}İLK DOĞRULAMA · GEÇMİŞ KAYDI{% else %}DENETİM BULGULARI{% endif %}</p><h2>{% if job.corrected_report %}İlk doğrulamanın bulguları{% else %}Bulgular{% endif %}</h2></div><span class="finding-count">{{ report.findings|length }} kayıt</span></div>
           {% for finding in report.findings %}
             <article class="finding {{ finding.severity }}">
               <div class="finding-header"><span class="tag priority-{{ finding.priority }}">{{ finding.priority|upper }}</span><span class="tag source">{{ finding.source|upper }}</span>{% if finding.line %}<span class="line-number">satır {{ finding.line }}</span>{% endif %}</div>
@@ -77,7 +87,7 @@
           {% else %}<p>Bulgu bulunamadı.</p>{% endfor %}
         </section>
         {% if job.proposals %}
-        <section class="notice"><div class="section-heading"><div><p class="section-label">KULLANICI KARARI GEREKİR</p><h2>Güvenli düzeltme önerileri</h2></div></div>
+        <section class="notice"><div class="section-heading"><div><p class="section-label">{% if job.corrected_report %}DÜZELTME KARARLARI{% else %}KULLANICI KARARI GEREKİR{% endif %}</p><h2>Güvenli düzeltme önerileri</h2></div></div>
           {% for proposal in job.proposals %}
           <article class="finding proposal-card">
             <h3>{{ proposal.title }}</h3><p>{{ proposal.rationale }}</p>

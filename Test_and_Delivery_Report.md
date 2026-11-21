@@ -1,5 +1,16 @@
 # FaturaGuard AI — Test ve Teslim Raporu
 
+## Güncel sonuç / ilk doğrulama ayrımı
+
+Kullanıcının manuel tax-exclusive senaryosunda tek `15.00 → 15.15` değişikliği,
+0 hata/0 uyarılı yeniden doğrulama ve sohbet geçmişinin korunması doğrulandı.
+Üstteki eski sayaçların güncel sonuç sanılmasını önlemek için sonuç ekranı ve
+geçmiş listesi artık corrected_report varsa onu kullanır. İlk rapor ve agent
+planı tarihî kayıt olarak açıkça etiketlenir; sohbetin eski yanıtlarına zaman
+bağlamı açıklaması eklendi. İki regresyon kontrolüyle toplam **157 test** geçti.
+Gerçek tax-exclusive işlem kaydında tarayıcıyla üstte 0 hata/0 uyarı/1 bilgi
+ve geçmiş listesinde düzeltilmiş kopyanın 0 uyarılı sonucu doğrulandı.
+
 ## Belge asistanı doğrulaması — 21.11.2026
 
 **Canlı kabul tamamlandı:** Kullanıcının CMD çıktısında `local_mode=overview`,

@@ -128,17 +128,20 @@ class SqliteCorrectionJobStore:
                 """,
                 (limit,),
             ).fetchall()
-        return [
-            {
+        result = []
+        for row in rows:
+            payload = json.loads(row['payload_json'])
+            result.append({
                 "job_id": row["job_id"],
                 "original_filename": row["original_filename"],
                 "original_sha256": row["original_sha256"],
                 "created_at": row["created_at"],
                 "updated_at": row["updated_at"],
-                "report": json.loads(row["payload_json"])["report"],
-            }
-            for row in rows
-        ]
+                "report": payload['report'],
+                "current_report": payload.get('corrected_report') or payload['report'],
+                "has_correction": payload.get('corrected_report') is not None,
+            })
+        return result
 
     def _initialize(self) -> None:
         self._root.mkdir(parents=True, exist_ok=True)

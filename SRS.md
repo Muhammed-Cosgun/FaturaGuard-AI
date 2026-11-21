@@ -31,6 +31,9 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 6. RAG yanıtı, resmî GİB kaynağı bulunmadığında kesin bir teknik veya hukukî yönlendirme üretmez.
 7. Her RAG cevabı kaynak başlığı, resmî URL ve sayfa numarası içerir.
 8. Agent, yalnızca izin verilen araçları kullanır; onay bekleyen düzeltme akışından kendisi çıkamaz.
+9. Düzeltme sonrası üst sayaçlar ve işlem geçmişi yeniden doğrulama sonucunu
+   gösterir. İlk bulgular/agent planı geçmiş kayıt olarak açıkça ayrılır;
+   ilk raporun verileri değiştirilmez.
 
 ## Belgeye bağlı sohbet asistanı — ek kapsam
 
