@@ -89,6 +89,8 @@ FastAPI uygulaması
   Güncel teklif durumundan approval_available üretilir; hazır teklif yoksa
   model yeni onay adımı önermemelidir. Bilinen doğrudan onay yönlendirme
   ifadeleri ayrıca reddedilir; bu kontrol genel anlamsal doğruluğu kanıtlamaz.
+  Yetki bağlamı sonuç ekranında düzeltme onayı bulunduğunu ve sohbetin onay
+  veremediğini ayrı alanlarla belirtir; imza ve gönderim uygulama kapsamı dışındadır.
   Karşılaştırma yanıtı reddedilirse yerel yedek genel router yerine doğrudan
   gerçek önce/sonra kaydını açıklar. Gemini store=false; sunucu tarafında
   konuşma ID'si tutulmaz. Bu ayar bütün sağlayıcı veri saklama politikasını

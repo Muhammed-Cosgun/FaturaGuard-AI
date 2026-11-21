@@ -64,6 +64,8 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
   karşılaştırma adetleri yalnızca doğrulanmış yerel tokenlarla açılır; bilinmeyen
   token reddedilir. Yeni onay önerisi güncel onaylanabilir teklif durumuna bağlıdır.
 - Sohbet XML değişikliği, teklif onayı/reddi, imza, silme veya gönderim yapamaz.
+  Bu sohbet sınırı uygulamanın sonuç ekranındaki kullanıcı onayını kaldırmaz;
+  asistan uygulamada düzeltme onayı bulunmadığını söylememelidir.
 - Son 20 soru-cevap ilgili işin yerel SQLite kaydında tutulur; JSON işlem raporuna
   eklenmez. Audit yalnızca mod/bulgu/atıf sayısı, sağlayıcı denemeleri, araç
   adları ve maskeli konuşma gönderim denemesi bilgisini içerir; metinleri içermez.

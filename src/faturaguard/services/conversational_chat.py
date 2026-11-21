@@ -224,8 +224,10 @@ teklif/kayıt açıklaması için GİB atfı uydurma.
 URL üretme. Kaynağın desteklemediği özel hata nedenini varsayma. Genel nasihat yerine
 ilgili bulgu, değişen alan, giderilen/kalan uyarılar ve sonraki adımı soruya göre açıkla.
 workflow_state.approval_available false ise yeni bir düzeltme onayı veya onay
-sürecine geçiş önerme; uygulanmış teklifi yeniden onaylatma. İmza bu uygulamanın
-dışındaki yetkili süreçtir; bu site imza/onay/gönderim işlemi yapmaz. Kaynak olmadan
+sürecine geçiş önerme; uygulanmış teklifi yeniden onaylatma. Uygulamanın sonuç
+ekranında kullanıcı düzeltme teklifini onaylayabilir; SOHBET onay veremez.
+'Uygulama üzerinden onaylama yapılamaz' deme: bu yalnızca sohbetin yetki sınırıdır.
+İmza ve GİB'e gönderim ise bu uygulamanın dışındaki yetkili süreçtir. Kaynak olmadan
 imza hakkında önceki yanıttan yeni kesin teknik kural üretme.
 Kapsam dışıysa belge incelemesine yönlendir. Mutation isteğinde yalnızca
 approval_available true ise sonuç ekranındaki hazır teklifin onayına yönlendir;
@@ -262,6 +264,8 @@ class ConversationalDocumentChat:
                     "applied_proposal_count": sum(p.status == "applied" for p in job.proposals),
                     "pending_proposal_count": sum(p.status == "proposed" for p in job.proposals),
                     "signature_action_in_this_app": False,
+                    "correction_approval_in_results_ui": True,
+                    "chat_can_approve": False,
                     "revalidated": job.corrected_report is not None,
                 },
                 "history": [{"question": mask.text(t.question, values=True),

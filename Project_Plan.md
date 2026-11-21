@@ -23,9 +23,13 @@ ilk üç tur canlı Gemini/araç testi çalıştı; üçüncü yanıttaki maskel
 gereksiz onay önerisi nedeniyle anlamsal kabul verilmedi. İkinci koşunun 2. turu
 yerel yedeğe düştü; eski sürüm nedeni kaydetmiyordu. Tutar/adet, sabit tanı kodları,
 olumsuz onay ifadeleri ve tek seferlik model yanıtı onarımı tamamlandı; güçlendirilmiş
-canlı smoke kullanıcı hesabında tekrar beklenir.
-Bu kabul bitmeden paket tamamlandı sayılmaz. Eski asistanın aşağıdaki canlı
-kabulü yalnızca önceki yerel yönlendirici sürümüne aittir.
+son canlı smoke kullanıcı hesabında üç tur Gemini/llm_chat ile geçti: doğru
+araçlar, 2 atıf, 15.00→15.15, uyarıların 2→0 olması ve XML hash bütünlüğü.
+Onarım/red yok; yerel kabul JSON'u da doğrulandı. Bu demo için canlı kabul kapandı.
+Uygulamada düzeltme onayı / sohbette onay yetkisi olmaması ayrımı son talimatta
+netleştirildi; bu ifade ayarı ayrıca canlı modelde ölçülmedi. Bu paket tamamlandı;
+tek demo bütün bulgu kodlarında açıklama doğruluğunu kanıtlamaz. Eski asistanın
+aşağıdaki canlı kabulü yalnızca önceki yerel yönlendirici sürümüne aittir.
 
 ### Ek paket — belge inceleme asistanı
 

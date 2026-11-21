@@ -3,7 +3,7 @@
 ## Aktif geliştirme
 
 21.11.2026: Kullanıcı sohbeti gerçek bağlamlı LLM asistana dönüştürmeyi onayladı.
-Aktif geliştirme feature/llm-document-conversation dalında. Yeni web yolu
+Geliştirme dalı feature/llm-document-conversation; kabul sonrası main'e ff birleştirilir. Yeni web yolu
 ConversationalDocumentChat: LangGraph şemalı LLM araç planı → en fazla dört
 salt okunur araç → LLM final yanıtı. Eski DocumentChat yalnızca yerel yedektir.
 Önceki “soru/geçmiş uzak modele gitmez” sohbet kararı bu talep ile değişmiştir:
@@ -21,9 +21,15 @@ failure_code/validation_issues ve repair_attempted metadata'sı kaydedilir;
 modelin reddedilen metni saklanmaz/gönderilmez. Geçerli şemalı ama reddedilen
 yanıt aynı maskeli araç sonuçlarıyla bir kez onarılır, Groq tanımlıysa öncelenir.
 Olumsuz onay cümlelerinin yanlış reddi daraltıldı; geçmiş atıfları yeni istekte
-geçerli sayılmaz. 392 test/Ruff geçti. Canlı smoke yeniden kullanıcı hesabında
-beklenir. Başarısız canlı koşu eski başarı JSON'unu artık failed durumuyla değiştirir.
-Bu canlı kabul yapılmadan yeni sohbet paketini tamamlandı diye işaretleme.
+geçerli sayılmaz. 392 test/Ruff geçti. Son canlı koşu kullanıcı hesabında üç tur
+Gemini/llm_chat, 2 atıf, doğru araçlar, 0→0 hata / 2→0 uyarı / 1→1 bilgi,
+15.00→15.15 ve değişmeyen XML ile geçti. Onarım gerekmedi, red kodu yok.
+data/evaluation/document_conversation_acceptance.json yerelde doğrulandı.
+Canlı kabul kapandı; bu tek demo bütün kodlarda anlamsal doğruluk kanıtı değildir.
+Modelin “uygulama onay yapmaz” ifadesi fazla genişti: onay sonuç ekranında var,
+sohbet onaylayamaz. Talimat ve yetenek bağlamı ayrıştırıldı; bu son ifade ayarı
+ayrıca canlı modelde tekrar ölçülmedi. Yeni bir zorunlu canlı döngü açılmaz.
+Başarısız canlı koşu eski başarı JSON'unu artık failed durumuyla değiştirir.
 Aşağıdaki eski chatbot/test sayısı paragrafları tarihî bağlamdır.
 
 Güncel test sayısı 236. DocumentChat artık ortak document_insights katmanını
