@@ -200,7 +200,26 @@ doğrulanmış demo dosyalarını oluşturmak için:
 python scripts\generate_arithmetic_demo_fixtures.py
 ```
 
-## Sunum öncesi kontrol
+## Fatura İnceleme Asistanı
+
+Doğrulama sonucu ve işlem raporunda belgeye bağlı sohbet paneli bulunur.
+Öncelikli sorunları, teklifin neden onaya hazır olmadığını, önce/sonra sonucunu
+ve kullanım adımlarını sorabilirsiniz. Teknik açıklama için güncel bulgu
+listesinden seçim yapın veya bulgu kodunu yazın.
+
+Özet ve rehberlik yerelde; teknik açıklama mevcut resmî GİB kaynaklı Gemini/Groq
+hattında hazırlanır. Serbest soru metni ve sohbet geçmişi uzak modele gitmez.
+Sohbet hiçbir XML değişikliği veya kullanıcı kararı uygulamaz. Son 20 tur
+yerelde ilgili işlemle saklanır. Bu ilk sürüm desteklenen belge sorularına
+yöneliktir; genel amaçlı chatbot değildir.
+
+Kendi API anahtarlarınızın tanımlı olduğu terminalde canlı kabul:
+
+```cmd
+.venv-clean\Scripts\python.exe scripts\run_document_chat_smoke_test.py
+```
+
+## Sunum öncesi kontrol komutu
 
 API anahtarlarını göstermeden RAG indeksini ve aktif sağlayıcı/fallback zincirini doğrulamak için:
 

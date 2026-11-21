@@ -12,6 +12,14 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ## 3. İş paketleri ve çıktılar
 
+### Ek paket — belge inceleme asistanı
+
+Kullanıcı talebiyle sonuç/rapor ekranına salt okunur sohbet eklendi. Yerel
+özet/rehberlik ve mevcut GİB kaynaklı AI açıklamaları aynı panelde sunulur.
+16 yeni testle toplam 155 test geçti; tarayıcıda önce/sonra yanıtı ve değişiklik
+talebinin engellenmesi doğrulandı. Kullanıcı hesabından yeni asistanın canlı
+Gemini/Groq smoke testi bekleniyor. Test geçmeden bu paketin canlı kabulü kapanmaz.
+
 | No | İş paketi | Ana çıktı | Bağımlılık |
 |---|---|---|---|
 | 1 | Temel kurulum | Depo yapısı, FastAPI iskeleti, ayarlar, CI başlangıcı | — |

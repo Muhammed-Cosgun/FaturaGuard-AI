@@ -148,5 +148,12 @@ class CorrectionWorkflow:
     def list_recent_jobs(self, limit: int = 20) -> list[dict[str, object]]:
         return self._store.list_recent(limit)
 
+    def chat(self, job_id: str, question: str, finding_code: str, assistant):
+        """Sohbet yalnızca ilgili işe yazılır; karar ve düzeltme araçlarına erişmez."""
+        job = self._store.load(job_id)
+        turn = assistant.answer(job, question, finding_code)
+        job = self._store.append_chat_turn(job_id, turn)
+        return job, turn
+
     def list_audit_events(self, job_id: str) -> list[dict[str, object]]:
         return self._store.list_events(job_id)

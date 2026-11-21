@@ -1,5 +1,20 @@
 # FaturaGuard AI — Test ve Teslim Raporu
 
+## Belge asistanı doğrulaması — 21.11.2026
+
+- Sonuç ve rapor ekranında sohbet paneli, hazır sorular, güncel bulgu seçimi,
+  bekleme/hata mesajı ve sayfa yenilenmeden düz metin yanıt gösterimi eklendi.
+- 16 yeni test: güncel sonuç kullanımı, sorunun/geçmişin sağlayıcıya taşınmaması,
+  komutların işlem yapamaması, iş/bulgu izolasyonu, yetersiz kaynak, 600 karakter
+  sınırı, 20 tur saklama, HTML escaping, resmî atıf URL kontrolü, audit gizliliği,
+  XML hash koruması ve bekleme sırasında yeni kararları ezmeme. Toplam **155 test**;
+  Ruff ve pip check temiz.
+- Gerçek Uvicorn sunucusunda tarayıcıdan önce/sonra hazır sorusu ve "Bu faturayı
+  düzelt" sorusunun salt okunur sınırda tutulduğu doğrulandı.
+- Testler API yanıtı için kontrollü test doubles kullanır. Yeni panelin gerçek
+  Gemini/Groq üretimi kullanıcı hesabındaki anahtarlarla ayrıca sınanmalıdır:
+  `scripts/run_document_chat_smoke_test.py`. Henüz canlı kabul tamamlandı denmez.
+
 ## Veri ve sürüm geçmişi kurtarma — 21.11.2026
 
 - Dört işlemdeki sekiz eski mutlak dosya yolu, SQLite backup sonrası tek

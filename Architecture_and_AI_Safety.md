@@ -66,6 +66,18 @@ FastAPI uygulaması
 
 ## Çalıştırma ve rapor sınırları
 
+- Belge asistanı: `DocumentChat` yerel soru yönlendirmesi yapar. Özet/teklif/
+  karşılaştırma/rehberlik veritabanındaki güncel işten üretilir. Teknik açıklama
+  için mevcut `SourceBackedAgent.explain` çağrılır; serbest kullanıcı sorusu ve
+  önceki mesajlar sağlayıcı payload'ına eklenmez. Yeni genel sohbet sağlayıcısı yoktur.
+- `POST /jobs/{job_id}/chat` yalnızca sohbet kaydı ve audit olayı ekler; düzeltme
+  motoruna veya karar grafiğine erişmez. Sohbet ekleme, SQLite transaction'ında
+  güncel payload'ın yalnızca chat_history alanını değiştirir; uzun model çağrısında
+  yapılmış yeni düzeltme kararları eski iş kopyasıyla ezilmez.
+- Soru en çok 600 karakterdir. İşler arası bulgu seçimi reddedilir, güncel
+  corrected_report varsa o kullanılır. Son 20 tur saklanır. Yanıt/soru düz metin
+  olarak escape edilir; tarayıcı JS'i innerHTML kullanmaz. Atıflar HTTPS GİB URL'si olmalıdır.
+
 - Güncel demo zinciri Gemini → Groq → deterministik kaynak özetidir. Yerel Gemma
   yalnızca anahtarsız/açık yerel açıklama seçeneğidir; Ollama düzeltme-planı adaptörü yoktur.
 - Web istekleri model yanıtını bekler. Gerçek arka plan iş kuyruğu, polling,

@@ -15,6 +15,7 @@ from fastapi.templating import Jinja2Templates
 from faturaguard.config import Settings, settings
 from faturaguard.services.agent_workflow import FaturaGuardAgent, SourceBackedAgent
 from faturaguard.services.correction_workflow import CorrectionWorkflow
+from faturaguard.services.document_chat import DocumentChat
 from faturaguard.services.document_storage import DocumentStorage, FilePolicyError
 from faturaguard.services.hybrid_retrieval import (
     Bm25LexicalRetriever,
@@ -309,6 +310,32 @@ def create_app() -> FastAPI:
             request,
             "validation_result.html",
             {"report": job.report, "job": job},
+        )
+
+    @app.post('/jobs/{job_id}/chat', include_in_schema=False)
+    async def document_chat(
+        request: Request, job_id: str,
+        question: str = Form(..., min_length=1, max_length=600),
+        finding_code: str = Form(''),
+    ):
+        wants_json = 'application/json' in request.headers.get('accept', '')
+        try:
+            job, turn = await asyncio.to_thread(
+                app.state.correction_workflow.chat, job_id, question, finding_code,
+                DocumentChat(app.state.source_backed_agent),
+            )
+        except (FileNotFoundError, ValueError) as error:
+            status = 404 if isinstance(error, FileNotFoundError) else 400
+            message = 'İşlem kaydı bulunamadı.' if status == 404 else str(error)
+            if wants_json:
+                return JSONResponse({'error': message}, status_code=status)
+            return templates.TemplateResponse(
+                request, 'validation_result.html', {'error': message}, status_code=status,
+            )
+        if wants_json:
+            return JSONResponse({'turn': turn.model_dump(mode='json')})
+        return templates.TemplateResponse(
+            request, 'validation_result.html', {'report': job.report, 'job': job},
         )
 
     return app

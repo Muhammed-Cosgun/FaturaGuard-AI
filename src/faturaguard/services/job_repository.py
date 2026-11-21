@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from faturaguard.domain.chat import ChatTurn
 from faturaguard.domain.correction import CorrectionJob
 
 
@@ -57,6 +58,26 @@ class SqliteCorrectionJobStore:
             if diff_file.is_file():
                 job.diff = diff_file.read_text(encoding="utf-8")
         return job
+
+    def append_chat_turn(self, job_id: str, turn: ChatTurn) -> CorrectionJob:
+        """Uzun model çağrısında değişen kararları eski job kopyasıyla ezmez."""
+        with self._connect() as connection:
+            connection.execute('BEGIN IMMEDIATE')
+            row = connection.execute('SELECT payload_json FROM jobs WHERE job_id=?', (job_id,)).fetchone()
+            if row is None:
+                raise FileNotFoundError('İşlem kaydı bulunamadı.')
+            payload = json.loads(row['payload_json'])
+            payload['chat_history'] = [*payload.get('chat_history', []), turn.model_dump(mode='json')][-20:]
+            connection.execute('UPDATE jobs SET payload_json=?, updated_at=? WHERE job_id=?',
+                               (json.dumps(payload, ensure_ascii=False), self._timestamp(), job_id))
+            connection.execute(
+                'INSERT INTO audit_events(job_id, occurred_at, event_type, detail_json) VALUES(?,?,?,?)',
+                (job_id, self._timestamp(), 'document_chat_answered', json.dumps({
+                    'mode': turn.mode, 'finding_code': turn.finding_code,
+                    'citation_count': len(turn.citations), 'raw_question_sent_to_provider': False,
+                })),
+            )
+        return self.load(job_id)
 
     def store_diff(self, job_id: str, diff: str) -> Path:
         self._diff_root.mkdir(parents=True, exist_ok=True)

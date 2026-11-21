@@ -61,7 +61,8 @@
         </ul>
       </section>
       {% endif %}
-      <p class="metadata">Bu rapor XML içeriğini içermez; belge bütünlük değerleri ve işlem kanıtlarını içerir.</p>
+      {% include 'document_chat.html' %}
+      <p class="metadata">Tam XML dosyası bu rapora eklenmez; yukarıdaki diff XML parçaları içerebilir.</p>
       <p class="bottom-actions"><a class="button-link secondary-link" href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
     </main>
     <footer class="site-footer"><div>FaturaGuard AI · Denetlenebilir işlem kaydı</div><div>Rapor XML içeriğini içermez</div></footer></div>

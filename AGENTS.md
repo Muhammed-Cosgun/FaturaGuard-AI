@@ -1,5 +1,15 @@
 # FaturaGuard AI çalışma bağlamı
 
+## Aktif geliştirme
+
+feature/document-assistant: kullanıcı isteğiyle belgeye bağlı, salt okunur
+Fatura İnceleme Asistanı eklendi. Soru yerelde yönlendirilir; teknik açıklama
+mevcut SourceBackedAgent'ı kullanır. Serbest soru ve geçmiş uzak modele gitmez.
+155 test/lint/pip check geçti; gerçek tarayıcıda yerel yanıt ve işlem yapmama
+kontrol edildi. Kullanıcının kendi CMD'sinde
+`.venv-clean\Scripts\python.exe scripts\run_document_chat_smoke_test.py`
+sonucu bekleniyor. Canlı kabul sonrası bu paketin kayıt/merge/push durumu kontrol edilir.
+
 Bu depoda işe başlamadan `PROJE_BAGLAMI.md`, `SRS.md`, `Project_Plan.md` ve
 `Architecture_and_AI_Safety.md` dosyalarını oku. Belgelerdeki geçmiş iddiaları,
 mevcut koddan ve yeniden çalıştırılmış kanıtlardan ayrı değerlendir.

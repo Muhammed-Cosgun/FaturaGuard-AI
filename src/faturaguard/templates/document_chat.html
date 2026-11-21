@@ -1,0 +1,33 @@
+<section class="notice document-chat" aria-labelledby="chat-heading" data-document-chat>
+  <div class="section-heading">
+    <div><p class="section-label">BELGEYE BAĞLI ASİSTAN</p><h2 id="chat-heading">Fatura İnceleme Asistanı</h2></div>
+    <span class="step-chip">Yalnızca açıklama</span>
+  </div>
+  <p class="metadata">Bu işlemin sonuçlarını birlikte inceleyelim. Sohbet XML'i değiştirmez ve düzeltme onayı vermez. Sorularınız yerelde kalır; bulgu açıklamaları mevcut maskeli GİB kaynaklı AI hattını kullanır.</p>
+  <div class="chat-messages" role="log" aria-label="Bu belgenin sohbeti" aria-live="polite" tabindex="0">
+    <p class="chat-empty" {% if job.chat_history %}hidden{% endif %}>Öncelikli sorunları sorabilir veya bir bulgu seçerek resmî kaynaklı açıklama isteyebilirsiniz.</p>
+    {% for turn in job.chat_history %}
+    <article class="chat-turn">
+      <p class="chat-question"><strong>Siz</strong><span>{{ turn.question }}</span></p>
+      <div class="chat-answer"><strong>Asistan · {% if turn.mode == 'source_backed' %}Kaynaklı AI açıklaması{% elif turn.mode == 'source_summary' %}Güvenli kaynak özeti{% else %}İşlem rehberi{% endif %}</strong><p>{{ turn.answer }}</p>
+        {% if turn.citations %}<ul class="chat-citations">{% for citation in turn.citations %}<li><a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a></li>{% endfor %}</ul>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <form action="/jobs/{{ job.job_id }}/chat" method="post" class="chat-form">
+    <div class="chat-prompts" aria-label="Örnek sorular">
+      <button type="button" class="secondary" data-chat-prompt="Öncelikli sorunları özetle">Öncelikli sorunlar</button>
+      <button type="button" class="secondary" data-chat-prompt="Düzeltme teklifini ve düğmenin durumunu açıkla">Düzeltmeyi açıkla</button>
+      <button type="button" class="secondary" data-chat-prompt="Düzeltmeden sonra ne değişti?">Önce / sonra</button>
+    </div>
+    {% set current_report = job.corrected_report or job.report %}
+    <label for="chat-finding">İsteğe bağlı: açıklanacak güncel bulgu</label>
+    <select id="chat-finding" name="finding_code"><option value="">Genel işlem sorusu</option>{% for finding in current_report.findings %}<option value="{{ finding.code }}">{{ finding.code }}</option>{% endfor %}</select>
+    <label for="chat-question">Bu belgeyle ilgili sorunuz</label>
+    <textarea id="chat-question" name="question" rows="2" maxlength="600" required placeholder="Örneğin: Bu hatayı nasıl incelemeliyim?"></textarea>
+    <div class="chat-send-row"><button type="submit">Asistana sor</button><span class="chat-status metadata" role="status"></span></div>
+  </form>
+  <p class="metadata">Son 20 soru-cevap bu işlemle birlikte yerelde saklanır. Sohbet genel amaçlı değildir; desteklenmeyen sorularda bulgu seçmenizi ister.</p>
+</section>
+<script src="{{ url_for('static', path='/document-chat.js') }}" defer></script>

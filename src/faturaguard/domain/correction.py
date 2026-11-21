@@ -4,6 +4,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
+from faturaguard.domain.chat import ChatTurn
 from faturaguard.domain.validation import ValidationReport
 
 
@@ -45,3 +46,4 @@ class CorrectionJob(BaseModel):
     agent_triage: dict[str, object] | None = None
     agent_outputs: dict[str, dict[str, object]] = Field(default_factory=dict)
     automation_events: list[dict[str, object]] = Field(default_factory=list)
+    chat_history: list[ChatTurn] = Field(default_factory=list)

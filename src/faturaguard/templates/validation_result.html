@@ -113,6 +113,7 @@
           <h3>XML farkı</h3><pre>{{ job.diff }}</pre>
         </section>
         {% endif %}
+        {% include 'document_chat.html' %}
         <p><a href="/jobs/{{ job.job_id }}/report">İşlem raporunu görüntüle</a> · <a href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
       {% endif %}
       <p class="bottom-actions"><a class="button-link secondary-link" href="/">Yeni belge yükle</a></p>

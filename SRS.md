@@ -31,3 +31,18 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 6. RAG yanıtı, resmî GİB kaynağı bulunmadığında kesin bir teknik veya hukukî yönlendirme üretmez.
 7. Her RAG cevabı kaynak başlığı, resmî URL ve sayfa numarası içerir.
 8. Agent, yalnızca izin verilen araçları kullanır; onay bekleyen düzeltme akışından kendisi çıkamaz.
+
+## Belgeye bağlı sohbet asistanı — ek kapsam
+
+- Sonuç ve rapor ekranında Fatura İnceleme Asistanı bulunur. Güncel bulguları
+  özetler; teklifin durumunu, önce/sonra sonuçlarını ve kullanım adımlarını açıklar.
+- Kullanıcı doğal dilde soru yazabilir veya hazır sorulardan/bulgu listesinden
+  seçim yapabilir. İlk sürümde konu seçimi yerel kurallarla yapılır; genel amaçlı
+  sohbet ve serbest model talimatı yoktur. Teknik açıklama mevcut GİB RAG/LLM hattını kullanır.
+- Serbest soru ve sohbet geçmişi uzak sağlayıcılara gönderilmez. Açıklama hattına
+  yalnızca seçilen işe ait güncel bulgu verilir; mevcut maskeli payload sınırı korunur.
+- Sohbet XML değişikliği, teklif onayı/reddi, imza, silme veya gönderim yapamaz.
+- Son 20 soru-cevap ilgili işin yerel SQLite kaydında tutulur; JSON işlem raporuna
+  eklenmez. Audit kaydı yalnızca yanıt modu/bulgu/atıf sayısını içerir.
+- Yanıt beklerken sonuç ekranı kullanılabilir; hata ve bekleme durumu gösterilir.
+  JavaScript kapalıysa normal HTML form yanıtı çalışır.
