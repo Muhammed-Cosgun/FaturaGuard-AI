@@ -1,5 +1,15 @@
 # FaturaGuard AI — Test ve Teslim Raporu
 
+## Sohbet karşılaştırmasının somutlaştırılması
+
+Önce/sonra yanıtı, sayılara ek olarak yalnızca uygulanmış tekliflerin alanını ve
+before/after değerlerini, artık görülmeyen bulgu kodlarını ve güncel kalan
+bulguları gösterir. Tek tax-exclusive düzeltmesi, iki uyarı düşüşü ve ilgili
+bulguların kaybolması birlikte kayıtlıysa bağımlı vergi dahil kontrolünün de
+geçtiğini açıklar. Bekleyen/reddedilen tekliflerden veya eksik kayıttan değişiklik
+uydurmaz. Kullanıcının gerçek tax-exclusive kaydıyla salt okunur çıktı kontrolü
+yapıldı. İki yeni regresyon testiyle toplam **159 test**; ek API çağrısı yok.
+
 ## Güncel sonuç / ilk doğrulama ayrımı
 
 Kullanıcının manuel tax-exclusive senaryosunda tek `15.00 → 15.15` değişikliği,

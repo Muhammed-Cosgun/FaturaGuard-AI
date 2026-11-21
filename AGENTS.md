@@ -2,6 +2,10 @@
 
 ## Aktif geliştirme
 
+Güncel test sayısı 159. Sohbet önce/sonra yanıtı yalnızca uygulanmış tekliflerden
+alan ve before/after değerlerini, kaybolan/kalan bulguları ve kayıtla desteklenen
+bağımlı kontrol sonucunu anlatır. Eksik/bekleyen/red kayıtlardan düzeltme çıkarmaz.
+
 Son ekran iyileştirmesi: corrected_report varsa sonuç üst sayaçları ve işlem
 geçmişi onu gösterir; eski bulgular ve agent planı ilk değerlendirme olarak
 etiketlenir. İlk rapor değiştirilmez. 157 test geçti; kullanıcının gerçek

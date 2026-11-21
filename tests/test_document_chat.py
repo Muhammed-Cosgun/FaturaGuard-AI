@@ -159,6 +159,72 @@ def test_proposal_explains_blocked_plan_and_comparison_reports_real_counts():
     assert "Yeniden doğrulama: 0 hata, 0 uyarı" in DocumentChat().answer(item, "Ne değişti?").answer
 
 
+def test_comparison_explains_exact_applied_change_resolved_dependencies_and_remaining_signature():
+    item = job()
+    tax_inclusive = item.report.findings[0].model_copy(update={"code": "hesap-dip-vergi-dahil"})
+    signature = item.report.findings[0].model_copy(
+        update={"code": "imza-yok", "severity": Severity.INFO, "message": "İmza bulunmuyor."}
+    )
+    item.report.findings += [tax_inclusive, signature]
+    item.report.summary.warning_count = 2
+    item.report.summary.info_count = 1
+    item.corrected_report = item.report.model_copy(deep=True)
+    item.corrected_report.findings = [signature]
+    item.corrected_report.summary.warning_count = 0
+    item.proposals = [
+        CorrectionProposal(
+            proposal_id="applied",
+            rule_id="recalculate-tax-exclusive-total",
+            finding_code="hesap-dip-vergi-haric",
+            title="Vergi hariç toplam",
+            rationale="Yerel hesap",
+            target_path="cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount",
+            before="15.00",
+            after="15.15",
+            status="applied",
+        )
+    ]
+    original_state = item.model_dump_json()
+    turn = DocumentChat().answer(item, "Düzeltmeden sonra neler değişti?")
+    assert "Vergi hariç toplam (TaxExclusiveAmount): 15.00 → 15.15" in turn.answer
+    assert "tek alan değişikliğiyle iki uyarı kalktı" in turn.answer
+    assert "imza eksikliği bilgi kaydı olarak sürüyor" in turn.answer
+    assert "Bu işlem imza eklemedi" in turn.answer
+    assert item.model_dump_json() == original_state
+    item.proposals.append(
+        item.proposals[0].model_copy(
+            update={"proposal_id": "second", "rule_id": "recalculate-payable-total"}
+        )
+    )
+    assert (
+        "tek alan değişikliğiyle" not in DocumentChat().answer(item, "Hangi alan değişti?").answer
+    )
+
+
+def test_comparison_does_not_claim_pending_changes_or_unresolved_findings_are_fixed():
+    item = job()
+    item.corrected_report = item.report.model_copy(deep=True)
+    item.proposals = [
+        CorrectionProposal(
+            proposal_id="pending",
+            rule_id="recalculate-tax-exclusive-total",
+            finding_code="hesap-dip-vergi-haric",
+            title="Bekleyen teklif",
+            rationale="Hesap",
+            target_path="path",
+            before="999",
+            after="111",
+        )
+    ]
+    for state in ("proposed", "rejected"):
+        item.proposals[0].status = state
+        answer = DocumentChat().answer(item, "Ne değişti?").answer
+        assert "999 → 111" not in answer
+        assert "varsaymıyorum" in answer
+        assert "artık görülmeyen" not in answer
+        assert "iki uyarı kalktı" not in answer
+
+
 @pytest.mark.parametrize("question", ["", " ", "x" * 601])
 def test_question_limits(question):
     with pytest.raises(ValueError):

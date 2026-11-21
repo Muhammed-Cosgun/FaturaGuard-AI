@@ -70,7 +70,16 @@ class DocumentChat:
 
         if any(
             term in text
-            for term in ("sonra ne", "sonuc ne", "ne degisti", "karsilastir", "duzeltildi mi")
+            for term in (
+                "sonra ne",
+                "sonuc ne",
+                "ne degisti",
+                "neler degisti",
+                "hangi alan degisti",
+                "ne duzeltildi",
+                "karsilastir",
+                "duzeltildi mi",
+            )
         ):
             if job.corrected_report is None:
                 return reply(
@@ -79,12 +88,75 @@ class DocumentChat:
                     "comparison",
                 )
             before, after = job.report.summary, job.corrected_report.summary
+            applied = [proposal for proposal in job.proposals if proposal.status == "applied"]
+            field_labels = {
+                "recalculate-line-extension-total": "Mal/hizmet toplamı (LineExtensionAmount)",
+                "recalculate-tax-exclusive-total": "Vergi hariç toplam (TaxExclusiveAmount)",
+                "recalculate-tax-inclusive-total": "Vergiler dahil toplam (TaxInclusiveAmount)",
+                "recalculate-payable-total": "Ödenecek tutar (PayableAmount)",
+            }
+            lines = ["Uygulanan değişiklik:"]
+            if applied:
+                lines += [
+                    f"• {field_labels.get(p.rule_id, p.title)}: {p.before} → {p.after}."
+                    for p in applied
+                ]
+            else:
+                lines.append(
+                    "Yeniden doğrulama kaydı var; ancak uygulanmış alan değişikliği "
+                    "ayrıntısı bu işlemde kayıtlı değil. Hangi değerin değiştiğini varsaymıyorum."
+                )
+            old_codes = {f.code for f in job.report.findings}
+            remaining_codes = {f.code for f in job.corrected_report.findings}
+            resolved = sorted(old_codes - remaining_codes)
+            lines += [
+                "",
+                f"İlk doğrulama: {before.error_count} hata, {before.warning_count} uyarı, {before.info_count} bilgi.",
+                f"Yeniden doğrulama: {after.error_count} hata, {after.warning_count} uyarı, {after.info_count} bilgi.",
+            ]
+            if resolved:
+                lines.append(
+                    "Yeniden doğrulamada artık görülmeyen bulgular: " + ", ".join(resolved) + "."
+                )
+            applied_rules = {p.rule_id for p in applied}
+            if (
+                len(applied) == 1
+                and before.warning_count - after.warning_count == 2
+                and "recalculate-tax-exclusive-total" in applied_rules
+                and "hesap-dip-vergi-haric" in resolved
+                and "hesap-dip-vergi-dahil" in resolved
+                and "recalculate-tax-inclusive-total" not in applied_rules
+            ):
+                lines += [
+                    "Vergi hariç toplam düzeltildikten sonra, ona bağlı vergi dahil toplam "
+                    "kontrolü de geçti. Vergi dahil toplam için ayrı bir düzeltme kaydı yok; "
+                    "bu nedenle tek alan değişikliğiyle iki uyarı kalktı.",
+                ]
+            lines += ["", "Kalan durum:"]
+            if job.corrected_report.findings:
+                lines += [f"• {f.code}: {f.message}" for f in job.corrected_report.findings]
+                if remaining_codes == {"imza-yok"}:
+                    lines.append(
+                        "Aritmetik uyarı kalmadı; imza eksikliği bilgi kaydı olarak sürüyor. "
+                        "Bu işlem imza eklemedi. Belgenin taslak/test veya gönderim "
+                        "aşamasına göre imza kontrolünü ayrıca değerlendirin."
+                    )
+                else:
+                    lines.append(
+                        "Sonraki adım: kalan bulguları inceleyin; gerekirse birini seçip "
+                        "resmî kaynaklı açıklama isteyin."
+                    )
+            else:
+                lines.append(
+                    "Teknik doğrulamada bulgu kalmadı. Gönderim öncesi yetkili "
+                    "iş süreci ve imza kontrollerini ayrıca tamamlayın."
+                )
+            lines += [
+                "",
+                "Düzeltme ayrı çalışma kopyasına kaydedildi; orijinal XML üzerine yazılmadı.",
+            ]
             return reply(
-                f"İlk doğrulama: {before.error_count} hata, {before.warning_count} uyarı, "
-                f"{before.info_count} bilgi.\nYeniden doğrulama: {after.error_count} hata, "
-                f"{after.warning_count} uyarı, {after.info_count} bilgi.\n"
-                "Orijinal yerine ayrı çalışma kopyası düzeltildi. Teknik doğrulama sonucu, "
-                "GİB'e gönderim veya imza onayı değildir.",
+                "\n".join(lines),
                 "comparison",
             )
         if (
