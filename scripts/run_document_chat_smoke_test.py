@@ -14,6 +14,17 @@ from faturaguard.services.conversational_chat import (
 from faturaguard.services.job_repository import SqliteCorrectionJobStore
 
 
+def write_evidence(data_directory, turns, status, xml_changed=None):
+    target = data_directory / "evaluation" / "document_conversation_acceptance.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps({
+        "status": status, "turns": turns, "xml_changed": xml_changed,
+        "no_unresolved_tokens": status == "automated_checks_passed",
+        "applied_amounts_present": status == "automated_checks_passed",
+        "semantic_review": "Kullanıcı üç yanıtın anlamını ayrıca değerlendirmeli.",
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def validate_turn(turn, index, job):
     if turn.mode != "llm_chat":
         raise SystemExit("Gerçek LLM sohbeti alınamadı; yerel yedek sonucu başarı sayılmadı.")
@@ -57,25 +68,34 @@ def main() -> None:
         ("İlk kontrolle en son kontrolü karşılaştır: hata/uyarı/bilgi adetlerini, uygulanan alanların önce/sonra değerlerini ve kalan durumu açıkça yaz.", ""),
     ]
     evidence = []
+    write_evidence(settings.data_directory, evidence, "running")
     for index, (question, code) in enumerate(questions, 1):
         turn = assistant.answer(selected, question, code)
         print(f"turn={index} mode={turn.mode} providers={','.join(turn.providers)}")
         print(f"tools={','.join(turn.tools_used)} citations={len(turn.citations)}")
+        print(f"repair_attempted={turn.repair_attempted} failure_code={turn.failure_code or 'none'}")
+        if turn.validation_issues:
+            print(f"validation_issues={','.join(turn.validation_issues)}")
         print(turn.answer)
         print()
-        validate_turn(turn, index, selected)
-        selected.chat_history.append(turn)
         evidence.append({"turn": index, "mode": turn.mode, "providers": turn.providers,
-                         "tools": turn.tools_used, "citations": len(turn.citations)})
+                         "tools": turn.tools_used, "citations": len(turn.citations),
+                         "repair_attempted": turn.repair_attempted,
+                         "validation_issues": turn.validation_issues,
+                         "failure_code": turn.failure_code})
+        try:
+            validate_turn(turn, index, selected)
+        except SystemExit:
+            changed = before != {str(p): sha256(p.read_bytes()).hexdigest() for p in paths}
+            write_evidence(settings.data_directory, evidence, "failed", changed)
+            raise
+        selected.chat_history.append(turn)
+        write_evidence(settings.data_directory, evidence, "running")
     unchanged = before == {str(p): sha256(p.read_bytes()).hexdigest() for p in paths}
     if not unchanged:
+        write_evidence(settings.data_directory, evidence, "failed", True)
         raise SystemExit("XML bütünlük kontrolü başarısız.")
-    target = settings.data_directory / "evaluation" / "document_conversation_acceptance.json"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps({"turns": evidence, "xml_changed": False,
-                                 "no_unresolved_tokens": True, "applied_amounts_present": True,
-                                 "semantic_review": "Kullanıcı üç yanıtın anlamını ayrıca değerlendirmeli."},
-                                ensure_ascii=False, indent=2), encoding="utf-8")
+    write_evidence(settings.data_directory, evidence, "automated_checks_passed", False)
     print("xml_changed=false (orijinal ve varsa düzeltilmiş kopya hash kontrolü)")
     print("AI sohbet araç/bağlam smoke testi: başarılı; yanıtların anlamını ayrıca inceleyin.")
 

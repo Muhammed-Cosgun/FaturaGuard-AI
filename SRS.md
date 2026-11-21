@@ -57,6 +57,9 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
   araç çağrısı seçilebilir; serbest yol/iş kimliği/URL veya yazma aracı yoktur.
 - Model veya geçerli şema/atıf hazır değilse açıkça etiketlenen yerel yedek
   yanıt verilir; modelin kullanıldığı izlenimi yaratılmaz.
+- Şeması geçerli ancak yanıt kontrolünden geçemeyen model cevabı, aynı maskeli
+  araç verisi ve sabit red koduyla en fazla bir kez yeniden üretilir; tanımlıysa
+  Groq onarımda öncelenir. Reddedilen metin onarım isteğine eklenmez.
 - Sayı/PII maskeleri kullanıcı yanıtında bırakılamaz. Teklif tutarları ve
   karşılaştırma adetleri yalnızca doğrulanmış yerel tokenlarla açılır; bilinmeyen
   token reddedilir. Yeni onay önerisi güncel onaylanabilir teklif durumuna bağlıdır.
@@ -64,5 +67,7 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 - Son 20 soru-cevap ilgili işin yerel SQLite kaydında tutulur; JSON işlem raporuna
   eklenmez. Audit yalnızca mod/bulgu/atıf sayısı, sağlayıcı denemeleri, araç
   adları ve maskeli konuşma gönderim denemesi bilgisini içerir; metinleri içermez.
+  Yanıt kontrolünün sabit red kodu ve onarım denemesi de metadata olarak tutulur;
+  başarısız sağlayıcı yanıtı veya reddedilen model metni saklanmaz.
 - Yanıt beklerken sonuç ekranı kullanılabilir; hata ve bekleme durumu gösterilir.
   JavaScript kapalıysa normal HTML form yanıtı çalışır.

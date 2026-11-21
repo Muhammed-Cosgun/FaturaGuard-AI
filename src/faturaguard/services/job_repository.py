@@ -77,6 +77,8 @@ class SqliteCorrectionJobStore:
                     'citation_count': len(turn.citations), 'raw_question_sent_to_provider': False,
                     'masked_conversation_sent': turn.masked_conversation_sent,
                     'providers': turn.providers, 'tools_used': turn.tools_used,
+                    'failure_code': turn.failure_code, 'validation_issues': turn.validation_issues,
+                    'repair_attempted': turn.repair_attempted,
                 })),
             )
         return self.load(job_id)

@@ -93,10 +93,20 @@ FastAPI uygulaması
   gerçek önce/sonra kaydını açıklar. Gemini store=false; sunucu tarafında
   konuşma ID'si tutulmaz. Bu ayar bütün sağlayıcı veri saklama politikasını
   ortadan kaldırdığı anlamına gelmez.
-- Her aşamada Gemini → Groq yedeği vardır; iki aşama en çok dört HTTP denemesi
-  yapar. Kaynak/şema/servis hatasında `DocumentChat` uzak model çağırmadan yerel
+- Normal iki üretim aşamasında Gemini → Groq yedeği vardır. Şeması geçerli ama
+  atıf/token/onay kontrolü reddedilen final yanıt, aynı maskeli araç sonuçları
+  ve yalnızca sabit red koduyla bir kez yeniden üretilir; Groq varsa öncelenir.
+  Reddedilen metin bu onarım isteğine eklenmez, araçlar yeniden çalıştırılmaz.
+  Normalde en çok dört, onarım dahil en çok altı HTTP denemesi vardır.
+  Şema/servis hatasında sağlayıcı zinciri kendi yedeğini dener; bu tek seferlik
+  onarım final yanıtın içerik sözleşmesi içindir. Sonuç yine geçersizse
+  `DocumentChat` uzak model çağırmadan yerel
   kayıt yedeği üretir, panel bunu ayrı etiketler. Cevabın anlamsal doğruluğu
   hâlâ canlı insan değerlendirmesi gerektirir; araç güvenliği sıfır halüsinasyon değildir.
+- Tanı kaydı yalnızca sabit failure_code/validation_issues, repair_attempted,
+  sağlayıcı ve araç adlarını içerir. Reddedilen model metni, anahtar veya ham HTTP
+  gövdesi audit'e yazılmaz. Olumsuz “onay sürecine geçmeniz gerekmiyor” ifadesi
+  olumlu onay önerisi sayılmaz; bu dil kontrolü genel anlam doğrulayıcı değildir.
 - `POST /jobs/{job_id}/chat` yalnızca sohbet kaydı ve audit olayı ekler; düzeltme
   motoruna veya karar grafiğine erişmez. Sohbet ekleme, SQLite transaction'ında
   güncel payload'ın yalnızca chat_history alanını değiştirir; uzun model çağrısında

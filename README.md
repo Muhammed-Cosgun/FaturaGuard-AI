@@ -219,6 +219,10 @@ gönderilmez; teklif tutarları yerel tokenlarla açılır. Maskeleme kusursuz d
 soruya kişisel bilgi veya anahtar yazmayın. Orijinal XML maskeleme için okunamazsa
 uzak sohbet çağrılmaz. Son 20 tur ilgili işlemde yerelde saklanır. Model yoksa
 veya şema/atıf doğrulaması geçmezse panel açıkça “Yerel yedek yanıt” gösterir.
+Şeması geçerli fakat atıf/token/onay kontrolü reddedilen yanıt için önce aynı
+maskeli veriyle tek bir yeniden üretim yapılır; Groq tanımlıysa öncelenir. Sonuç
+yine geçersizse yerel yedek kullanılır. Reddedilen metin saklanmaz veya onarıma
+gönderilmez; yalnızca sabit hata kodu ve onarım bilgisi audit'e eklenir.
 Bu sohbet şu anda auto/gemini/groq modlarında bulut modellerini kullanır;
 yerel/cohere seçildiğinde yerel kayıt yedeğine döner.
 
@@ -233,6 +237,10 @@ ve dosya hash'lerini denetler. Çözülemeyen maskeler veya karşılaştırmada 
 uygulanmış önce/sonra değerleri başarısız sayılır. Takip sorusunun anlamlı yanıtlandığını ayrıca
 insan değerlendirir. Otomatik sözleşme testleri tüm gerçek hatalarda LLM
 yorumunun doğru olduğunu veya sıfır halüsinasyonu kanıtlamaz.
+Terminal çıktısındaki failure_code/validation_issues ve repair_attempted alanları
+red/onarım nedenini anahtar veya ham sağlayıcı yanıtı göstermeden açıklar.
+Kanıt JSON'u running/failed/automated_checks_passed durumunu taşır; başarısız
+yeni test eski başarılı koşunun kanıtını güncelmiş gibi bırakmaz.
 
 ## Sunum öncesi kontrol komutu
 

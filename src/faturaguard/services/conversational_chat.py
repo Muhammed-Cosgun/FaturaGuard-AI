@@ -49,13 +49,15 @@ class ConversationModel:
         self.settings = settings
         self.attempted: list[str] = []
 
-    def generate(self, prompt, data, schema):
+    def generate(self, prompt, data, schema, *, fallback_first=False):
         providers = []
         s = self.settings
         if s.llm_provider in {"auto", "gemini"} and s.gemini_api_key:
             providers.append(("gemini", s.gemini_api_key, s.gemini_model, s.gemini_timeout_seconds))
         if s.llm_provider in {"auto", "gemini", "groq"} and s.groq_api_key:
             providers.append(("groq", s.groq_api_key, s.groq_model, s.groq_timeout_seconds))
+        if fallback_first:
+            providers.sort(key=lambda entry: entry[0] != "groq")
         for provider, key, model, timeout in providers:
             self.attempted.append(provider)
             encoded = json.dumps(data, ensure_ascii=False)
@@ -152,17 +154,37 @@ class ConversationMask:
         bindings = self.values | self.counts
         tokens = set(re.findall(r"\[(?:VALUE|COUNT)_\d+\]", text))
         if not tokens.issubset(bindings):
-            raise ValueError("Bilinmeyen sayısal token.")
+            raise ChatResponseRejected("unbound_number_token")
         for token, value in bindings.items():
             text = text.replace(token, value)
         if has_unresolved_chat_tokens(text):
-            raise ValueError("Yanıtta çözülemeyen maskeleme tokenı.")
+            raise ChatResponseRejected("unresolved_mask")
         return text
 
 
 def has_unresolved_chat_tokens(text: str) -> bool:
     """Kullanıcı çıktısında gizlilik/bağlama yer tutucusu bırakılamaz."""
     return bool(re.search(r"\[(?:NUMBER|MASKED|VALUE|COUNT)(?:_|\b)", text, re.IGNORECASE))
+
+
+class ChatResponseRejected(ValueError):
+    """Yalnızca sabit hata kodu; reddedilen model metni/ağ yanıtı saklanmaz."""
+
+    def __init__(self, code):
+        self.code = code
+        super().__init__(code)
+
+
+def suggests_approval_action(text):
+    """Bilinen olumlu yönlendirmeler; 'geçmeniz gerekmiyor' bir öneri değildir."""
+    return bool(re.search(
+        r"\b(?:onay(?:lama)? (?:surecine|asamasina) "
+        r"(?:gec(?:in(?:iz)?|ebilirsiniz|meniz gerek(?:ir|iyor)|melisiniz)|"
+        r"ilerle(?:yin(?:iz)?|yebilirsiniz|melisiniz))\b|"
+        r"(?:teklifi|duzeltmeyi|duzeltmeleri) "
+        r"onayla(?:yin(?:iz)?|yabilirsiniz|maniz gerek(?:ir|iyor)|malisiniz)?\b)",
+        normalize(text),
+    ))
 
 
 class ChatState(TypedDict, total=False):
@@ -196,6 +218,9 @@ ve [MASKED...] bilinmeyen özel veridir; bunları yanıtta kopyalama, gerekirse 
 veriyi açıkla. Maske yerine sayı tahmin etme. Eski konuşmadaki maskeyi güncel veriye tercih etme.
 Kaynak yoksa kesin GİB kuralı/teknik neden uydurma, kanıt eksikliğini açıkça söyle.
 Kaynaklı teknik açıklamada yalnızca verilen evidence ID'lerini citation_ids'e koy.
+Yalnızca BU İSTEĞİN TOOLS içindeki kanıt ID'leri geçerlidir. Önceki konuşmanın
+atıflarını kopyalama. Bu istekte official_sources kanıtı yoksa citation_ids=[] yaz;
+teklif/kayıt açıklaması için GİB atfı uydurma.
 URL üretme. Kaynağın desteklemediği özel hata nedenini varsayma. Genel nasihat yerine
 ilgili bulgu, değişen alan, giderilen/kalan uyarılar ve sonraki adımı soruya göre açıkla.
 workflow_state.approval_available false ise yeni bir düzeltme onayı veya onay
@@ -221,7 +246,8 @@ class ConversationalDocumentChat:
         findings.update({f.code: f for f in (job.corrected_report or job.report).findings})
         if finding_code and finding_code not in findings:
             raise ValueError("Seçilen bulgu bu işlemde bulunmuyor.")
-        tools_used, citations = [], {}
+        tools_used, citations, validation_issues = [], {}, []
+        repair_attempted = False
         approval_available = any(p.status == "proposed" and
                                  (p.agent_plan or {}).get("decision") == "propose"
                                  for p in job.proposals)
@@ -311,8 +337,40 @@ class ConversationalDocumentChat:
                 return {"results": results}
 
             def respond(state):
-                return {"response": self.model.generate(ANSWER_PROMPT,
-                        {**context, "TOOLS": state["results"]}, ConversationAnswer)}
+                nonlocal repair_attempted
+                data = {**context, "TOOLS": state["results"],
+                        "allowed_citation_ids": list(citations)}
+
+                def validate(result):
+                    if any(key not in citations for key in result.citation_ids):
+                        raise ChatResponseRejected("unbound_citation")
+                    if citations and not result.citation_ids:
+                        raise ChatResponseRejected("missing_citation")
+                    if re.search(r"https?://|www\.", result.answer):
+                        raise ChatResponseRejected("unverified_url")
+                    if not approval_available and suggests_approval_action(result.answer):
+                        raise ChatResponseRejected("approval_unavailable")
+                    mask.restore(result.answer)
+
+                for attempt in range(2):
+                    prompt = ANSWER_PROMPT
+                    request = data
+                    if attempt:
+                        repair_attempted = True
+                        # Önceki reddedilen metin gönderilmez. Yalnızca sabit hata
+                        # kodu ve aynı maskeli yerel araç sonuçlarıyla yeniden üret.
+                        prompt += "\nÖnceki yanıt doğrulamayı geçemedi. rejection_code sorununu düzelt; aynı araç sonuçlarından yeni ve geçerli yanıt üret. allowed_citation_ids boşsa citation_ids kesinlikle boş olmalı."
+                        request = {**data, "rejection_code": validation_issues[-1]}
+                    try:
+                        result = (self.model.generate(prompt, request, ConversationAnswer,
+                                                      fallback_first=True) if attempt else
+                                  self.model.generate(prompt, request, ConversationAnswer))
+                        validate(result)
+                        return {"response": result}
+                    except ChatResponseRejected as error:
+                        validation_issues.append(error.code)
+                        if attempt:
+                            raise
 
             graph = StateGraph(ChatState)
             graph.add_node("interpret_question", plan)
@@ -323,23 +381,16 @@ class ConversationalDocumentChat:
             graph.add_edge("read_document_tools", "compose_answer")
             graph.add_edge("compose_answer", END)
             result = graph.compile().invoke({})["response"]
-            if any(key not in citations for key in result.citation_ids):
-                raise ValueError("Model kaynağı araç kanıtıyla eşleşmiyor.")
-            if citations and not result.citation_ids:
-                raise ValueError("Kaynaklı yanıtta atıf eksik.")
-            if re.search(r"https?://|www\.", result.answer):
-                raise ValueError("Model metninde doğrulanmamış bağlantı.")
-            if not approval_available and re.search(
-                r"\b(?:onay(?:lama)? (?:surecine|asamasina) (?:gec|ilerle)|"
-                r"(?:teklifi|duzeltmeyi|duzeltmeleri) onayla)", normalize(result.answer)
-            ):
-                raise ValueError("Hazır teklif olmadan onay adımı önerildi.")
             return ChatTurn(question=question, answer=mask.restore(result.answer), mode="llm_chat",
                             finding_code=finding_code or None,
                             citations=[citations[key] for key in dict.fromkeys(result.citation_ids)],
                             providers=list(dict.fromkeys(self.model.attempted[attempted:])),
-                            tools_used=tools_used, masked_conversation_sent=True)
-        except (LLMUnavailableError, ValueError, RuntimeError):
+                            tools_used=tools_used, masked_conversation_sent=True,
+                            validation_issues=validation_issues, repair_attempted=repair_attempted)
+        except (LLMUnavailableError, ValueError, RuntimeError) as error:
+            failure_code = (error.code if isinstance(error, ChatResponseRejected) else
+                            "provider_or_context_unavailable" if isinstance(error, LLMUnavailableError)
+                            else "tool_or_schema_failure")
             # Model olmadan eski router yalnızca yerel kayıtları açıklar; başka LLM çağırmaz.
             fallback = DocumentChat().answer(job, question, finding_code)
             if "validation_comparison" in tools_used:
@@ -349,6 +400,8 @@ class ConversationalDocumentChat:
                 "mode": "local_fallback", "tools_used": tools_used,
                 "providers": list(dict.fromkeys(self.model.attempted[attempted:])),
                 "masked_conversation_sent": len(self.model.attempted) > attempted,
+                "failure_code": failure_code, "validation_issues": validation_issues,
+                "repair_attempted": repair_attempted,
             })
 
 

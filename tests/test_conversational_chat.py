@@ -21,6 +21,7 @@ from faturaguard.services.conversational_chat import (
     ConversationModel,
     ConversationPlan,
     has_unresolved_chat_tokens,
+    suggests_approval_action,
 )
 from faturaguard.services.source_backed_explanation import LLMUnavailableError
 
@@ -58,7 +59,7 @@ class Model:
         self.tools = tools or [{"name": "current_findings", "finding_code": ""}]
         self.answer, self.citations, self.scope = answer, citations or [], scope
 
-    def generate(self, prompt, data, schema):
+    def generate(self, prompt, data, schema, **kwargs):
         self.attempted.append("fake")
         self.calls.append((prompt, data))
         if schema is ConversationPlan:
@@ -391,3 +392,105 @@ def test_live_smoke_accepts_complete_comparison_with_local_amounts(document):
     turn = ChatTurn(question="Karşılaştır", answer="İlk kontrol 1 uyarı; toplam 15,00 → 15,15.",
                     mode="llm_chat", tools_used=["validation_comparison"])
     namespace["validate_turn"](turn, 3, document)
+
+
+@pytest.mark.parametrize("answer", [
+    "Onay sürecine geçmeniz gerekmiyor.", "Onay sürecine geçmeyin.",
+    "Onay aşamasına geçmenize gerek yok.", "Düzeltmeyi onaylamanız gerekmiyor.",
+    "Teklifi onaylamayın, daha önce uygulandı.", "Bekleyen teklif yok; bu site imza atmaz.",
+])
+def test_negated_or_absent_approval_step_is_not_a_positive_recommendation(document, answer):
+    assert not suggests_approval_action(answer)
+    document.proposals[0].status = "applied"
+    model = Model(answer=answer)
+    turn = ConversationalDocumentChat(model).answer(document, "Ne yapmalıyım?")
+    assert turn.mode == "llm_chat" and not turn.repair_attempted and not turn.validation_issues
+
+
+@pytest.mark.parametrize("answer", [
+    "Onay sürecine geçebilirsiniz.", "Onay aşamasına geçiniz.",
+    "Onay sürecine ilerleyin.", "Düzeltmeyi onaylayın.",
+    "Teklifi onaylayabilirsiniz.", "Düzeltmeleri onaylamanız gerekir.",
+])
+def test_affirmative_approval_recommendation_remains_detected(answer):
+    assert suggests_approval_action(answer)
+
+
+def test_rejected_answer_gets_one_masked_repair_without_echoing_rejected_text(document):
+    class RepairModel(Model):
+        def generate(self, prompt, data, schema, **kwargs):
+            result = super().generate(prompt, data, schema, **kwargs)
+            if kwargs.get("fallback_first"):
+                assert data["rejection_code"] == "unresolved_mask"
+                return schema(answer="Kayıtlı teklifin durumunu sonuç ekranında inceleyebilirsiniz.",
+                              citation_ids=[])
+            return result
+    model = RepairModel(answer="REJECTED_PROVIDER_SECRET [NUMBER]")
+    turn = ConversationalDocumentChat(model).answer(document, "Durum nedir?")
+    assert turn.mode == "llm_chat" and turn.repair_attempted and turn.failure_code is None
+    assert turn.validation_issues == ["unresolved_mask"] and len(model.calls) == 3
+    assert "REJECTED_PROVIDER_SECRET" not in json.dumps(model.calls, ensure_ascii=False)
+    assert "Özel Müşteri AŞ" not in json.dumps(model.calls, ensure_ascii=False)
+    assert "REJECTED_PROVIDER_SECRET" not in turn.model_dump_json()
+
+
+def test_second_rejection_stops_with_safe_diagnostics(document):
+    model = Model(answer="REJECTED_PROVIDER_SECRET", citations=["not-retrieved"])
+    turn = ConversationalDocumentChat(model).answer(document, "Durum nedir?")
+    assert len(model.calls) == 3 and turn.mode == "local_fallback"
+    assert turn.failure_code == "unbound_citation" and turn.repair_attempted
+    assert turn.validation_issues == ["unbound_citation", "unbound_citation"]
+    assert "REJECTED_PROVIDER_SECRET" not in turn.model_dump_json()
+
+
+def test_semantically_rejected_gemini_answer_is_repaired_with_groq(document, monkeypatch):
+    requests = []
+    def post(endpoint, **kwargs):
+        requests.append((endpoint, kwargs))
+        if len(requests) == 1:
+            content = '{"scope":"document","tools":[{"name":"correction_proposals","finding_code":""}]}'
+        elif len(requests) == 2:
+            content = '{"answer":"REJECTED_PROVIDER_SECRET","citation_ids":["old-evidence"]}'
+        else:
+            content = '{"answer":"Kayıtlı düzeltme teklifi onay bekliyor.","citation_ids":[]}'
+        body = ({"steps": [{"type": "model_output", "content": [{"type": "text", "text": content}]}]}
+                if "google" in endpoint else {"choices": [{"message": {"content": content}}]})
+        return httpx.Response(200, request=httpx.Request("POST", endpoint), json=body)
+    monkeypatch.setattr(httpx, "post", post)
+    model = ConversationModel(Settings(gemini_api_key="fake-gemini", groq_api_key="fake-groq"))
+    turn = ConversationalDocumentChat(model).answer(document, "Teklif var mı?")
+    assert turn.mode == "llm_chat" and turn.providers == ["gemini", "groq"]
+    assert turn.validation_issues == ["unbound_citation"] and turn.repair_attempted
+    assert len(requests) == 3 and "groq" in requests[-1][0]
+    repair_data = requests[-1][1]["json"]
+    assert "REJECTED_PROVIDER_SECRET" not in json.dumps(repair_data)
+    assert "Özel Müşteri AŞ" not in json.dumps(repair_data, ensure_ascii=False)
+    assert "15.00" not in json.dumps(repair_data)
+
+
+def test_failure_diagnostics_are_persisted_as_metadata_without_rejected_model_text(document, tmp_path):
+    from faturaguard.services.correction_workflow import CorrectionWorkflow
+    workflow = CorrectionWorkflow(tmp_path, object())
+    workflow._store.save(document)
+    model = Model(answer="REJECTED_PROVIDER_SECRET [NUMBER]")
+    saved, turn = workflow.chat(document.job_id, "Durum nedir?", "", ConversationalDocumentChat(model))
+    assert saved.chat_history[-1].failure_code == "unresolved_mask"
+    assert saved.chat_history[-1].repair_attempted
+    events = workflow.list_audit_events(document.job_id)
+    assert "unresolved_mask" in str(events) and "repair_attempted" in str(events)
+    assert "REJECTED_PROVIDER_SECRET" not in str(events)
+    assert "REJECTED_PROVIDER_SECRET" not in saved.model_dump_json()
+
+
+def test_failed_live_attempt_replaces_stale_success_evidence(tmp_path):
+    namespace = runpy.run_path(str(Path(__file__).resolve().parents[1] / "scripts/run_document_chat_smoke_test.py"))
+    write = namespace["write_evidence"]
+    path = tmp_path / "evaluation" / "document_conversation_acceptance.json"
+    write(tmp_path, [], "automated_checks_passed", False)
+    assert json.loads(path.read_text(encoding="utf-8"))["no_unresolved_tokens"]
+    write(tmp_path, [], "running")
+    assert json.loads(path.read_text(encoding="utf-8"))["status"] == "running"
+    write(tmp_path, [{"turn": 2, "failure_code": "unbound_citation"}], "failed", False)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["status"] == "failed" and not payload["no_unresolved_tokens"]
+    assert payload["turns"] == [{"turn": 2, "failure_code": "unbound_citation"}]

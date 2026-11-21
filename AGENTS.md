@@ -14,9 +14,15 @@ Maskelemenin kusursuz olmadığı arayüzde açıklanır. Onay/yazma yetkisi ekl
 hash'leri değişmedi. Ancak üçüncü yanıtta [NUMBER] ve yanlış yeni onay adımı
 görüldü; eski smoke başarı mesajı anlamsal kabul sayılmadı. Noktalama/büyük tutar
 token eşleştirmesi düzeltildi, rapor adetleri COUNT tokenıyla bağlandı, çözülemeyen
-token ve hazır teklif yokken onay yönlendirmesi reddediliyor. 375 test/Ruff geçti.
-Güçlendirilmiş run_document_chat_smoke_test.py kullanıcı hesabında tekrar beklenir;
-artık çözülmeyen token ve eksik uygulanmış önce/sonra değerleri başarı sayılmaz.
+token ve hazır teklif yokken onay yönlendirmesi reddediliyor.
+İkinci canlı denemede 1. tur Gemini/kaynak başarılı; 2. tur yerel yedeğe düştü.
+Eski sürüm red nedenini saklamadığından kesin neden bilinmiyor. Şimdi sabit
+failure_code/validation_issues ve repair_attempted metadata'sı kaydedilir;
+modelin reddedilen metni saklanmaz/gönderilmez. Geçerli şemalı ama reddedilen
+yanıt aynı maskeli araç sonuçlarıyla bir kez onarılır, Groq tanımlıysa öncelenir.
+Olumsuz onay cümlelerinin yanlış reddi daraltıldı; geçmiş atıfları yeni istekte
+geçerli sayılmaz. 392 test/Ruff geçti. Canlı smoke yeniden kullanıcı hesabında
+beklenir. Başarısız canlı koşu eski başarı JSON'unu artık failed durumuyla değiştirir.
 Bu canlı kabul yapılmadan yeni sohbet paketini tamamlandı diye işaretleme.
 Aşağıdaki eski chatbot/test sayısı paragrafları tarihî bağlamdır.
 
