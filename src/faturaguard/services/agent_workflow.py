@@ -122,6 +122,13 @@ class SourceBackedAgent:
         plan = self._correction_planner.generate(finding, candidates, evidence)
         return self._guard_correction_plan(plan, proposal)
 
+    def chat_evidence(self, finding: Finding) -> list[RetrievedEvidence]:
+        """Sohbet için de aynı güvenilir sorgu ve kanıt eşiğini uygular."""
+        evidence = [item for item in self._retriever.search(
+            self._trusted_retrieval_query(finding), limit=3
+        ) if not self._is_version_history(item)]
+        return evidence if self._has_sufficient_evidence(evidence) else []
+
     @staticmethod
     def _guard_correction_plan(
         plan: AgentCorrectionPlan, proposal: CorrectionProposal

@@ -273,6 +273,8 @@ def test_long_answer_does_not_overwrite_newer_correction_state(tmp_path):
 
 
 def test_chat_http_routes_validate_scope_escape_text_and_reload_history(tmp_path, monkeypatch):
+    # Eski yerel adaptörün HTTP/escape sözleşmesi; LLM rota testi ayrı dosyadadır.
+    monkeypatch.setattr(main, "create_conversational_chat", lambda settings, agent: DocumentChat(agent))
     monkeypatch.setattr(main, "settings", replace(main.settings, data_directory=tmp_path))
     app = main.create_app()
     store = app.state.correction_workflow._store

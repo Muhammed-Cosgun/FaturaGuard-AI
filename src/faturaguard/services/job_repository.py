@@ -75,6 +75,8 @@ class SqliteCorrectionJobStore:
                 (job_id, self._timestamp(), 'document_chat_answered', json.dumps({
                     'mode': turn.mode, 'finding_code': turn.finding_code,
                     'citation_count': len(turn.citations), 'raw_question_sent_to_provider': False,
+                    'masked_conversation_sent': turn.masked_conversation_sent,
+                    'providers': turn.providers, 'tools_used': turn.tools_used,
                 })),
             )
         return self.load(job_id)

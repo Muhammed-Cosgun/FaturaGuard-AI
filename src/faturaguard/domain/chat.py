@@ -31,4 +31,7 @@ class ChatTurn(BaseModel):
     mode: str
     finding_code: str | None = None
     citations: list[ChatCitation] = Field(default_factory=list)
+    providers: list[str] = Field(default_factory=list)
+    tools_used: list[str] = Field(default_factory=list)
+    masked_conversation_sent: bool = False
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())

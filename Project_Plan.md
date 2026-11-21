@@ -12,6 +12,17 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ## 3. İş paketleri ve çıktılar
 
+### Ek paket — bağlamlı LLM sohbeti (21.11.2026)
+
+Kullanıcı tarafından onaylandı; uygulama ve 330 otomatik test hazır. Yeni
+LangGraph akışı maskeli soruyu/geçmişi yorumlar, şemalı plandan en fazla dört
+salt okunur aracı çalıştırır ve model yanıtını doğrular. UI gizlilik sınırı
+güncellendi; belgesiz/model hatalı durumda açık yerel yedek var. Kod testleri
+sağlayıcı bağımsız sözleşmeyi doğrular. Kullanıcının anahtarlı CMD hesabında
+üç tur canlı kaynak/teklif/karşılaştırma kabulü ve anlamsal inceleme beklenir.
+Bu kabul bitmeden paket tamamlandı sayılmaz. Eski asistanın aşağıdaki canlı
+kabulü yalnızca önceki yerel yönlendirici sürümüne aittir.
+
 ### Ek paket — belge inceleme asistanı
 
 **Tamamlandı:** Kullanıcı hesabındaki canlı smoke testi de overview +

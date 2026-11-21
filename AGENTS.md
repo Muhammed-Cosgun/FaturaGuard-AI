@@ -2,6 +2,20 @@
 
 ## Aktif geliştirme
 
+21.11.2026: Kullanıcı sohbeti gerçek bağlamlı LLM asistana dönüştürmeyi onayladı.
+Aktif geliştirme feature/llm-document-conversation dalında. Yeni web yolu
+ConversationalDocumentChat: LangGraph şemalı LLM araç planı → en fazla dört
+salt okunur araç → LLM final yanıtı. Eski DocumentChat yalnızca yerel yedektir.
+Önceki “soru/geçmiş uzak modele gitmez” sohbet kararı bu talep ile değişmiştir:
+otomatik maskeli soru/son 6 tur/gerekli bulgular Gemini/Groq'a gönderilir;
+ham XML/dosya kimliği gitmez, teklif tutarları tokenlarla yerelde açılır.
+Maskelemenin kusursuz olmadığı arayüzde açıklanır. Onay/yazma yetkisi eklenmedi.
+330 otomatik test ve Ruff kontrolü geçti; bu sayı canlı anlamsal kabul değildir.
+Kullanıcının kendi CMD'sinde güncellenmiş run_document_chat_smoke_test.py ile
+üç soruluk canlı araç/takip kabulü ve yanıtların insan değerlendirmesi beklenir.
+Bu canlı kabul yapılmadan yeni sohbet paketini tamamlandı diye işaretleme.
+Aşağıdaki eski chatbot/test sayısı paragrafları tarihî bağlamdır.
+
 Güncel test sayısı 236. DocumentChat artık ortak document_insights katmanını
 kullanır: tüm kodlarda yerel mesaj/kural/konum/teklif ve inceleme adımı; bütün
 izinli kurallarda motor kataloğundan alan/değer ve bulgu-adet karşılaştırması.

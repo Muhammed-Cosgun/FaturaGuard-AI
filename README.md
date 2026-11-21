@@ -207,17 +207,31 @@ Doğrulama sonucu ve işlem raporunda belgeye bağlı sohbet paneli bulunur.
 ve kullanım adımlarını sorabilirsiniz. Teknik açıklama için güncel bulgu
 listesinden seçim yapın veya bulgu kodunu yazın.
 
-Özet ve rehberlik yerelde; teknik açıklama mevcut resmî GİB kaynaklı Gemini/Groq
-hattında hazırlanır. Serbest soru metni ve sohbet geçmişi uzak modele gitmez.
-Sohbet hiçbir XML değişikliği veya kullanıcı kararı uygulamaz. Son 20 tur
-yerelde ilgili işlemle saklanır. Bu ilk sürüm desteklenen belge sorularına
-yöneliktir; genel amaçlı chatbot değildir.
+Soruyu ve takip bağlamını Gemini (yedek Groq) yorumlar. LangGraph akışı modelin
+şemalı araç seçimini doğrular, en fazla dört salt okunur araç çalıştırır ve
+son yanıtı yine model üretir. Araçlar güncel bulgular, düzeltme teklifleri,
+önce/sonra karşılaştırması ve eşikli resmî GİB aramasıdır. Bu belgenin dışındaki
+konulara yönlendirme yapılmaz; XML değişikliği ve kullanıcı kararı uygulanmaz.
+
+**Gizlilik değişikliği:** Sorunun, son 6 soru-cevabın ve gereken bulgu ayrıntılarının
+otomatik maskelenmiş hâli sağlayıcıya gönderilir. Ham XML, dosya adı/yolu/hash'i
+gönderilmez; teklif tutarları yerel tokenlarla açılır. Maskeleme kusursuz değildir;
+soruya kişisel bilgi veya anahtar yazmayın. Orijinal XML maskeleme için okunamazsa
+uzak sohbet çağrılmaz. Son 20 tur ilgili işlemde yerelde saklanır. Model yoksa
+veya şema/atıf doğrulaması geçmezse panel açıkça “Yerel yedek yanıt” gösterir.
+Bu sohbet şu anda auto/gemini/groq modlarında bulut modellerini kullanır;
+yerel/cohere seçildiğinde yerel kayıt yedeğine döner.
 
 Kendi API anahtarlarınızın tanımlı olduğu terminalde canlı kabul:
 
 ```cmd
 .venv-clean\Scripts\python.exe scripts\run_document_chat_smoke_test.py
 ```
+
+Test demo kaydında üç canlı soru sorar; kaynak, teklif, karşılaştırma araçlarını
+ve dosya hash'lerini denetler. Takip sorusunun anlamlı yanıtlandığını ayrıca
+insan değerlendirir. Otomatik sözleşme testleri tüm gerçek hatalarda LLM
+yorumunun doğru olduğunu veya sıfır halüsinasyonu kanıtlamaz.
 
 ## Sunum öncesi kontrol komutu
 

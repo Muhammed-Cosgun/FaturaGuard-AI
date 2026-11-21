@@ -14,8 +14,8 @@ from fastapi.templating import Jinja2Templates
 
 from faturaguard.config import Settings, settings
 from faturaguard.services.agent_workflow import FaturaGuardAgent, SourceBackedAgent
+from faturaguard.services.conversational_chat import create_conversational_chat
 from faturaguard.services.correction_workflow import CorrectionWorkflow
-from faturaguard.services.document_chat import DocumentChat
 from faturaguard.services.document_storage import DocumentStorage, FilePolicyError
 from faturaguard.services.hybrid_retrieval import (
     Bm25LexicalRetriever,
@@ -322,7 +322,7 @@ def create_app() -> FastAPI:
         try:
             job, turn = await asyncio.to_thread(
                 app.state.correction_workflow.chat, job_id, question, finding_code,
-                DocumentChat(app.state.source_backed_agent),
+                create_conversational_chat(settings, app.state.source_backed_agent),
             )
         except (FileNotFoundError, ValueError) as error:
             status = 404 if isinstance(error, FileNotFoundError) else 400

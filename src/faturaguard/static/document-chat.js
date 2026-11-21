@@ -41,7 +41,9 @@ document.querySelectorAll('[data-document-chat]').forEach((panel) => {
       addText(question, 'strong', 'Siz');
       addText(question, 'span', turn.question);
       const answer = addText(article, 'div', '', 'chat-answer');
-      const label = turn.mode === 'source_backed' ? 'Kaynaklı AI açıklaması'
+      const label = turn.mode === 'llm_chat' ? 'AI sohbeti'
+        : turn.mode === 'local_fallback' ? 'Yerel yedek yanıt'
+        : turn.mode === 'source_backed' ? 'Kaynaklı AI açıklaması'
         : turn.mode === 'source_summary' ? 'Güvenli kaynak özeti' : 'İşlem rehberi';
       addText(answer, 'strong', 'Asistan · ' + label);
       addText(answer, 'p', turn.answer);

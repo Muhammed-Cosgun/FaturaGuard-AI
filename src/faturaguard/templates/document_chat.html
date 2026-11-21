@@ -3,14 +3,14 @@
     <div><p class="section-label">BELGEYE BAĞLI ASİSTAN</p><h2 id="chat-heading">Fatura İnceleme Asistanı</h2></div>
     <span class="step-chip">Yalnızca açıklama</span>
   </div>
-  <p class="metadata">Bu işlemin sonuçlarını birlikte inceleyelim. Sohbet XML'i değiştirmez ve düzeltme onayı vermez. Sorularınız yerelde kalır; bulgu açıklamaları mevcut maskeli GİB kaynaklı AI hattını kullanır.</p>
+  <p class="metadata">AI ile bu belgeyi ve takip sorularınızı inceleyebilirsiniz. Sorunuzun, son 6 soru-cevabın ve gerekli belge bulgularının otomatik maskelenmiş hâli Gemini/Groq sağlayıcısına gönderilir. Ham XML gönderilmez. Maskeleme her özel bilgiyi yakalayamayabilir; sorunuza kişisel bilgi veya API anahtarı yazmayın. Sohbet XML'i değiştirmez ve düzeltme onayı vermez.</p>
   <p class="metadata">Önceki yanıtlar soruldukları andaki durumu anlatır. Düzeltme sonrası güncel sonuç için yeniden sorun veya “Önce / sonra” seçeneğini kullanın.</p>
   <div class="chat-messages" role="log" aria-label="Bu belgenin sohbeti" aria-live="polite" tabindex="0">
     <p class="chat-empty" {% if job.chat_history %}hidden{% endif %}>Öncelikli sorunları sorabilir veya bir bulgu seçerek resmî kaynaklı açıklama isteyebilirsiniz.</p>
     {% for turn in job.chat_history %}
     <article class="chat-turn">
       <p class="chat-question"><strong>Siz</strong><span>{{ turn.question }}</span></p>
-      <div class="chat-answer"><strong>Asistan · {% if turn.mode == 'source_backed' %}Kaynaklı AI açıklaması{% elif turn.mode == 'source_summary' %}Güvenli kaynak özeti{% else %}İşlem rehberi{% endif %}</strong><p>{{ turn.answer }}</p>
+      <div class="chat-answer"><strong>Asistan · {% if turn.mode == 'llm_chat' %}AI sohbeti{% elif turn.mode == 'local_fallback' %}Yerel yedek yanıt{% elif turn.mode == 'source_backed' %}Kaynaklı AI açıklaması{% elif turn.mode == 'source_summary' %}Güvenli kaynak özeti{% else %}İşlem rehberi{% endif %}</strong><p>{{ turn.answer }}</p>
         {% if turn.citations %}<ul class="chat-citations">{% for citation in turn.citations %}<li><a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a></li>{% endfor %}</ul>{% endif %}
       </div>
     </article>
@@ -29,6 +29,6 @@
     <textarea id="chat-question" name="question" rows="2" maxlength="600" required placeholder="Örneğin: Bu hatayı nasıl incelemeliyim?"></textarea>
     <div class="chat-send-row"><button type="submit">Asistana sor</button><span class="chat-status metadata" role="status"></span></div>
   </form>
-  <p class="metadata">Son 20 soru-cevap bu işlemle birlikte yerelde saklanır. Sohbet genel amaçlı değildir; desteklenmeyen sorularda bulgu seçmenizi ister.</p>
+  <p class="metadata">Son 20 soru-cevap bu işlemle birlikte yerelde saklanır. AI yalnızca bu belgenin bulgularını, tekliflerini, önce/sonra sonuçlarını ve resmî GİB kaynaklarını salt okunur araçlarla inceler. Model erişilemezse yerel yedek yanıt açıkça belirtilir.</p>
 </section>
 <script src="{{ url_for('static', path='/document-chat.js') }}" defer></script>

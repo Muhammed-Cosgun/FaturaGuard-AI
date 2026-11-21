@@ -47,12 +47,19 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 - Sonuç ve rapor ekranında Fatura İnceleme Asistanı bulunur. Güncel bulguları
   özetler; teklifin durumunu, önce/sonra sonuçlarını ve kullanım adımlarını açıklar.
 - Kullanıcı doğal dilde soru yazabilir veya hazır sorulardan/bulgu listesinden
-  seçim yapabilir. İlk sürümde konu seçimi yerel kurallarla yapılır; genel amaçlı
-  sohbet ve serbest model talimatı yoktur. Teknik açıklama mevcut GİB RAG/LLM hattını kullanır.
-- Serbest soru ve sohbet geçmişi uzak sağlayıcılara gönderilmez. Açıklama hattına
-  yalnızca seçilen işe ait güncel bulgu verilir; mevcut maskeli payload sınırı korunur.
+  seçim yapabilir. Soruyu ve son 6 turdaki takip bağlamını model yorumlar;
+  şemalı araç seçimi → salt okunur araçlar → model yanıtı LangGraph ile yürütülür.
+- Soru/geçmiş ve gerekli bulgu ayrıntılarının maskelenmiş hâli Gemini/Groq'a
+  gönderilir. Ham XML ve dosya kimliği gönderilmez. Teklif değerleri yalnızca
+  yerelde açılan tokenlarla taşınır; maskelemenin sınırı arayüzde açıklanır.
+- İzinli araçlar yalnızca aynı işin güncel bulguları, teklifleri, karşılaştırması
+  ve güvenilir sorgu/kanıt eşiği kullanan GİB kaynak aramasıdır. En fazla dört
+  araç çağrısı seçilebilir; serbest yol/iş kimliği/URL veya yazma aracı yoktur.
+- Model veya geçerli şema/atıf hazır değilse açıkça etiketlenen yerel yedek
+  yanıt verilir; modelin kullanıldığı izlenimi yaratılmaz.
 - Sohbet XML değişikliği, teklif onayı/reddi, imza, silme veya gönderim yapamaz.
 - Son 20 soru-cevap ilgili işin yerel SQLite kaydında tutulur; JSON işlem raporuna
-  eklenmez. Audit kaydı yalnızca yanıt modu/bulgu/atıf sayısını içerir.
+  eklenmez. Audit yalnızca mod/bulgu/atıf sayısı, sağlayıcı denemeleri, araç
+  adları ve maskeli konuşma gönderim denemesi bilgisini içerir; metinleri içermez.
 - Yanıt beklerken sonuç ekranı kullanılabilir; hata ve bekleme durumu gösterilir.
   JavaScript kapalıysa normal HTML form yanıtı çalışır.

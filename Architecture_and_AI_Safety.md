@@ -66,10 +66,29 @@ FastAPI uygulaması
 
 ## Çalıştırma ve rapor sınırları
 
-- Belge asistanı: `DocumentChat` yerel soru yönlendirmesi yapar. Özet/teklif/
-  karşılaştırma/rehberlik veritabanındaki güncel işten üretilir. Teknik açıklama
-  için mevcut `SourceBackedAgent.explain` çağrılır; serbest kullanıcı sorusu ve
-  önceki mesajlar sağlayıcı payload'ına eklenmez. Yeni genel sohbet sağlayıcısı yoktur.
+- Belge asistanı: `ConversationalDocumentChat` LangGraph'ta `interpret_question`
+  → `read_document_tools` → `compose_answer` çalıştırır. İlk LLM çağrısı şemalı
+  plan üretir; uygulama en fazla dört izinli salt okunur aracı çalıştırır; ikinci
+  LLM çağrısı araç verilerinden yanıt üretir. Bu, tek geçişli şemalı araç
+  orkestrasyonudur; sınırsız döngü veya sağlayıcıya devredilmiş araç çalıştırma yoktur.
+- Kullanıcının 21.11.2026 talebiyle eski “soru/geçmiş sağlayıcıya gitmez” sohbet
+  sınırı değişti. Soru, son 6 turun maskeli metinleri ve gerekli bulgu bağlamı
+  Gemini/Groq'a gider. `ConversationMask` bilinen XML yaprak metinlerini, PII,
+  anahtar, URL/yol ve sayıları filtreler. Teklif tutarları doğrulanan yerel
+  `[VALUE_n]` tokenlarıyla açılır. Ham XML/dosya metadatası payload'a konmaz;
+  orijinal belge okunamazsa sağlayıcı çağrılmaz. Serbest özel isimlerin tamamını
+  maskelediği garanti edilmez; arayüz kişisel bilgi yazılmamasını belirtir.
+- Araç adları: current_findings, correction_proposals, validation_comparison,
+  official_sources. Başka iş kimliği, dosya yolu, URL veya yazma argümanı kabul
+  edilmez. RAG eski güvenilir kod sözlüğü ve kanıt eşiğini kullanır. Atıflar
+  yalnızca gerçekten getirilen kanıt ID'lerinden kurulur; bilinmeyen atıf/değer
+  tokenı ve modelin yazdığı URL reddedilir. Gemini store=false; sunucu tarafında
+  konuşma ID'si tutulmaz. Bu ayar bütün sağlayıcı veri saklama politikasını
+  ortadan kaldırdığı anlamına gelmez.
+- Her aşamada Gemini → Groq yedeği vardır; iki aşama en çok dört HTTP denemesi
+  yapar. Kaynak/şema/servis hatasında `DocumentChat` uzak model çağırmadan yerel
+  kayıt yedeği üretir, panel bunu ayrı etiketler. Cevabın anlamsal doğruluğu
+  hâlâ canlı insan değerlendirmesi gerektirir; araç güvenliği sıfır halüsinasyon değildir.
 - `POST /jobs/{job_id}/chat` yalnızca sohbet kaydı ve audit olayı ekler; düzeltme
   motoruna veya karar grafiğine erişmez. Sohbet ekleme, SQLite transaction'ında
   güncel payload'ın yalnızca chat_history alanını değiştirir; uzun model çağrısında
