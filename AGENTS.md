@@ -2,6 +2,16 @@
 
 ## Aktif geliştirme
 
+Son UI incelemesi: model uygulanmış teklifi onaya uygun değil diye anlatmış,
+0 hatayı giderilmiş saymış ve bilgi kaydını uyarı diye adlandırmış. Genel
+chat_facts katmanı eklendi: teklif için approval reason; karşılaştırma için
+seviyelere göre net artış/azalış/değişmezlik ve kod+seviye bazında adet farkı.
+Talimat bu verileri kullanarak uygulanmış/planı hazır değil durumlarını ayırır;
+Bilgi/Uyarı/Hata seviyesini korur. 405 test/Ruff geçti. Bu güncellemenin gerçek
+model ifadeleri henüz gözlenmedi; testler veri sözleşmesidir. Önceki üç turluk
+canlı kabul geçerlidir; bütün serbest yanıtların anlamsal doğruluğu iddia edilmez.
+Dal fix/chat-validation-state-wording; kontrol sonrası main'e ff birleştirilir.
+
 21.11.2026: Kullanıcı sohbeti gerçek bağlamlı LLM asistana dönüştürmeyi onayladı.
 Geliştirme dalı feature/llm-document-conversation; kabul sonrası main'e ff birleştirilir. Yeni web yolu
 ConversationalDocumentChat: LangGraph şemalı LLM araç planı → en fazla dört

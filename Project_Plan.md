@@ -14,7 +14,7 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ### Ek paket — bağlamlı LLM sohbeti (21.11.2026)
 
-Kullanıcı tarafından onaylandı; uygulama ve 392 otomatik test hazır. Yeni
+Kullanıcı tarafından onaylandı; son UI kalite düzeltmesiyle 405 otomatik test hazır. Yeni
 LangGraph akışı maskeli soruyu/geçmişi yorumlar, şemalı plandan en fazla dört
 salt okunur aracı çalıştırır ve model yanıtını doğrular. UI gizlilik sınırı
 güncellendi; belgesiz/model hatalı durumda açık yerel yedek var. Kod testleri
@@ -30,6 +30,11 @@ Uygulamada düzeltme onayı / sohbette onay yetkisi olmaması ayrımı son talim
 netleştirildi; bu ifade ayarı ayrıca canlı modelde ölçülmedi. Bu paket tamamlandı;
 tek demo bütün bulgu kodlarında açıklama doğruluğunu kanıtlamaz. Eski asistanın
 aşağıdaki canlı kabulü yalnızca önceki yerel yönlendirici sürümüne aittir.
+
+Son UI incelemesindeki ifade hataları için chat_facts eklendi: uygulanmış
+teklif/planı hazır değil ayrımı, net seviye değişimi, kod+seviye adet farkı ve
+Bilgi/Uyarı/Hata sınıfının korunması. Sözleşme testleri geçti; bu ek düzenlemenin
+gerçek model yanıtları henüz gözlenmedi.
 
 ### Ek paket — belge inceleme asistanı
 

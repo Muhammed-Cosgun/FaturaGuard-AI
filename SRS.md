@@ -43,6 +43,10 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 - Düzeltme karşılaştırması tüm izinli kurallarda alan/değerleri ve bulgu adet
   farklarını açıklar; kısmen giderilen veya yeni oluşan bulguları saklamaz.
   Nedensellik yalnızca kayıtlı kural bağımlılığı ve doğrulama sonucuyla desteklenir.
+- Uygulanmış teklif “onaya uygun değil” diye sunulmaz; yeniden onay gerekmediği
+  açıklanır. Planı hazır olmayan teklif farklı bir durumdur. Başlangıçta sıfır
+  olan hata adedi giderilmiş sayılmaz; bilgi kaydı uyarı diye adlandırılmaz.
+  Karşılaştırma aracı net seviye değişimini ve kod+seviye adet farkını ayrı verir.
 
 - Sonuç ve rapor ekranında Fatura İnceleme Asistanı bulunur. Güncel bulguları
   özetler; teklifin durumunu, önce/sonra sonuçlarını ve kullanım adımlarını açıklar.

@@ -13,7 +13,7 @@ from faturaguard import main
 from faturaguard.config import Settings
 from faturaguard.domain.chat import ChatTurn
 from faturaguard.domain.correction import CorrectionJob, CorrectionProposal
-from faturaguard.domain.validation import Finding, ValidationReport, ValidationSummary
+from faturaguard.domain.validation import Finding, Severity, ValidationReport, ValidationSummary
 from faturaguard.services.conversational_chat import (
     ConversationalDocumentChat,
     ConversationAnswer,
@@ -494,3 +494,26 @@ def test_failed_live_attempt_replaces_stale_success_evidence(tmp_path):
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert payload["status"] == "failed" and not payload["no_unresolved_tokens"]
     assert payload["turns"] == [{"turn": 2, "failure_code": "unbound_citation"}]
+
+
+def test_model_receives_completed_approval_and_explicit_severity_transitions(document):
+    document.proposals[0].status = "applied"
+    info = document.report.findings[0].model_copy(update={"code": "imza-yok", "severity": Severity.INFO})
+    document.report.findings.append(info)
+    document.report.summary.info_count = 1
+    document.corrected_report = document.report.model_copy(deep=True)
+    document.corrected_report.findings = [info]
+    document.corrected_report.summary.warning_count = 0
+    model = Model(tools=[{"name": "correction_proposals", "finding_code": ""},
+                         {"name": "validation_comparison", "finding_code": ""}],
+                  answer="Teklif uygulandı; yeniden onay gerekmiyor. Hata sayısı sıfır kaldı; bilgi kaydı sürüyor.")
+    turn = ConversationalDocumentChat(model).answer(document, "Teklif ve önce/sonra durumu nedir?")
+    tools = model.calls[1][1]["TOOLS"]
+    assert turn.mode == "llm_chat" and not turn.repair_attempted
+    assert tools["correction_proposals"][0]["approval"]["reason"] == "already_applied"
+    changes = tools["validation_comparison"]["severity_changes"]
+    assert changes["errors"]["change"] == "unchanged" and changes["warnings"]["net_decrease"] == 1
+    rows = tools["validation_comparison"]["finding_changes"]
+    assert next(row for row in rows if row["code"] == "imza-yok")["severity_label"] == "Bilgi"
+    assert "Özel Müşteri AŞ" not in json.dumps(model.calls, ensure_ascii=False)
+    assert "15.00" not in json.dumps(model.calls)

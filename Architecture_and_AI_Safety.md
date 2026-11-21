@@ -91,6 +91,12 @@ FastAPI uygulaması
   ifadeleri ayrıca reddedilir; bu kontrol genel anlamsal doğruluğu kanıtlamaz.
   Yetki bağlamı sonuç ekranında düzeltme onayı bulunduğunu ve sohbetin onay
   veremediğini ayrı alanlarla belirtir; imza ve gönderim uygulama kapsamı dışındadır.
+  chat_facts, teklifin already_applied/plan_not_ready/red/bekleyen durumlarını
+  ayırır. Karşılaştırma aracı severity_changes ile net adet değişimini, ayrıca
+  finding_changes ile kod+seviye bazında ilk/güncel/giderilen/yeni adetleri verir.
+  Net adedin aynı kalması farklı kodların giderilmediğini göstermez. Talimat
+  sıfır kalan hata adedini giderilmiş saymamayı ve Bilgi seviyesini korumayı ister;
+  bu bağlam/talimat iyileştirmesi bütün serbest ifadelerin doğruluk ispatı değildir.
   Karşılaştırma yanıtı reddedilirse yerel yedek genel router yerine doğrudan
   gerçek önce/sonra kaydını açıklar. Gemini store=false; sunucu tarafında
   konuşma ID'si tutulmaz. Bu ayar bütün sağlayıcı veri saklama politikasını
