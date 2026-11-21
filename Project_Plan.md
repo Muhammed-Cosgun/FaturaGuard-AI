@@ -14,6 +14,10 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ### Ek paket — belge inceleme asistanı
 
+**Tamamlandı:** Kullanıcı hesabındaki canlı smoke testi de overview +
+imza-yok source_backed yanıt + bir atıf ile başarılı oldu; canlı kabul
+bekleme maddesi kapandı. 155 otomatik test ve tarayıcı kanıtı mevcut.
+
 Kullanıcı talebiyle sonuç/rapor ekranına salt okunur sohbet eklendi. Yerel
 özet/rehberlik ve mevcut GİB kaynaklı AI açıklamaları aynı panelde sunulur.
 16 yeni testle toplam 155 test geçti; tarayıcıda önce/sonra yanıtı ve değişiklik

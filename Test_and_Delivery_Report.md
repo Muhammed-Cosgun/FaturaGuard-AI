@@ -2,6 +2,12 @@
 
 ## Belge asistanı doğrulaması — 21.11.2026
 
+**Canlı kabul tamamlandı:** Kullanıcının CMD çıktısında `local_mode=overview`,
+`finding_code=imza-yok`, `answer_mode=source_backed`, `citation_count=1` ve
+`xml_changed=false` görüldü; smoke testi başarılı bitti. Aşağıdaki canlı test
+bekleme notu bu sonuçla kapanmıştır. Bu tek bulgunun canlı kabulüdür;
+bütün serbest soruların/model yanıtlarının doğruluğu iddia edilmez.
+
 - Sonuç ve rapor ekranında sohbet paneli, hazır sorular, güncel bulgu seçimi,
   bekleme/hata mesajı ve sayfa yenilenmeden düz metin yanıt gösterimi eklendi.
 - 16 yeni test: güncel sonuç kullanımı, sorunun/geçmişin sağlayıcıya taşınmaması,
