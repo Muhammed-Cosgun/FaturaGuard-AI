@@ -68,7 +68,11 @@ FastAPI uygulaması
 
 - Sohbet görünümü: sonuç/rapor şablonları document-content ve document_chat
   aside'ını CSS Grid ile ayırır. document-chat.css masaüstünde sticky panel ve
-  bağımsız mesaj scroll'u sağlar. 1100 px altında JS launcher/drawer açar;
+  bağımsız mesaj scroll'u sağlar. JS ilk yüklemede paneli kapalı tutar; içerik
+  1040 px ortalanır. Açılınca grid ikinci sütuna yer açar ve ana içerik sola
+  kayar; kapanınca eski ölçüler geri gelir. Geçiş reduced-motion'a uyar;
+  ilk yüklemede animasyon yoktur. Açık/kapalı tercih boyut değişiminde korunur;
+  kapatma sohbet DOM'unu veya devam eden isteği silmez. 1100 px altında modal açılır;
   rol/aria-modal, arka plan inert ve odak döngüsü/geri dönüşü yönetilir. Destekleyen
   tarayıcıda visualViewport ile mobil görünen alana uyum sağlanır; fiziksel
   telefon klavyesi ayrı cihaz testinde ölçülmedi. JS yokken aside normal akışta

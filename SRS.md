@@ -37,8 +37,11 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 
 ## Belgeye bağlı sohbet asistanı — ek kapsam
 
-- Sonuç ve rapor ekranlarında masaüstünde sohbet sağ sütunda görünür kalır;
-  mesaj alanı belgeden bağımsız kaydırılır. Dar ekranda açılır/kapanır panel,
+- Sohbet JS açıkken başlangıçta kapalıdır; içerik eski genişliğinde ortalanır.
+  Kullanıcı sağ alttaki düğmeyle açınca masaüstünde içerik sola kayar ve sağ
+  sütunda sohbet görünür; kapatınca ortalı düzen geri gelir. Mesaj/taslak ve
+  bekleyen yanıtlar kapanışta korunur. Açıkken mesaj alanı bağımsız kaydırılır.
+  Dar ekranda açılır/kapanır panel,
   telefonda tam ekran görünüm kullanılır. Panel Escape ile kapanır ve odağı
   açma düğmesine döndürür; açık mobil panelde klavye odağı dışarı çıkmaz.
 - JS açıkken Enter gönderir, Shift+Enter yeni satır ekler. Kullanıcının yeni

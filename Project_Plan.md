@@ -12,6 +12,13 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ## 3. İş paketleri ve çıktılar
 
+### Ek düzenleme — isteğe bağlı sohbet (22.11.2026)
+
+Tamamlandı: varsayılan kapalı panel, eski ortalı içerik, masaüstünde açılışta
+sola kayma ve kapanışta geri dönüş. Mesaj/taslak/bekleyen yanıt korunması,
+Escape/çarpı, mobil modal ve boyut değişiminde durum korunması izole tarayıcıda
+doğrulandı. 405 test, Ruff ve node sözdizimi geçti. Backend değişikliği yok.
+
 ### Ek paket — bağımsız sağ sohbet paneli (22.11.2026)
 
 Tamamlandı: sonuç/rapor sayfaları iki sütun, sağda sticky sohbet ve ayrı mesaj

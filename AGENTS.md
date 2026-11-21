@@ -2,6 +2,16 @@
 
 ## Aktif geliştirme
 
+22.11.2026 son istek: sohbet masaüstünde de isteğe bağlı açılıp kapanır ve
+varsayılan kapalıdır. Kapalı durumda içerik 1040 px genişliğinde ortalı;
+açıldığında sağ panel için grid genişler, içerik yumuşakça sola kayar.
+Başlık/footer da eski ortalı ölçülere döner. Çarpı/Escape her boyutta kapatır;
+boyut değişimi kullanıcının açık/kapalı tercihini korur. Mobil modal davranışı
+korundu. Kapatıp açma mesajları/taslağı silmez, bekleyen yanıt kapalıyken de
+tamamlanır. İlk yükleme animasyonsuz; reduced-motion tercihinde geçiş yok.
+405 test/Ruff/node kontrolü ve izole tarayıcı kontrolleri geçti. Dal
+feature/toggle-sidebar-chat; kontrol sonrası main'e ff birleştirilir.
+
 22.11.2026: Kullanıcı sohbeti sağda bağımsız panel istedi. feature/sidebar-document-chat
 dalında sonuç/rapor iki sütuna ayrıldı; sağda sticky, kendi mesaj alanı kaydırılan
 panel var. 1100 CSS px altı JS ile launcher + drawer (telefonda tam ekran),

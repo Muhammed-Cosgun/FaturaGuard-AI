@@ -12,6 +12,7 @@ document.querySelectorAll('[data-document-chat]').forEach((panel) => {
   const previousInert = new Map();
   let busy = false;
   let followResponse = true;
+  let opened = false;
   workspace.classList.add('chat-enhanced');
 
   const syncViewport = () => {
@@ -28,11 +29,14 @@ document.querySelectorAll('[data-document-chat]').forEach((panel) => {
   window.visualViewport?.addEventListener('scroll', syncViewport);
 
   const setOpen = (open, restoreFocus = true) => {
+    opened = open;
     const isDialog = open && mobile.matches;
-    panel.dataset.open = String(isDialog);
-    launcher.hidden = !mobile.matches || isDialog;
-    closeButton.hidden = !mobile.matches;
-    launcher.setAttribute('aria-expanded', String(isDialog));
+    panel.dataset.open = String(open);
+    workspace.dataset.chatVisible = String(open);
+    document.body.classList.toggle('document-chat-open', open);
+    launcher.hidden = open;
+    closeButton.hidden = false;
+    launcher.setAttribute('aria-expanded', String(open));
     backdrop.hidden = !isDialog;
     syncViewport();
     document.body.classList.toggle('chat-overlay-open', isDialog);
@@ -50,24 +54,26 @@ document.querySelectorAll('[data-document-chat]').forEach((panel) => {
       panel.removeAttribute('aria-modal');
       previousInert.forEach((wasInert, region) => { region.inert = wasInert; });
       previousInert.clear();
-      if (mobile.matches && restoreFocus) launcher.focus();
+      if (!open && restoreFocus) launcher.focus({ preventScroll: true });
+      if (open) closeButton.focus({ preventScroll: true });
     }
+    if (open) requestAnimationFrame(() => { resizeInput(); log.scrollTop = log.scrollHeight; });
   };
   launcher.addEventListener('click', () => { setOpen(true); });
   closeButton.addEventListener('click', () => { setOpen(false); });
   backdrop.addEventListener('click', () => { setOpen(false); });
   mobile.addEventListener('change', () => {
     const wasInside = panel.contains(document.activeElement);
-    setOpen(false, wasInside);
-    if (!mobile.matches && wasInside) input.focus({ preventScroll: true });
+    setOpen(opened, false);
+    if (opened && !mobile.matches && wasInside) input.focus({ preventScroll: true });
   });
   panel.addEventListener('keydown', (event) => {
-    if (!mobile.matches || panel.dataset.open !== 'true') return;
+    if (!opened) return;
     if (event.key === 'Escape') {
       event.preventDefault();
       setOpen(false);
     }
-    if (event.key === 'Tab') {
+    if (event.key === 'Tab' && mobile.matches) {
       const items = Array.from(panel.querySelectorAll('button:not([disabled]), a[href], textarea, select, summary, [tabindex="0"]'))
         .filter((element) => !element.hidden && element.getClientRects().length > 0);
       const first = items[0];
@@ -80,6 +86,8 @@ document.querySelectorAll('[data-document-chat]').forEach((panel) => {
     }
   });
   setOpen(false, false);
+  // İlk yüklemede daralma animasyonu oynatma; yalnızca kullanıcı açıp kapatınca kaydır.
+  requestAnimationFrame(() => requestAnimationFrame(() => workspace.classList.add('chat-layout-ready')));
   log.scrollTop = log.scrollHeight;
 
   const resizeInput = () => {
