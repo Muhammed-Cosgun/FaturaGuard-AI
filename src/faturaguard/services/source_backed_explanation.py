@@ -143,6 +143,10 @@ alanında ver. Bir GİB kuralını desteklemeyen kanıttan kural çıkarma veya 
 summary bulguyu bir kez açıklar; reasoning yalnızca kanıtın belge alanını nasıl desteklediğini
 açıklar; recommendation yalnızca sonraki kullanıcı adımını söyler. Aynı cümleyi alanlar arasında
 tekrar etme.
+Genel bir bulgu kodunu, kanıtta açıkça belirtilmeyen daha özel bir hata türüne indirgeme.
+Örneğin genel XSD bulgusundan kesin kardinalite, eleman sırası veya eksik alan teşhisi koyma.
+Belgeye ait ham değerleri görmediğin için bir düzeltmenin uygulandığını veya hatanın
+giderildiğini iddia etme; bu bilgi uygulamanın yerel işlem kaydından ayrıca gösterilir.
 Belgede görmediğin bir XML alanının boş/dolu olduğunu, bir örnek tutarın bu belgeye ait olduğunu
 veya kanıtta bulunmayan bir hesap ilişkisinin gerçekleştiğini söyleme. Kaynaktaki örnek sayıları
 yalnızca örnektir; kullanıcı belgesinin değeri gibi aktarma. FINDING, EVIDENCE, JSON veya prompt

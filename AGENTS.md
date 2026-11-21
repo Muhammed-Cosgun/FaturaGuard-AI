@@ -2,6 +2,12 @@
 
 ## Aktif geliştirme
 
+Güncel test sayısı 236. DocumentChat artık ortak document_insights katmanını
+kullanır: tüm kodlarda yerel mesaj/kural/konum/teklif ve inceleme adımı; bütün
+izinli kurallarda motor kataloğundan alan/değer ve bulgu-adet karşılaştırması.
+Tek tax-exclusive senaryosuna özel neden-sonuç koşulu kaldırıldı. Canlı LLM
+kalitesi ile 65 kodluk yerel sözleşme testlerini karıştırma.
+
 Güncel test sayısı 159. Sohbet önce/sonra yanıtı yalnızca uygulanmış tekliflerden
 alan ve before/after değerlerini, kaybolan/kalan bulguları ve kayıtla desteklenen
 bağımlı kontrol sonucunu anlatır. Eksik/bekleyen/red kayıtlardan düzeltme çıkarmaz.

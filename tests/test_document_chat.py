@@ -186,10 +186,10 @@ def test_comparison_explains_exact_applied_change_resolved_dependencies_and_rema
     ]
     original_state = item.model_dump_json()
     turn = DocumentChat().answer(item, "Düzeltmeden sonra neler değişti?")
-    assert "Vergi hariç toplam (TaxExclusiveAmount): 15.00 → 15.15" in turn.answer
-    assert "tek alan değişikliğiyle iki uyarı kalktı" in turn.answer
-    assert "imza eksikliği bilgi kaydı olarak sürüyor" in turn.answer
-    assert "Bu işlem imza eklemedi" in turn.answer
+    assert "(TaxExclusiveAmount): 15.00 → 15.15" in turn.answer
+    assert "Bağımlı kontroller: hesap-dip-vergi-dahil" in turn.answer
+    assert "Bilgi · imza-yok" in turn.answer
+    assert "imza eklemedi" in turn.answer
     assert item.model_dump_json() == original_state
     item.proposals.append(
         item.proposals[0].model_copy(
@@ -197,7 +197,7 @@ def test_comparison_explains_exact_applied_change_resolved_dependencies_and_rema
         )
     )
     assert (
-        "tek alan değişikliğiyle" not in DocumentChat().answer(item, "Hangi alan değişti?").answer
+        "Bağımlı kontroller:" not in DocumentChat().answer(item, "Hangi alan değişti?").answer
     )
 
 

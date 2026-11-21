@@ -68,6 +68,21 @@ _DEPENDENCY_FINDINGS = {
 }
 
 
+def correction_rule_catalog() -> dict[str, dict[str, object]]:
+    """Arayüz açıklamalarını motorun gerçek allowlist ve bağımlılıklarıyla eşler."""
+    return {
+        rule_id: {
+            "element": item[0],
+            "path": item[1],
+            "finding_code": item[2],
+            "title": item[3],
+            "rationale": item[4],
+            "dependency_findings": frozenset(_DEPENDENCY_FINDINGS.get(rule_id, set())),
+        }
+        for rule_id, item in _LEGAL_TOTAL_ELEMENTS.items()
+    }
+
+
 class CorrectionNotApplicableError(ValueError):
     """Teklif mevcut XML durumuna güvenle uygulanamadığında yükseltilir."""
 
@@ -78,7 +93,13 @@ class SafeCorrectionEngine:
     def propose(self, xml_bytes: bytes, report: ValidationReport) -> list[CorrectionProposal]:
         finding_codes = {finding.code for finding in report.findings}
         proposals: list[CorrectionProposal] = []
-        for rule_id, (_element, path, finding_code, title, rationale) in _LEGAL_TOTAL_ELEMENTS.items():
+        for rule_id, (
+            _element,
+            path,
+            finding_code,
+            title,
+            rationale,
+        ) in _LEGAL_TOTAL_ELEMENTS.items():
             if finding_code not in finding_codes:
                 continue
             # Alt toplam bozuksa üst toplamı mevcut, hatalı değerden hesaplamayız.
@@ -211,7 +232,10 @@ class SafeCorrectionEngine:
                     root.find(f"{CAC}LegalMonetaryTotal/{CBC}TaxInclusiveAmount")
                 )
                 withholding = sum(
-                    (_decimal(item) for item in root.findall(f"{CAC}WithholdingTaxTotal/{CBC}TaxAmount")),
+                    (
+                        _decimal(item)
+                        for item in root.findall(f"{CAC}WithholdingTaxTotal/{CBC}TaxAmount")
+                    ),
                     Decimal("0"),
                 )
                 rounding = _decimal_optional(
@@ -219,9 +243,13 @@ class SafeCorrectionEngine:
                 )
                 total = tax_inclusive - withholding + rounding
             else:  # pragma: no cover - allowlist kontrolü yukarıda yapılır.
-                raise CorrectionNotApplicableError("İzin listesinde olmayan düzeltme kuralı istendi.")
+                raise CorrectionNotApplicableError(
+                    "İzin listesinde olmayan düzeltme kuralı istendi."
+                )
         except (InvalidOperation, ValueError) as error:
-            raise CorrectionNotApplicableError("Dip toplamdan güvenli hesaplama yapılamadı.") from error
+            raise CorrectionNotApplicableError(
+                "Dip toplamdan güvenli hesaplama yapılamadı."
+            ) from error
         return target.text.strip(), format(total.quantize(Decimal("0.01")), "f")
 
 
@@ -248,7 +276,9 @@ def _allowance_charge_totals(root: etree._Element) -> tuple[Decimal, Decimal]:
         indicator = (item.findtext(f"{CBC}ChargeIndicator") or "").strip().casefold()
         amount = item.find(f"{CBC}Amount")
         if indicator not in {"true", "false"} or amount is None:
-            raise CorrectionNotApplicableError("Belge indirimi veya artırımından güvenli hesaplama yapılamadı.")
+            raise CorrectionNotApplicableError(
+                "Belge indirimi veya artırımından güvenli hesaplama yapılamadı."
+            )
         if indicator == "true":
             charge += _decimal(amount)
         else:

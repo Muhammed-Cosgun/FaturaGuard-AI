@@ -10,6 +10,7 @@ import re
 from faturaguard.domain.chat import ChatCitation, ChatTurn
 from faturaguard.domain.correction import CorrectionJob
 from faturaguard.domain.validation import Priority
+from faturaguard.services.document_insights import comparison_details, finding_context
 from faturaguard.services.source_backed_explanation import LLMUnavailableError
 
 
@@ -42,6 +43,12 @@ class DocumentChat:
         findings = report.findings
         selected = next((f for f in findings if f.code == finding_code), None)
         if finding_code and selected is None:
+            if job.corrected_report and any(f.code == finding_code for f in job.report.findings):
+                return reply(
+                    f"{finding_code} ilk doğrulamada vardı, güncel doğrulamada artık "
+                    "görülmüyor.\n\n" + comparison_details(job),
+                    "comparison",
+                )
             return reply(
                 "Seçilen bulgu bu belgenin güncel doğrulamasında bulunmuyor. "
                 "Güncel listeden bir bulgu seçin.",
@@ -49,6 +56,22 @@ class DocumentChat:
             )
         if selected is None:
             selected = next((f for f in findings if normalize(f.code) in text), None)
+        if selected is None and job.corrected_report:
+            historical = next(
+                (
+                    f
+                    for f in job.report.findings
+                    if normalize(f.code) in text
+                    and not any(current.code == f.code for current in findings)
+                ),
+                None,
+            )
+            if historical:
+                return reply(
+                    f"{historical.code} ilk doğrulamada vardı, güncel doğrulamada "
+                    "artık görülmüyor.\n\n" + comparison_details(job),
+                    "comparison",
+                )
         if selected is None:
             aliases = {
                 "vergi haric": "hesap-dip-vergi-haric",
@@ -79,86 +102,14 @@ class DocumentChat:
                 "ne duzeltildi",
                 "karsilastir",
                 "duzeltildi mi",
+                "hangi hata",
+                "hangi bulgu",
+                "neler duzeltildi",
+                "duzeltme sonucu",
             )
         ):
-            if job.corrected_report is None:
-                return reply(
-                    "Henüz düzeltilmiş bir kopya ve yeniden doğrulama sonucu yok. "
-                    "İlk doğrulama sonucu gösteriliyor.",
-                    "comparison",
-                )
-            before, after = job.report.summary, job.corrected_report.summary
-            applied = [proposal for proposal in job.proposals if proposal.status == "applied"]
-            field_labels = {
-                "recalculate-line-extension-total": "Mal/hizmet toplamı (LineExtensionAmount)",
-                "recalculate-tax-exclusive-total": "Vergi hariç toplam (TaxExclusiveAmount)",
-                "recalculate-tax-inclusive-total": "Vergiler dahil toplam (TaxInclusiveAmount)",
-                "recalculate-payable-total": "Ödenecek tutar (PayableAmount)",
-            }
-            lines = ["Uygulanan değişiklik:"]
-            if applied:
-                lines += [
-                    f"• {field_labels.get(p.rule_id, p.title)}: {p.before} → {p.after}."
-                    for p in applied
-                ]
-            else:
-                lines.append(
-                    "Yeniden doğrulama kaydı var; ancak uygulanmış alan değişikliği "
-                    "ayrıntısı bu işlemde kayıtlı değil. Hangi değerin değiştiğini varsaymıyorum."
-                )
-            old_codes = {f.code for f in job.report.findings}
-            remaining_codes = {f.code for f in job.corrected_report.findings}
-            resolved = sorted(old_codes - remaining_codes)
-            lines += [
-                "",
-                f"İlk doğrulama: {before.error_count} hata, {before.warning_count} uyarı, {before.info_count} bilgi.",
-                f"Yeniden doğrulama: {after.error_count} hata, {after.warning_count} uyarı, {after.info_count} bilgi.",
-            ]
-            if resolved:
-                lines.append(
-                    "Yeniden doğrulamada artık görülmeyen bulgular: " + ", ".join(resolved) + "."
-                )
-            applied_rules = {p.rule_id for p in applied}
-            if (
-                len(applied) == 1
-                and before.warning_count - after.warning_count == 2
-                and "recalculate-tax-exclusive-total" in applied_rules
-                and "hesap-dip-vergi-haric" in resolved
-                and "hesap-dip-vergi-dahil" in resolved
-                and "recalculate-tax-inclusive-total" not in applied_rules
-            ):
-                lines += [
-                    "Vergi hariç toplam düzeltildikten sonra, ona bağlı vergi dahil toplam "
-                    "kontrolü de geçti. Vergi dahil toplam için ayrı bir düzeltme kaydı yok; "
-                    "bu nedenle tek alan değişikliğiyle iki uyarı kalktı.",
-                ]
-            lines += ["", "Kalan durum:"]
-            if job.corrected_report.findings:
-                lines += [f"• {f.code}: {f.message}" for f in job.corrected_report.findings]
-                if remaining_codes == {"imza-yok"}:
-                    lines.append(
-                        "Aritmetik uyarı kalmadı; imza eksikliği bilgi kaydı olarak sürüyor. "
-                        "Bu işlem imza eklemedi. Belgenin taslak/test veya gönderim "
-                        "aşamasına göre imza kontrolünü ayrıca değerlendirin."
-                    )
-                else:
-                    lines.append(
-                        "Sonraki adım: kalan bulguları inceleyin; gerekirse birini seçip "
-                        "resmî kaynaklı açıklama isteyin."
-                    )
-            else:
-                lines.append(
-                    "Teknik doğrulamada bulgu kalmadı. Gönderim öncesi yetkili "
-                    "iş süreci ve imza kontrollerini ayrıca tamamlayın."
-                )
-            lines += [
-                "",
-                "Düzeltme ayrı çalışma kopyasına kaydedildi; orijinal XML üzerine yazılmadı.",
-            ]
-            return reply(
-                "\n".join(lines),
-                "comparison",
-            )
+            return reply(comparison_details(job), "comparison")
+
         if (
             any(term in text for term in ("duzeltme", "dugme", "teklif", "neden acil"))
             and selected is None
@@ -234,7 +185,8 @@ class DocumentChat:
             )
         if self._source_agent is None:
             return reply(
-                "GİB kaynaklı açıklama hattı hazır değil. Bulgu sonuç ekranında korunuyor; "
+                finding_context(job, selected)
+                + "\n\nGİB kaynaklı açıklama hattı hazır değil. Bulgu sonuç ekranında korunuyor; "
                 "kaynak indeksi ve model bağlantısı kontrol edilmeli.",
                 "unavailable",
                 finding_code=selected.code,
@@ -243,7 +195,8 @@ class DocumentChat:
             result = self._source_agent.explain(selected)
         except (LLMUnavailableError, RuntimeError):
             return reply(
-                "Kaynaklı açıklama şu anda hazırlanamadı. Daha sonra tekrar deneyin; "
+                finding_context(job, selected)
+                + "\n\nKaynaklı açıklama şu anda hazırlanamadı. Daha sonra tekrar deneyin; "
                 "belgede hiçbir değişiklik yapılmadı.",
                 "unavailable",
                 finding_code=selected.code,
@@ -251,7 +204,8 @@ class DocumentChat:
         explanation = result.get("explanation")
         if explanation is None:
             return reply(
-                "Bu bulgu için yeterli resmî kanıt veya geçerli model açıklaması "
+                finding_context(job, selected)
+                + "\n\nBu bulgu için yeterli resmî kanıt veya geçerli model açıklaması "
                 "hazırlanamadı. Kesin bir teknik yorum yapmadan insan incelemesine "
                 "yönlendiriyorum.",
                 "unavailable",
@@ -264,9 +218,9 @@ class DocumentChat:
         return reply(
             "\n\n".join(
                 (
-                    explanation.summary,
-                    explanation.reasoning,
-                    "Sonraki adım: " + explanation.recommendation,
+                    finding_context(job, selected),
+                    "Resmî kaynaklı açıklama: " + explanation.reasoning,
+                    "Kaynağa dayalı inceleme önerisi: " + explanation.recommendation,
                 )
             ),
             "source_summary"

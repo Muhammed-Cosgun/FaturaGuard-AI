@@ -1,5 +1,26 @@
 # FaturaGuard AI — Test ve Teslim Raporu
 
+## Tüm bulgu ailelerine ortak açıklama katmanı
+
+Tek tax-exclusive örneğine özel karşılaştırma koşulu kaldırıldı.
+`document_insights.py`, motorun gerçek allowlist/bağımlılık kataloğundan dört
+izinli düzeltmenin tamamını açıklar; tutarları uygulanmış tekliften okur.
+Bulgu adet farklarıyla tamamen kaybolan, kısmen azalan ve yeni/artan kodları
+ayırır. Bilinen bağımlılık ve doğrulama sonucu birlikte desteklemiyorsa neden
+uydurmaz; birden fazla değişiklikte tekil nedensellik kurmaz.
+
+Tek bulgu açıklaması bütün katalog kodlarında gerçek mesaj, XML konumu,
+doğrulayıcı kuralı, teklif/bağımlılık durumu ve inceleme önerisiyle başlar.
+LLM yorumu ayrı gösterilir; kaynak yokken yerel bulgu korunur. Serbest kullanıcı
+sorusu ve bu yerel belge ayrıntıları sağlayıcıya eklenmez. Genel LLM promptu,
+genel bulgudan daha özel teşhis veya uygulanmış düzeltme sonucu çıkarmamayı ister.
+
+**236 test geçti**, Ruff temiz: 65 katalog kodu + bilinmeyen kod için yerel
+bağlam, dört düzeltme, üç bağımlılık ilişkisi, kısmi çözüm, yeni hata, ilgisiz
+bulgu ve tarihî kod sorgusu sınandı. Kaynaklı yanıt testi kontrollü sağlayıcı
+çıktısı kullanır. Bu çalışma bütün kodlarda canlı LLM/anlamsal doğruluk veya
+bütün GİB senaryolarına uygunluk kanıtı değildir.
+
 ## Sohbet karşılaştırmasının somutlaştırılması
 
 Önce/sonra yanıtı, sayılara ek olarak yalnızca uygulanmış tekliflerin alanını ve

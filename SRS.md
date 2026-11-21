@@ -37,6 +37,13 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 
 ## Belgeye bağlı sohbet asistanı — ek kapsam
 
+- Bütün bulgu kodları için aynı kayıt temelli açıklama sözleşmesi uygulanır:
+  tespit edilen durum, XML konumu, yerel kural, izinli teklif/bağımlılık durumu
+  ve sonraki inceleme adımı. Kaynaklı LLM yorumu bu gerçeklerden ayrı gösterilir.
+- Düzeltme karşılaştırması tüm izinli kurallarda alan/değerleri ve bulgu adet
+  farklarını açıklar; kısmen giderilen veya yeni oluşan bulguları saklamaz.
+  Nedensellik yalnızca kayıtlı kural bağımlılığı ve doğrulama sonucuyla desteklenir.
+
 - Sonuç ve rapor ekranında Fatura İnceleme Asistanı bulunur. Güncel bulguları
   özetler; teklifin durumunu, önce/sonra sonuçlarını ve kullanım adımlarını açıklar.
 - Kullanıcı doğal dilde soru yazabilir veya hazır sorulardan/bulgu listesinden
