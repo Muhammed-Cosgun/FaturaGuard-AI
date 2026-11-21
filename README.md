@@ -6,13 +6,33 @@ FaturaGuard AI, e-Fatura XML belgelerini doğrulayan, resmî GİB kaynaklarıyla
 
 V1 geliştirme ve temel kabul testleri tamamlandı. Uygulama, yerel demo ve eğitim projesi amacıyla hazırlanmıştır; GİB'e gerçek belge gönderimi veya e-imza üretimi yapmaz.
 
+21.11.2026 format sonrası kurtarma tamamlandı: bağımsız Windows/Python 3.14 ortamı,
+139 otomatik test, Gemini/Groq canlı smoke testleri ve üç web kabul senaryosu
+normal süreç çıkışıyla doğrulandı. Eski veri yolları ve 69 commit'lik Git geçmişi
+geri alındı. Devam kaydı: [PROJE_BAGLAMI.md](PROJE_BAGLAMI.md).
+
 ## Hedef teknoloji
 
 - FastAPI
-- Jinja2 ve HTMX
+- Jinja2, HTML/CSS ve normal form POST akışı; düğme bekleme metni için küçük JavaScript
 - `efatura-kontrol` doğrulama kütüphanesi
 
 ## Başlangıç
+
+Bu bilgisayardaki hazır kurulumda proje kökünden `BASLAT.cmd` çalıştırın;
+adres `http://127.0.0.1:8011` olur. Geliştirme sırasında:
+
+```cmd
+.venv-clean\Scripts\python.exe -m uvicorn faturaguard.main:app --host 127.0.0.1 --port 8011 --reload
+```
+
+`KUR.cmd`, Windows/Python 3.14 için test edilmiş paketleri
+`requirements-windows-py314.lock.txt` üzerinden kurar. GİB kaynakları, Chroma
+indeksi ve embedding önbelleği `resources/gib/raw` ve `data` yedeğinden gelir;
+yalnızca Git klonu bu büyük varlıkları içermez. Kullanıcı ortam değişkenleri
+tanımlandıktan sonra yeni terminalden başlatın; uygulama `.env` otomatik okumaz.
+
+Başka bir ortam için genel kurulum:
 
 Python 3.11 veya üzeriyle:
 
@@ -44,7 +64,9 @@ python scripts/build_chroma_index.py
 
 Chroma koleksiyonu yerel olarak `data/chroma/` altında saklanır. Sadece `resources/gib/official_sources.json` envanterinde tanımlanan ve SHA-256 özeti doğrulanan GİB dosyaları indekslenir.
 
-İlk `build_chroma_index.py` çalıştırması embedding modelini indirebilir. Sonraki sorgularda model yalnızca proje içindeki `data/models/` yerel önbelleğinden yüklenir.
+`build_chroma_index.py` yalnızca `data/models/` yerel önbelleğini kullanır;
+model eksikse otomatik indirme yapmaz. Aktif embedding modeli
+`intfloat/multilingual-e5-small`'dır. Mevcut yedekte model ve 330 chunk'lık indeks hazırdır.
 
 ## Yerel LLM smoke testi
 
@@ -56,7 +78,7 @@ python scripts/run_local_llm_smoke_test.py
 
 Farklı bir yüklü model seçmek için `OLLAMA_MODEL` ortam değişkeni kullanılabilir.
 
-## Hızlı API modu ve yerel fallback
+## Hızlı API modu ve güvenli fallback
 
 Sunumda daha kısa ilk-yanıt süresi istenirse `GEMINI_API_KEY` tanımlandığında uygulama düşük gecikmeli `gemini-3.5-flash-lite` modelini birincil açıklama üreticisi olarak kullanır. `GROQ_API_KEY` tanımlıysa GPT-OSS 120B ikinci uzak üretim katmanıdır. Tüm uzak API'ler başarısız olursa uygulama yerel modeli beklemez; doğrulanmış GİB atıflarıyla anında güvenli kaynak özeti gösterir. Anahtar tanımlı değilse uygulama tamamen yerel `gemma3:4b` modunda çalışır. API'ye XML, dosya adı, fatura taraf/tutar bilgileri, SHA-256 özeti veya yerel dosya yolu gönderilmez; yalnızca doğrulama kuralı ve yerelde seçilmiş resmî GİB kanıt parçaları gönderilir.
 
@@ -66,7 +88,10 @@ $env:GEMINI_MODEL = "gemini-3.5-flash-lite"
 uvicorn faturaguard.main:app --reload
 ```
 
-Anahtarı `.env`, kaynak kodu veya Git'e kaydetmeyin. Anahtar tanımlı değilse ek kurulum gerekmeden yerel mod devam eder. API performansı, sunum öncesi `scripts/benchmark_local_models.py` ile aynı dört vaka üzerinden ayrıca ölçülmelidir.
+Anahtarı kaynak koduna veya Git'e kaydetmeyin. Anahtar yoksa yerel açıklama için
+Ollama ve `gemma3:4b` kurulmuş olmalıdır. Yerel açıklama modu, LLM düzeltme planı
+üretmez: Gemini/Groq olmadan web düzeltmesi insan incelemesinde durur.
+API performansı `scripts/benchmark_api_providers.py` ile ölçülür.
 
 Anahtarın, seçilen modelin ve yapılandırılmış çıktı sözleşmesinin canlı kontrolü için sunucuyu başlatmadan önce şu smoke testi çalıştırılabilir; anahtarı ekrana yazdırmaz:
 
@@ -121,7 +146,11 @@ RAG kalitesi yalnızca örnek bir sorguyla değil, beklenen resmî kaynak ve say
 python scripts/evaluate_rag.py
 ```
 
-Sonuç `data/evaluation/retrieval_metrics.json` dosyasına yazılır. Altı sorguluk güncel golden sette semantic arama `Recall@3 = 0.67`, `MRR@3 = 0.44`; BM25 ve hibrit rerank ise `Recall@3 = 0.83`, `MRR@3 = 0.72` elde etti. Tüm stratejilerde resmî GİB atıf kapsaması `1.00` olarak korundu. Sonuçlar başarı iddiası değil, sonraki ağırlık/model iyileştirmeleri için ölçüm tabanıdır.
+Sonuç `data/evaluation/retrieval_metrics.json` dosyasına yazılır. Güncel 11 sorguda
+semantic `Recall@3 = 0.82`, `MRR@3 = 0.76`; BM25 ve hibrit rerank
+`Recall@3 = 0.91`, `MRR@3 = 0.71` elde etti. URL tabanlı kaynak kapsaması `1.00`.
+Bu ölçümler kaynak bulmayı değerlendirir; LLM metninin tam doğruluğunu kanıtlamaz.
+Rerank, ayrı bir model değil semantic/BM25/terim eşleşmesinin ağırlıklı puanıdır.
 
 ## Yerel LLM model benchmark'ı
 
@@ -156,10 +185,13 @@ Ana sayfadaki **İşlem geçmişi** bağlantısı, son 20 işlemi XML içeriğin
 Doğrulama → teklif → isteğe bağlı onay → çalışma kopyası → yeniden doğrulama → rapor akışını gerçek bir XML üzerinde çalıştırmak için:
 
 ```cmd
-python scripts\run_demo_e2e.py C:\Users\Muhammed\Desktop\efatura_kutuphane_testi\test_hesap_hata.xml --approve-first-proposal
+python scripts\run_demo_e2e.py data\demo-fixtures\demo_payable_error.xml --approve-first-proposal
 ```
 
 Ayrıntılı demo ve web arayüzü sunum akışı için [DEMO_SCENARIO.md](DEMO_SCENARIO.md) dosyasına bakın.
+
+Bu CLI demosu deterministik düzeltme çekirdeğini sınar. Gerçek LLM planı ve web
+onay kapısını da içeren kabul için `python scripts\run_web_acceptance.py` çalıştırılır.
 
 Genişletilmiş aritmetik düzeltme kuralları için tarayıcıda kullanılabilecek
 doğrulanmış demo dosyalarını oluşturmak için:

@@ -1,5 +1,43 @@
 # FaturaGuard AI — Test ve Teslim Raporu
 
+## Veri ve sürüm geçmişi kurtarma — 21.11.2026
+
+- Dört işlemdeki sekiz eski mutlak dosya yolu, SQLite backup sonrası tek
+  transaction ile proje içi göreceli yollara taşındı. 73 orijinal ve 43 düzeltilmiş
+  XML hash'i doğrulandı; eksik yol kalmadı. XML içerikleri değiştirilmedi.
+- Private origin'deki main yedekteki `694491a` ile eşleşti; 69 commit'lik geçmiş
+  geri bağlandı. 92 çalışma dosyasının işlem öncesi/sonrası SHA-256 değerleri
+  eşleşti; yerel kurtarma değişiklikleri korundu. Git fsck temiz.
+
+## Format sonrası native kapanış düzeltmesi — 21.11.2026
+
+### Düzeltme sonrası canlı kabul sonucu
+
+Kullanıcının kendi Windows CMD oturumundan paylaştığı yeni sonuçlar:
+
+| Fixture | Plan sağlayıcısı | Kalan uyarı |
+|---|---|---:|
+| demo_tax_exclusive_error.xml | gemini_correction_plan | 0 |
+| demo_tax_inclusive_error.xml | groq_correction_plan | 0 |
+| demo_payable_error.xml | gemini_correction_plan | 0 |
+
+Komuttan hemen sonra `echo %ERRORLEVEL%` sonucu **0** olarak doğrulandı.
+Üçlü upload/plan/onay/patch/yeniden doğrulama/rapor kabulü ve normal süreç
+kapanışı geçti. Kanıt: `data/evaluation/web_acceptance.json`.
+Aşağıdaki düzeltme sürecinde geçen “bekleniyor” notu bu sonuçla kapanmıştır.
+
+- Kullanıcı CMD'sinde Gemini ve Groq kaynaklı açıklama smoke testleri geçti.
+  Maskeli düzeltme planı, Gemini ReadTimeout sonrasında Groq ile `propose` üretti.
+- Web kabulü kapanışındaki Saxon native StackOverflowError, API olmadan ayrı
+  thread'de oluşturulup interpreter kapanışına bırakılan cached Schematron
+  motoruyla yeniden üretildi (exit 99). Motoru oluşturulduğu thread'de temizlemek
+  aynı denemeyi exit 0 ile tamamladı.
+- FastAPI lifespan kapanışına doğrulayıcı temizliği eklendi. Subprocess regresyon
+  testi iki TestClient yaşam döngüsünde gerçek XML yüklemesini ve normal süreç
+  çıkışını doğruluyor. Güncel sonuç: **139 test başarılı**, Ruff temiz.
+- Canlı sağlayıcılarla yeni kodun üçlü web kabulü, kullanıcının CMD'sinde
+  normal çıkış 0 ile tamamlandı; sonuçlar yukarıdaki tabloda kaydedildi.
+
 Bu belge geliştirme boyunca test sonuçları ve teslim kanıtlarıyla güncellenecektir.
 
 ## Başlangıç doğrulama kanıtları

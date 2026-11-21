@@ -2,6 +2,29 @@
 
 Bu senaryo; doğrulama, insan onayı, sınırlı düzeltme, yeniden doğrulama, orijinalin korunması ve rapor üretimini tek akışta gösterir.
 
+## Format sonrası güncel çalışma düzeni — 21.11.2026
+
+Proje kökünde `.venv-clean` kullanılır. `BASLAT.cmd` sunucuyu
+`http://127.0.0.1:8011` adresinde açar. Geliştirme için:
+
+```cmd
+.venv-clean\Scripts\python.exe -m uvicorn faturaguard.main:app --host 127.0.0.1 --port 8011 --reload
+```
+
+Gemini ve Groq anahtarları Windows kullanıcı ortam değişkenlerindedir; yeni CMD
+oturumunda devralınır. Anahtarlar sohbete, rapora veya kaynak koda yazılmaz.
+
+```cmd
+.venv-clean\Scripts\python.exe scripts\run_demo_preflight.py
+.venv-clean\Scripts\python.exe scripts\run_web_acceptance.py
+echo %ERRORLEVEL%
+```
+
+Üç fixture için 0 kalan uyarı ve süreç çıkışı 0 doğrulandı. Fixture'lar
+`data/demo-fixtures/` altındadır. Aşağıdaki `.venv-runtime`, eski Desktop dosyası
+ve port 8000 talimatları format öncesi akışı anlatır; bu bilgisayarda yukarıdaki
+komutlar ve mevcut demo fixture'ları kullanılır.
+
 ## Ön koşul
 
 - `.venv-runtime` etkin olmalı.

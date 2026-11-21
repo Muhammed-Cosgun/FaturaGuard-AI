@@ -25,6 +25,21 @@ class EfaturaKontrolAdapter:
     def __init__(self, validator: ValidatorFunction | None = None) -> None:
         self._validator = validator
 
+    def close(self) -> None:
+        """Önbellekteki native motoru uygulama iş parçacığı kapanmadan bırakır.
+
+        TestClient'in event loop'u ayrı bir iş parçacığındadır. Saxon nesneleri
+        interpreter kapanışına bırakılırsa yanlış iş parçacığında yok edilebilir.
+        Bu metot doğrulama rotalarıyla aynı event loop üzerinde çağrılmalıdır.
+        """
+        if self._validator is not None:
+            return
+        try:
+            from efatura_kontrol import sematron
+        except ImportError:
+            return
+        sematron.motor.cache_clear()
+
     def validate(self, document: bytes, original_filename: str) -> ValidationReport:
         report = self._get_validator()(document)
         findings = [self._to_finding(item) for item in report.bulgular]

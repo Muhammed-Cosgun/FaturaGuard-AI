@@ -70,6 +70,13 @@ V1; temiz ortamda çalıştırılabildiğinde, zorunlu akışı tamamladığınd
 
 ## 8. Güncel ilerleme takibi (12.11.2026)
 
+21.11.2026 güncellemesi: aşağıdaki tablo format öncesi teslim durumudur.
+Format sonrası bağımsız kurulum, 139 test, canlı Gemini/Groq, maskeli plan ve
+üç web kabulü (normal çıkış 0), eski veri yolları ve Git geçmişi geri kazanıldı.
+HTML rapordaki risk/işlem planı da mevcut ve testlidir. Aktif geliştirmeye
+dönmek için kurtarma kaynaklı engel kalmadı; n8n canlı demosu, maskeleme sayacı
+ve golden set genişletmesi ayrı iyileştirmelerdir.
+
 | İş paketi | Durum | Tamamlanan kanıt | Açık takip maddesi |
 |---|---|---|---|
 | 1 — Temel kurulum | Tamamlandı | FastAPI uygulaması, bağımlılık tanımı, lint/test komutları ve GitHub Actions CI tanımı mevcut; temiz venv oluşturma ve proje içi TEMP/TMP yapılandırması doğrulandı. 12.11.2026'da private GitHub reposundaki Ubuntu CI koşusu başarıyla tamamlandı. | — |

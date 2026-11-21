@@ -159,7 +159,12 @@ async def application_lifespan(app: FastAPI):
         else:
             app.state.rag_warmup_status = "ready"
             logger.info("RAG başlangıç ısıtması tamamlandı.")
-    yield
+    try:
+        yield
+    finally:
+        # Native Schematron nesneleri doğrulamanın çalıştığı event loop üzerinde
+        # temizlenmeli; TestClient thread'i sonlandıktan sonraya bırakılmamalı.
+        app.state.validator.close()
 
 
 def create_app() -> FastAPI:
