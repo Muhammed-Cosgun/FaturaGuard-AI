@@ -229,7 +229,8 @@ Kendi API anahtarlarınızın tanımlı olduğu terminalde canlı kabul:
 ```
 
 Test demo kaydında üç canlı soru sorar; kaynak, teklif, karşılaştırma araçlarını
-ve dosya hash'lerini denetler. Takip sorusunun anlamlı yanıtlandığını ayrıca
+ve dosya hash'lerini denetler. Çözülemeyen maskeler veya karşılaştırmada eksik
+uygulanmış önce/sonra değerleri başarısız sayılır. Takip sorusunun anlamlı yanıtlandığını ayrıca
 insan değerlendirir. Otomatik sözleşme testleri tüm gerçek hatalarda LLM
 yorumunun doğru olduğunu veya sıfır halüsinasyonu kanıtlamaz.
 

@@ -5,6 +5,7 @@ ve uygulanmış teklif kayıtlarını açıklar; bilinmeyen kodlarda da aynı s�
 """
 
 from collections import Counter
+from collections.abc import Callable
 
 from faturaguard.domain.correction import CorrectionJob
 from faturaguard.domain.validation import Finding, Severity
@@ -72,7 +73,7 @@ def finding_context(job: CorrectionJob, finding: Finding) -> str:
     return "\n".join(lines)
 
 
-def comparison_details(job: CorrectionJob) -> str:
+def comparison_details(job: CorrectionJob, *, format_count: Callable[[int], str] = str) -> str:
     if job.corrected_report is None:
         return "Henüz düzeltilmiş bir kopya ve yeniden doğrulama sonucu yok. İlk doğrulama sonucu gösteriliyor."
     before, after = job.report.summary, job.corrected_report.summary
@@ -96,8 +97,8 @@ def comparison_details(job: CorrectionJob) -> str:
     removed, added = initial - current, current - initial
     lines += [
         "",
-        f"İlk doğrulama: {before.error_count} hata, {before.warning_count} uyarı, {before.info_count} bilgi.",
-        f"Yeniden doğrulama: {after.error_count} hata, {after.warning_count} uyarı, {after.info_count} bilgi.",
+        f"İlk doğrulama: {format_count(before.error_count)} hata, {format_count(before.warning_count)} uyarı, {format_count(before.info_count)} bilgi.",
+        f"Yeniden doğrulama: {format_count(after.error_count)} hata, {format_count(after.warning_count)} uyarı, {format_count(after.info_count)} bilgi.",
     ]
     disappeared = sorted(code for code in removed if current[code] == 0)
     if disappeared:
@@ -106,7 +107,7 @@ def comparison_details(job: CorrectionJob) -> str:
         )
     for code in sorted(code for code in removed if current[code]):
         lines.append(
-            f"• {code}: kayıt sayısı {initial[code]} → {current[code]}; bu kod tamamen giderilmiş değil."
+            f"• {code}: kayıt sayısı {format_count(initial[code])} → {format_count(current[code])}; bu kod tamamen giderilmiş değil."
         )
     if not removed:
         lines.append(
@@ -114,7 +115,7 @@ def comparison_details(job: CorrectionJob) -> str:
         )
     if added:
         lines += ["", "Yeni veya sayısı artan bulgular:"]
-        lines += [f"• {code}: {initial[code]} → {current[code]} kayıt." for code in sorted(added)]
+        lines += [f"• {code}: {format_count(initial[code])} → {format_count(current[code])} kayıt." for code in sorted(added)]
         lines.append(
             "Bu farkın nedenini yalnızca bu kayıtlardan kesinleştiremiyorum; yeni bulguları inceleyin."
         )

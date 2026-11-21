@@ -75,14 +75,22 @@ FastAPI uygulaması
   sınırı değişti. Soru, son 6 turun maskeli metinleri ve gerekli bulgu bağlamı
   Gemini/Groq'a gider. `ConversationMask` bilinen XML yaprak metinlerini, PII,
   anahtar, URL/yol ve sayıları filtreler. Teklif tutarları doğrulanan yerel
-  `[VALUE_n]` tokenlarıyla açılır. Ham XML/dosya metadatası payload'a konmaz;
+  `[VALUE_n]` tokenlarıyla açılır. Karşılaştırma raporunun doğrulanmış adetleri
+  `[COUNT_n]` tokenlarıyla açılır; genel maskelerden sayı tahmin edilmez.
+  Tutar tokenları noktalama sonlarında da bağlanır ve PII regex'inden önce
+  korunur; gerçek parasal değer sağlayıcıya verilmez. Ham XML/dosya metadatası payload'a konmaz;
   orijinal belge okunamazsa sağlayıcı çağrılmaz. Serbest özel isimlerin tamamını
   maskelediği garanti edilmez; arayüz kişisel bilgi yazılmamasını belirtir.
 - Araç adları: current_findings, correction_proposals, validation_comparison,
   official_sources. Başka iş kimliği, dosya yolu, URL veya yazma argümanı kabul
   edilmez. RAG eski güvenilir kod sözlüğü ve kanıt eşiğini kullanır. Atıflar
   yalnızca gerçekten getirilen kanıt ID'lerinden kurulur; bilinmeyen atıf/değer
-  tokenı ve modelin yazdığı URL reddedilir. Gemini store=false; sunucu tarafında
+  tokenı, çözülemeyen sayı/PII maskesi ve modelin yazdığı URL reddedilir.
+  Güncel teklif durumundan approval_available üretilir; hazır teklif yoksa
+  model yeni onay adımı önermemelidir. Bilinen doğrudan onay yönlendirme
+  ifadeleri ayrıca reddedilir; bu kontrol genel anlamsal doğruluğu kanıtlamaz.
+  Karşılaştırma yanıtı reddedilirse yerel yedek genel router yerine doğrudan
+  gerçek önce/sonra kaydını açıklar. Gemini store=false; sunucu tarafında
   konuşma ID'si tutulmaz. Bu ayar bütün sağlayıcı veri saklama politikasını
   ortadan kaldırdığı anlamına gelmez.
 - Her aşamada Gemini → Groq yedeği vardır; iki aşama en çok dört HTTP denemesi

@@ -14,12 +14,14 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ### Ek paket — bağlamlı LLM sohbeti (21.11.2026)
 
-Kullanıcı tarafından onaylandı; uygulama ve 330 otomatik test hazır. Yeni
+Kullanıcı tarafından onaylandı; uygulama ve 375 otomatik test hazır. Yeni
 LangGraph akışı maskeli soruyu/geçmişi yorumlar, şemalı plandan en fazla dört
 salt okunur aracı çalıştırır ve model yanıtını doğrular. UI gizlilik sınırı
 güncellendi; belgesiz/model hatalı durumda açık yerel yedek var. Kod testleri
 sağlayıcı bağımsız sözleşmeyi doğrular. Kullanıcının anahtarlı CMD hesabında
-üç tur canlı kaynak/teklif/karşılaştırma kabulü ve anlamsal inceleme beklenir.
+ilk üç tur canlı Gemini/araç testi çalıştı; üçüncü yanıttaki maskeli sayı ve
+gereksiz onay önerisi nedeniyle anlamsal kabul verilmedi. Tutar/adet tokenları,
+yanıt kontrolü ve canlı smoke güçlendirildi; kullanıcı hesabında tekrar beklenir.
 Bu kabul bitmeden paket tamamlandı sayılmaz. Eski asistanın aşağıdaki canlı
 kabulü yalnızca önceki yerel yönlendirici sürümüne aittir.
 

@@ -1,13 +1,37 @@
 """Demo belgesinde gerçek LLM sohbeti, araç seçimi ve takip bağlamı kabulü."""
 
 import json
+import re
 from hashlib import sha256
 from pathlib import Path
 
 from faturaguard.config import settings
 from faturaguard.main import _create_agent
-from faturaguard.services.conversational_chat import create_conversational_chat
+from faturaguard.services.conversational_chat import (
+    create_conversational_chat,
+    has_unresolved_chat_tokens,
+)
 from faturaguard.services.job_repository import SqliteCorrectionJobStore
+
+
+def validate_turn(turn, index, job):
+    if turn.mode != "llm_chat":
+        raise SystemExit("Gerçek LLM sohbeti alınamadı; yerel yedek sonucu başarı sayılmadı.")
+    required_tool = ["official_sources", "correction_proposals", "validation_comparison"][index - 1]
+    if required_tool not in turn.tools_used or (index == 1 and not turn.citations):
+        raise SystemExit("Sorunun gerektirdiği araç/kaynak kullanılmadı; canlı çıktı incelenmeli.")
+    if has_unresolved_chat_tokens(turn.answer):
+        raise SystemExit("Yanıtta çözülemeyen sayı/maskeleme tokenı var; canlı kabul başarısız.")
+    if index == 3:
+        # Modelin yalnızca 'değişti' demesini değil, kayıtlı iki değeri gerçekten
+        # açıklamasını isteriz. Türkçe ondalık virgülü de geçerli sunumdur.
+        normalized = turn.answer.replace(",", ".")
+        for proposal in job.proposals:
+            if proposal.status == "applied" and any(
+                not re.search(r"(?<![\w.,])" + re.escape(value.replace(",", ".")) + r"(?!\w|[.,]\d)", normalized)
+                for value in (proposal.before, proposal.after)
+            ):
+                raise SystemExit("Karşılaştırma uygulanmış teklifin önce/sonra değerlerini açıklamadı.")
 
 
 def main() -> None:
@@ -30,7 +54,7 @@ def main() -> None:
     questions = [
         ("Bu bulgunun bu belgedeki anlamını resmî kaynağına dayanarak anlatır mısın?", finding.code),
         ("Peki bunun için şu anda uygulanabilir bir teklif var mı, ben ne yapmalıyım?", ""),
-        ("İlk kontrolle en son kontrolü karşılaştır; neyin değiştiği kayıtlı, ne hâlâ duruyor?", ""),
+        ("İlk kontrolle en son kontrolü karşılaştır: hata/uyarı/bilgi adetlerini, uygulanan alanların önce/sonra değerlerini ve kalan durumu açıkça yaz.", ""),
     ]
     evidence = []
     for index, (question, code) in enumerate(questions, 1):
@@ -39,11 +63,7 @@ def main() -> None:
         print(f"tools={','.join(turn.tools_used)} citations={len(turn.citations)}")
         print(turn.answer)
         print()
-        if turn.mode != "llm_chat":
-            raise SystemExit("Gerçek LLM sohbeti alınamadı; yerel yedek sonucu başarı sayılmadı.")
-        required_tool = ["official_sources", "correction_proposals", "validation_comparison"][index - 1]
-        if required_tool not in turn.tools_used or (index == 1 and not turn.citations):
-            raise SystemExit("Sorunun gerektirdiği araç/kaynak kullanılmadı; canlı çıktı incelenmeli.")
+        validate_turn(turn, index, selected)
         selected.chat_history.append(turn)
         evidence.append({"turn": index, "mode": turn.mode, "providers": turn.providers,
                          "tools": turn.tools_used, "citations": len(turn.citations)})
@@ -53,6 +73,7 @@ def main() -> None:
     target = settings.data_directory / "evaluation" / "document_conversation_acceptance.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps({"turns": evidence, "xml_changed": False,
+                                 "no_unresolved_tokens": True, "applied_amounts_present": True,
                                  "semantic_review": "Kullanıcı üç yanıtın anlamını ayrıca değerlendirmeli."},
                                 ensure_ascii=False, indent=2), encoding="utf-8")
     print("xml_changed=false (orijinal ve varsa düzeltilmiş kopya hash kontrolü)")

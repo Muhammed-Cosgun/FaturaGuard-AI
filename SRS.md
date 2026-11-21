@@ -57,6 +57,9 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
   araç çağrısı seçilebilir; serbest yol/iş kimliği/URL veya yazma aracı yoktur.
 - Model veya geçerli şema/atıf hazır değilse açıkça etiketlenen yerel yedek
   yanıt verilir; modelin kullanıldığı izlenimi yaratılmaz.
+- Sayı/PII maskeleri kullanıcı yanıtında bırakılamaz. Teklif tutarları ve
+  karşılaştırma adetleri yalnızca doğrulanmış yerel tokenlarla açılır; bilinmeyen
+  token reddedilir. Yeni onay önerisi güncel onaylanabilir teklif durumuna bağlıdır.
 - Sohbet XML değişikliği, teklif onayı/reddi, imza, silme veya gönderim yapamaz.
 - Son 20 soru-cevap ilgili işin yerel SQLite kaydında tutulur; JSON işlem raporuna
   eklenmez. Audit yalnızca mod/bulgu/atıf sayısı, sağlayıcı denemeleri, araç

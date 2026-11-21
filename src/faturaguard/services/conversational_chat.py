@@ -15,7 +15,7 @@ from lxml import etree
 from pydantic import BaseModel, ConfigDict, Field
 
 from faturaguard.domain.chat import ChatCitation, ChatTurn
-from faturaguard.services.document_chat import DocumentChat
+from faturaguard.services.document_chat import DocumentChat, normalize
 from faturaguard.services.document_insights import comparison_details, finding_context
 from faturaguard.services.privacy_redactor import privacy_redactor
 from faturaguard.services.source_backed_explanation import (
@@ -101,6 +101,7 @@ class ConversationMask:
     def __init__(self, job):
         self.private = {job.original_filename, job.original_path, job.original_sha256}
         self.values: dict[str, str] = {}
+        self.counts: dict[str, str] = {}
         for proposal in job.proposals:
             for value in (proposal.before, proposal.after):
                 if re.fullmatch(r"-?\d+(?:[.,]\d+)?", value):
@@ -126,20 +127,42 @@ class ConversationMask:
         for private in sorted(self.private, key=len, reverse=True):
             if private:
                 text = re.sub(re.escape(private), "[MASKED]", text, flags=re.IGNORECASE)
-        text = privacy_redactor.redact_text(text)
         if values:
             for token, value in sorted(self.values.items(), key=lambda item: len(item[1]), reverse=True):
-                text = re.sub(r"(?<![\w.])" + re.escape(value) + r"(?![\w.])", token, text)
+                # Cümle sonu nokta/virgülü sayıdan ayır; bir başka ondalığın
+                # veya kimliğin içindeki alt parçayı tutar olarak eşleme.
+                text = re.sub(r"(?<![\w.,])" + re.escape(value) + r"(?!\w|[.,]\d)", token, text)
+        # Doğrulanmış tutar tokenları önce bağlanır; büyük parasal değerler
+        # telefon/VKN regex'i tarafından kaybedilmez. Gerçek tutar dışarı gitmez.
+        text = privacy_redactor.redact_text(text)
         # Token numaraları ve bulgu kodlarındaki rakamlar korunur.
         return re.sub(r"(?<![\w_])\d+(?:[.,]\d+)?(?![\w\]])", "[NUMBER]", text)[:7000]
 
+    def count_token(self, count: int) -> str:
+        """Yalnızca yerel raporun gerçek bulgu adetleri için çağrılır."""
+        value = str(count)
+        for token, existing in self.counts.items():
+            if existing == value:
+                return token
+        token = f"[COUNT_{len(self.counts) + 1}]"
+        self.counts[token] = value
+        return token
+
     def restore(self, text):
-        tokens = set(re.findall(r"\[VALUE_\d+\]", text))
-        if not tokens.issubset(self.values):
-            raise ValueError("Bilinmeyen değer tokenı.")
-        for token, value in self.values.items():
+        bindings = self.values | self.counts
+        tokens = set(re.findall(r"\[(?:VALUE|COUNT)_\d+\]", text))
+        if not tokens.issubset(bindings):
+            raise ValueError("Bilinmeyen sayısal token.")
+        for token, value in bindings.items():
             text = text.replace(token, value)
+        if has_unresolved_chat_tokens(text):
+            raise ValueError("Yanıtta çözülemeyen maskeleme tokenı.")
         return text
+
+
+def has_unresolved_chat_tokens(text: str) -> bool:
+    """Kullanıcı çıktısında gizlilik/bağlama yer tutucusu bırakılamaz."""
+    return bool(re.search(r"\[(?:NUMBER|MASKED|VALUE|COUNT)(?:_|\b)", text, re.IGNORECASE))
 
 
 class ChatState(TypedDict, total=False):
@@ -167,12 +190,22 @@ Yalnızca TOOLS içindeki güncel gerçekleri kullan; eski yanıtı güncel ger�
 Ham XML'e erişimin ve değişiklik/onay/imza/gönderim aracın yok. Yapmış gibi konuşma.
 Önerilen ile uygulananı ayır; bir kontrolün geçmesi GİB gönderim onayı değildir.
 Tutarları hesaplama/uydurma; varsa [VALUE_n] tokenlarını aynen kullan; yerelde açılacak.
+Bulgu adetleri için güvenilir counts/initial_counts/current_counts alanlarını veya
+[COUNT_n] tokenlarını kullan; bu tokenlar yerelde gerçek adetlere açılır. [NUMBER]
+ve [MASKED...] bilinmeyen özel veridir; bunları yanıtta kopyalama, gerekirse eksik
+veriyi açıkla. Maske yerine sayı tahmin etme. Eski konuşmadaki maskeyi güncel veriye tercih etme.
 Kaynak yoksa kesin GİB kuralı/teknik neden uydurma, kanıt eksikliğini açıkça söyle.
 Kaynaklı teknik açıklamada yalnızca verilen evidence ID'lerini citation_ids'e koy.
 URL üretme. Kaynağın desteklemediği özel hata nedenini varsayma. Genel nasihat yerine
 ilgili bulgu, değişen alan, giderilen/kalan uyarılar ve sonraki adımı soruya göre açıkla.
-Kapsam dışıysa belge incelemesine yönlendir; mutation ise sonuç ekranındaki onay
-sürecine yönlendir. JSON answer ve citation_ids alanlarını doldur."""
+workflow_state.approval_available false ise yeni bir düzeltme onayı veya onay
+sürecine geçiş önerme; uygulanmış teklifi yeniden onaylatma. İmza bu uygulamanın
+dışındaki yetkili süreçtir; bu site imza/onay/gönderim işlemi yapmaz. Kaynak olmadan
+imza hakkında önceki yanıttan yeni kesin teknik kural üretme.
+Kapsam dışıysa belge incelemesine yönlendir. Mutation isteğinde yalnızca
+approval_available true ise sonuç ekranındaki hazır teklifin onayına yönlendir;
+false ise şu anda onaylanabilir teklif bulunmadığını belirt.
+JSON answer ve citation_ids alanlarını doldur."""
 
 
 class ConversationalDocumentChat:
@@ -189,12 +222,22 @@ class ConversationalDocumentChat:
         if finding_code and finding_code not in findings:
             raise ValueError("Seçilen bulgu bu işlemde bulunmuyor.")
         tools_used, citations = [], {}
+        approval_available = any(p.status == "proposed" and
+                                 (p.agent_plan or {}).get("decision") == "propose"
+                                 for p in job.proposals)
         attempted = len(self.model.attempted)
         try:
             mask = ConversationMask(job)
             context = {
                 "question": mask.text(question, values=True), "selected_finding": finding_code,
                 "available_codes": list(findings)[:100],
+                "workflow_state": {
+                    "approval_available": approval_available,
+                    "applied_proposal_count": sum(p.status == "applied" for p in job.proposals),
+                    "pending_proposal_count": sum(p.status == "proposed" for p in job.proposals),
+                    "signature_action_in_this_app": False,
+                    "revalidated": job.corrected_report is not None,
+                },
                 "history": [{"question": mask.text(t.question, values=True),
                              "answer": mask.text(t.answer, values=True)[:1600],
                              "finding_code": t.finding_code} for t in job.chat_history[-6:]],
@@ -248,7 +291,7 @@ class ConversationalDocumentChat:
                             "initial_counts": counts(job.report),
                             "current_counts": counts(job.corrected_report or job.report),
                             "revalidated": job.corrected_report is not None,
-                            "detail": mask.text(comparison_details(job), values=True),
+                            "detail": mask.text(comparison_details(job, format_count=mask.count_token), values=True),
                         }
                     else:
                         evidence = (self.source_agent.chat_evidence(findings[call.finding_code])
@@ -286,6 +329,11 @@ class ConversationalDocumentChat:
                 raise ValueError("Kaynaklı yanıtta atıf eksik.")
             if re.search(r"https?://|www\.", result.answer):
                 raise ValueError("Model metninde doğrulanmamış bağlantı.")
+            if not approval_available and re.search(
+                r"\b(?:onay(?:lama)? (?:surecine|asamasina) (?:gec|ilerle)|"
+                r"(?:teklifi|duzeltmeyi|duzeltmeleri) onayla)", normalize(result.answer)
+            ):
+                raise ValueError("Hazır teklif olmadan onay adımı önerildi.")
             return ChatTurn(question=question, answer=mask.restore(result.answer), mode="llm_chat",
                             finding_code=finding_code or None,
                             citations=[citations[key] for key in dict.fromkeys(result.citation_ids)],
@@ -294,6 +342,8 @@ class ConversationalDocumentChat:
         except (LLMUnavailableError, ValueError, RuntimeError):
             # Model olmadan eski router yalnızca yerel kayıtları açıklar; başka LLM çağırmaz.
             fallback = DocumentChat().answer(job, question, finding_code)
+            if "validation_comparison" in tools_used:
+                fallback = fallback.model_copy(update={"answer": comparison_details(job), "citations": []})
             return fallback.model_copy(update={
                 "answer": "AI sohbet yanıtı şu anda hazırlanamadı. Yerel kayıt özeti:\n\n" + fallback.answer,
                 "mode": "local_fallback", "tools_used": tools_used,

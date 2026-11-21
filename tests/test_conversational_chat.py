@@ -1,5 +1,6 @@
 import asyncio
 import json
+import runpy
 from dataclasses import replace
 from hashlib import sha256
 from pathlib import Path
@@ -19,6 +20,7 @@ from faturaguard.services.conversational_chat import (
     ConversationMask,
     ConversationModel,
     ConversationPlan,
+    has_unresolved_chat_tokens,
 )
 from faturaguard.services.source_backed_explanation import LLMUnavailableError
 
@@ -311,3 +313,81 @@ def test_missing_evidence_is_explicit_in_model_context(document):
     turn = ConversationalDocumentChat(model, agent).answer(document, "GİB ne diyor?")
     assert model.calls[1][1]["TOOLS"]["official_sources"]["status"] == "insufficient_official_evidence"
     assert not turn.citations and "kesin yorum yapamıyorum" in turn.answer
+
+
+@pytest.mark.parametrize("before,after", [
+    ("15.00", "15.15"), ("1000000.00", "1000001.25"),
+    ("1234567890.12", "1234567891.12"), ("-15.00", "-15.15"), ("15,00", "15,15"),
+])
+@pytest.mark.parametrize("ending", [".", ", sonraki adım", ";", ")", "!", "?"])
+def test_amount_tokens_survive_sentence_punctuation_and_pii_filters(document, before, after, ending):
+    document.proposals[0].before, document.proposals[0].after = before, after
+    mask = ConversationMask(document)
+    text = f"Dip toplam: {before} → {after}{ending}"
+    encoded = mask.text(text, values=True)
+    assert "[VALUE_1]" in encoded and "[VALUE_2]" in encoded
+    assert before not in encoded and after not in encoded
+    assert mask.restore(encoded) == text
+
+
+def test_amount_substrings_of_larger_numbers_and_ids_are_not_bound(document):
+    mask = ConversationMask(document)
+    assert "[VALUE_" not in mask.text("115.00 15.150 ABC15.15 15.15X", values=True)
+
+
+def test_comparison_sends_bound_counts_and_both_applied_amounts(document):
+    document.proposals[0].status = "applied"
+    document.corrected_report = document.report.model_copy(deep=True)
+    document.corrected_report.findings = []
+    document.corrected_report.summary.warning_count = 0
+    model = Model(tools=[{"name": "validation_comparison", "finding_code": ""}],
+                  answer="İlk kontrol [COUNT_2] uyarı; son kontrol [COUNT_1] uyarı. Tutar [VALUE_1] → [VALUE_2].")
+    turn = ConversationalDocumentChat(model).answer(document, "İlk ve son kontrolü karşılaştır")
+    data = model.calls[1][1]["TOOLS"]["validation_comparison"]
+    assert "[COUNT_1] hata, [COUNT_2] uyarı, [COUNT_1] bilgi" in data["detail"]
+    assert "[VALUE_1] → [VALUE_2]." in data["detail"]
+    assert "[NUMBER]" not in data["detail"]
+    assert turn.mode == "llm_chat" and "1 uyarı; son kontrol 0 uyarı" in turn.answer
+    assert "15.00 → 15.15." in turn.answer and "[" not in turn.answer
+    assert model.calls[1][1]["workflow_state"]["approval_available"] is False
+
+
+@pytest.mark.parametrize("token", ["[NUMBER]", "[number]", "[MASKED_PHONE]", "[MASKED]", "[COUNT_999]", "[COUNT_1", "[VALUE_999]"])
+def test_unresolved_placeholders_never_reach_user_even_on_free_wording(document, token):
+    model = Model(tools=[{"name": "validation_comparison", "finding_code": ""}],
+                  answer=f"Dip toplam {token} olarak değişti.")
+    turn = ConversationalDocumentChat(model).answer(document, "İlk kontrolle en son kontrolü karşılaştır")
+    assert turn.mode == "local_fallback" and not has_unresolved_chat_tokens(turn.answer)
+    assert "Henüz düzeltilmiş bir kopya" in turn.answer
+
+
+@pytest.mark.parametrize("status,ready", [("applied", False), ("rejected", False), ("proposed", True)])
+def test_next_step_is_bound_to_current_approval_availability(document, status, ready):
+    document.proposals[0].status = status
+    model = Model(answer="Sonuç ekranındaki onay sürecine geçebilirsiniz.")
+    turn = ConversationalDocumentChat(model).answer(document, "Şimdi ne yapmalıyım?")
+    assert model.calls[1][1]["workflow_state"]["approval_available"] is ready
+    assert turn.mode == ("llm_chat" if ready else "local_fallback")
+    if not ready:
+        assert "onay sürecine geçebilirsiniz" not in turn.answer
+
+
+@pytest.mark.parametrize("answer", [
+    "İlk kontrol [NUMBER] uyarı; toplam 15.00 → [NUMBER].",
+    "İlk kontrol 1 uyarı; toplam değişti.",
+])
+def test_live_smoke_does_not_accept_missing_values_or_masks(document, answer):
+    document.proposals[0].status = "applied"
+    namespace = runpy.run_path(str(Path(__file__).resolve().parents[1] / "scripts/run_document_chat_smoke_test.py"))
+    turn = ChatTurn(question="Karşılaştır", answer=answer, mode="llm_chat",
+                    tools_used=["validation_comparison"])
+    with pytest.raises(SystemExit):
+        namespace["validate_turn"](turn, 3, document)
+
+
+def test_live_smoke_accepts_complete_comparison_with_local_amounts(document):
+    document.proposals[0].status = "applied"
+    namespace = runpy.run_path(str(Path(__file__).resolve().parents[1] / "scripts/run_document_chat_smoke_test.py"))
+    turn = ChatTurn(question="Karşılaştır", answer="İlk kontrol 1 uyarı; toplam 15,00 → 15,15.",
+                    mode="llm_chat", tools_used=["validation_comparison"])
+    namespace["validate_turn"](turn, 3, document)

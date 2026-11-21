@@ -10,9 +10,13 @@ salt okunur araç → LLM final yanıtı. Eski DocumentChat yalnızca yerel yede
 otomatik maskeli soru/son 6 tur/gerekli bulgular Gemini/Groq'a gönderilir;
 ham XML/dosya kimliği gitmez, teklif tutarları tokenlarla yerelde açılır.
 Maskelemenin kusursuz olmadığı arayüzde açıklanır. Onay/yazma yetkisi eklenmedi.
-330 otomatik test ve Ruff kontrolü geçti; bu sayı canlı anlamsal kabul değildir.
-Kullanıcının kendi CMD'sinde güncellenmiş run_document_chat_smoke_test.py ile
-üç soruluk canlı araç/takip kabulü ve yanıtların insan değerlendirmesi beklenir.
+İlk canlı üç tur Gemini ile llm_chat üretti; araçlar ve atıflar çalıştı, XML
+hash'leri değişmedi. Ancak üçüncü yanıtta [NUMBER] ve yanlış yeni onay adımı
+görüldü; eski smoke başarı mesajı anlamsal kabul sayılmadı. Noktalama/büyük tutar
+token eşleştirmesi düzeltildi, rapor adetleri COUNT tokenıyla bağlandı, çözülemeyen
+token ve hazır teklif yokken onay yönlendirmesi reddediliyor. 375 test/Ruff geçti.
+Güçlendirilmiş run_document_chat_smoke_test.py kullanıcı hesabında tekrar beklenir;
+artık çözülmeyen token ve eksik uygulanmış önce/sonra değerleri başarı sayılmaz.
 Bu canlı kabul yapılmadan yeni sohbet paketini tamamlandı diye işaretleme.
 Aşağıdaki eski chatbot/test sayısı paragrafları tarihî bağlamdır.
 
