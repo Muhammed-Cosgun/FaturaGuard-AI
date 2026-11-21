@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>İşlem raporu · FaturaGuard AI</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/document-chat.css') }}">
   </head>
-  <body>
+  <body class="document-page">
     <div class="app-shell"><header class="topbar"><div class="topbar-inner"><a class="brand" href="/">FaturaGuard <span>AI</span></a><span class="environment-badge">DENETİM RAPORU</span><nav class="site-nav" aria-label="Ana menü"><a href="/">Doğrulama</a><a class="nav-active" href="/history">İşlem geçmişi</a></nav></div></header>
-    <main class="container report">
+    <main class="container report document-workspace has-document-chat">
+      <div class="document-content">
       <div class="page-heading"><div><p class="eyebrow">DENETİM RAPORU</p><h1>İşlem kanıtları</h1></div><a class="quiet-link" href="/history">← İşlem geçmişi</a></div>
       <section class="notice">
         <h2>{{ job.original_filename }}</h2>
@@ -62,9 +64,10 @@
         </ul>
       </section>
       {% endif %}
-      {% include 'document_chat.html' %}
       <p class="metadata">Tam XML dosyası bu rapora eklenmez; yukarıdaki diff XML parçaları içerebilir.</p>
       <p class="bottom-actions"><a class="button-link secondary-link" href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
+      </div>
+      {% include 'document_chat.html' %}
     </main>
     <footer class="site-footer"><div>FaturaGuard AI · Denetlenebilir işlem kaydı</div><div>Rapor XML içeriğini içermez</div></footer></div>
   </body>

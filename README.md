@@ -203,6 +203,10 @@ python scripts\generate_arithmetic_demo_fixtures.py
 ## Fatura İnceleme Asistanı
 
 Doğrulama sonucu ve işlem raporunda belgeye bağlı sohbet paneli bulunur.
+Masaüstünde panel sağ tarafta görünür kalır; mesajlar ayrı kaydırılır. Dar
+ekranda sağ alttaki “Fatura Asistanı” düğmesiyle açılır; telefonda tam ekran
+kullanılır. Enter mesaj gönderir, Shift+Enter yeni satır ekler. Gizlilik
+ayrıntıları panelin altından açılabilir; kısa gizlilik notu görünür kalır.
 Öncelikli sorunları, teklifin neden onaya hazır olmadığını, önce/sonra sonucunu
 ve kullanım adımlarını sorabilirsiniz. Teknik açıklama için güncel bulgu
 listesinden seçim yapın veya bulgu kodunu yazın.

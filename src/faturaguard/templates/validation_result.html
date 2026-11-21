@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Doğrulama sonucu · FaturaGuard AI</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/document-chat.css') }}">
   </head>
-  <body>
+  <body class="document-page">
     <div class="app-shell"><header class="topbar"><div class="topbar-inner"><a class="brand" href="/">FaturaGuard <span>AI</span></a><span class="environment-badge">GÜVENLİ ÇALIŞMA ALANI</span><nav class="site-nav" aria-label="Ana menü"><a class="nav-active" href="/">Doğrulama</a><a href="/history">İşlem geçmişi</a></nav></div></header>
-    <main class="container result-page">
+    <main class="container result-page document-workspace{% if job and not error %} has-document-chat{% endif %}">
+      <div class="document-content">
       <div class="page-heading"><div><p class="eyebrow">DOĞRULAMA SONUCU</p><h1>Belge analizi</h1></div><a class="quiet-link" href="/">+ Yeni doğrulama</a></div>
       {% if error %}
         <section class="notice error"><h2>İşlem tamamlanamadı</h2><p>{{ error }}</p></section>
@@ -123,10 +125,11 @@
           <h3>XML farkı</h3><pre>{{ job.diff }}</pre>
         </section>
         {% endif %}
-        {% include 'document_chat.html' %}
         <p><a href="/jobs/{{ job.job_id }}/report">İşlem raporunu görüntüle</a> · <a href="/jobs/{{ job.job_id }}/report.json">JSON olarak indir</a></p>
       {% endif %}
       <p class="bottom-actions"><a class="button-link secondary-link" href="/">Yeni belge yükle</a></p>
+      </div>
+      {% if job and not error %}{% include 'document_chat.html' %}{% endif %}
     </main>
     <footer class="site-footer"><div>FaturaGuard AI · Karar ve kaynak kayıtları denetlenebilir biçimde tutulur</div><div>GİB’e doğrudan gönderim yapmaz</div></footer></div>
     <script>

@@ -2,6 +2,18 @@
 
 ## Aktif geliştirme
 
+22.11.2026: Kullanıcı sohbeti sağda bağımsız panel istedi. feature/sidebar-document-chat
+dalında sonuç/rapor iki sütuna ayrıldı; sağda sticky, kendi mesaj alanı kaydırılan
+panel var. 1100 CSS px altı JS ile launcher + drawer (telefonda tam ekran),
+Escape/odak döngüsü/geri odak ve arka plan inert/scroll kilidi var. Balonlar,
+Enter/Shift+Enter, otomatik büyüyen giriş, karakter sayacı, pending/hata ve taslak
+koruması tamamlandı. Gizlilik kısa notu görünür; ayrıntılar açılabilir. JS yokken
+normal inline panel/form kalır. Backend/LLM sözleşmesi değiştirilmedi.
+405 test, Ruff, node --check geçti. İzole demo sunucusunda masaüstü/tablet/telefon,
+sticky konum, boş sohbet, hızlı soru, klavye, hata ve taslak koruması doğrulandı;
+canlı sağlayıcı testi değildir. Görseller proje dışındaki outputs klasöründe
+sidebar-chat-desktop.jpg / sidebar-chat-mobile.jpg. Kontrol sonrası main'e ff.
+
 Son UI incelemesi: model uygulanmış teklifi onaya uygun değil diye anlatmış,
 0 hatayı giderilmiş saymış ve bilgi kaydını uyarı diye adlandırmış. Genel
 chat_facts katmanı eklendi: teklif için approval reason; karşılaştırma için

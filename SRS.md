@@ -37,6 +37,15 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 
 ## Belgeye bağlı sohbet asistanı — ek kapsam
 
+- Sonuç ve rapor ekranlarında masaüstünde sohbet sağ sütunda görünür kalır;
+  mesaj alanı belgeden bağımsız kaydırılır. Dar ekranda açılır/kapanır panel,
+  telefonda tam ekran görünüm kullanılır. Panel Escape ile kapanır ve odağı
+  açma düğmesine döndürür; açık mobil panelde klavye odağı dışarı çıkmaz.
+- JS açıkken Enter gönderir, Shift+Enter yeni satır ekler. Kullanıcının yeni
+  taslağı yanıt beklerken korunur; bekleme/hata durumları görünür ve erişilebilirdir.
+  Maskeli dış işleme ve kişisel bilgi yazmama notu sürekli görünür; gizlilik
+  ayrıntıları açılabilir. JS kapalıyken normal form ve inline sohbet çalışır.
+
 - Bütün bulgu kodları için aynı kayıt temelli açıklama sözleşmesi uygulanır:
   tespit edilen durum, XML konumu, yerel kural, izinli teklif/bağımlılık durumu
   ve sonraki inceleme adımı. Kaynaklı LLM yorumu bu gerçeklerden ayrı gösterilir.

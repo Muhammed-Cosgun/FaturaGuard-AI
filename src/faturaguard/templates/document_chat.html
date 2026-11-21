@@ -1,12 +1,23 @@
-<section class="notice document-chat" aria-labelledby="chat-heading" data-document-chat>
-  <div class="section-heading">
-    <div><p class="section-label">BELGEYE BAĞLI ASİSTAN</p><h2 id="chat-heading">Fatura İnceleme Asistanı</h2></div>
-    <span class="step-chip">Yalnızca açıklama</span>
+<button type="button" class="chat-launcher" data-chat-open aria-controls="document-chat-panel" aria-expanded="false" hidden>
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2v-10a9 9 0 0 1 18 0Z"/><path d="M7 10h8M7 14h5"/></svg>
+  Fatura Asistanı
+</button>
+<div class="chat-backdrop" data-chat-backdrop hidden></div>
+<aside id="document-chat-panel" class="document-chat" aria-labelledby="chat-heading" data-document-chat>
+  <header class="chat-header">
+    <span class="chat-avatar" aria-hidden="true">FG<span>✦</span></span>
+    <div class="chat-heading"><p>BELGEYE BAĞLI ASİSTAN</p><h2 id="chat-heading">Fatura İnceleme Asistanı</h2><span class="chat-readonly">Yalnızca açıklama</span></div>
+    <button type="button" class="chat-close" data-chat-close aria-label="Sohbeti kapat" hidden>×</button>
+  </header>
+  <div class="chat-document" title="{{ job.original_filename }}">
+    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 2h7l4 4v12H4V2h1Zm7 0v5h4M7 11h6M7 14h4"/></svg>
+    <span>{{ job.original_filename }}</span><small>Bu belgeye özel</small>
   </div>
-  <p class="metadata">AI ile bu belgeyi ve takip sorularınızı inceleyebilirsiniz. Sorunuzun, son 6 soru-cevabın ve gerekli belge bulgularının otomatik maskelenmiş hâli Gemini/Groq sağlayıcısına gönderilir. Ham XML gönderilmez. Maskeleme her özel bilgiyi yakalayamayabilir; sorunuza kişisel bilgi veya API anahtarı yazmayın. Sohbet XML'i değiştirmez ve düzeltme onayı vermez.</p>
-  <p class="metadata">Önceki yanıtlar soruldukları andaki durumu anlatır. Düzeltme sonrası güncel sonuç için yeniden sorun veya “Önce / sonra” seçeneğini kullanın.</p>
-  <div class="chat-messages" role="log" aria-label="Bu belgenin sohbeti" aria-live="polite" tabindex="0">
-    <p class="chat-empty" {% if job.chat_history %}hidden{% endif %}>Öncelikli sorunları sorabilir veya bir bulgu seçerek resmî kaynaklı açıklama isteyebilirsiniz.</p>
+  <div class="chat-messages" role="log" aria-label="Bu belgenin sohbeti" aria-live="polite" aria-relevant="additions text" tabindex="0">
+    <div class="chat-empty" {% if job.chat_history %}hidden{% endif %}>
+      <span class="chat-empty-icon" aria-hidden="true">✦</span><h3>Belgeyi birlikte inceleyelim</h3>
+      <p>Bulguları anlamak, düzeltmeleri incelemek veya önce / sonra sonucunu karşılaştırmak için sorun.</p>
+    </div>
     {% for turn in job.chat_history %}
     <article class="chat-turn">
       <p class="chat-question"><strong>Siz</strong><span>{{ turn.question }}</span></p>
@@ -16,19 +27,32 @@
     </article>
     {% endfor %}
   </div>
-  <form action="/jobs/{{ job.job_id }}/chat" method="post" class="chat-form">
-    <div class="chat-prompts" aria-label="Örnek sorular">
-      <button type="button" class="secondary" data-chat-prompt="Öncelikli sorunları özetle">Öncelikli sorunlar</button>
-      <button type="button" class="secondary" data-chat-prompt="Düzeltme teklifini ve düğmenin durumunu açıkla">Düzeltmeyi açıkla</button>
-      <button type="button" class="secondary" data-chat-prompt="Düzeltmeden sonra ne değişti?">Önce / sonra</button>
-    </div>
-    {% set current_report = job.corrected_report or job.report %}
-    <label for="chat-finding">İsteğe bağlı: açıklanacak güncel bulgu</label>
-    <select id="chat-finding" name="finding_code"><option value="">Genel işlem sorusu</option>{% for finding in current_report.findings %}<option value="{{ finding.code }}">{{ finding.code }}</option>{% endfor %}</select>
-    <label for="chat-question">Bu belgeyle ilgili sorunuz</label>
-    <textarea id="chat-question" name="question" rows="2" maxlength="600" required placeholder="Örneğin: Bu hatayı nasıl incelemeliyim?"></textarea>
-    <div class="chat-send-row"><button type="submit">Asistana sor</button><span class="chat-status metadata" role="status"></span></div>
-  </form>
-  <p class="metadata">Son 20 soru-cevap bu işlemle birlikte yerelde saklanır. AI yalnızca bu belgenin bulgularını, tekliflerini, önce/sonra sonuçlarını ve resmî GİB kaynaklarını salt okunur araçlarla inceler. Model erişilemezse yerel yedek yanıt açıkça belirtilir.</p>
-</section>
+  <div class="chat-compose-area">
+    <form action="/jobs/{{ job.job_id }}/chat" method="post" class="chat-form">
+      <div class="chat-prompts" aria-label="Örnek sorular">
+        <button type="button" data-chat-prompt="Öncelikli sorunları özetle">Sorunları özetle</button>
+        <button type="button" data-chat-prompt="Düzeltme teklifini ve düğmenin durumunu açıkla">Düzeltmeyi açıkla</button>
+        <button type="button" data-chat-prompt="Düzeltmeden sonra ne değişti?">Önce / sonra</button>
+      </div>
+      {% set current_report = job.corrected_report or job.report %}
+      <details class="chat-context-picker">
+        <summary>Bir bulguya odaklan <span>İsteğe bağlı</span></summary>
+        <label class="chat-sr-only" for="chat-finding">Açıklanacak güncel bulgu</label>
+        <select id="chat-finding" name="finding_code"><option value="">Genel işlem sorusu</option>{% for finding in current_report.findings %}<option value="{{ finding.code }}">{{ finding.code }}</option>{% endfor %}</select>
+      </details>
+      <div class="chat-composer">
+        <label class="chat-sr-only" for="chat-question">Bu belgeyle ilgili sorunuz</label>
+        <textarea id="chat-question" name="question" rows="2" maxlength="600" required placeholder="Bu belgeyle ilgili bir şey sorun…" aria-describedby="chat-privacy-note"></textarea>
+        <div class="chat-composer-actions"><span class="chat-key-hint">Enter gönderir · Shift+Enter yeni satır</span><output class="chat-character-count" data-chat-count aria-label="Karakter sayısı">0 / 600</output><button type="submit" class="chat-submit" aria-label="Mesajı gönder">Gönder <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 16V4m-5 5 5-5 5 5"/></svg></button></div>
+      </div>
+      <span class="chat-status" role="status"></span>
+    </form>
+    <p id="chat-privacy-note" class="chat-privacy-note">Maskelenmiş sorular AI sağlayıcısına iletilir. Kişisel bilgi veya API anahtarı yazmayın.</p>
+    <details class="chat-privacy"><summary>Gizlilik ve sohbet hakkında</summary><div>
+      <p>Sorunuzun, son 6 soru-cevabın ve gerekli belge bulgularının otomatik maskelenmiş hâli Gemini/Groq sağlayıcısına gönderilir. Ham XML gönderilmez. Maskeleme her özel bilgiyi yakalayamayabilir.</p>
+      <p>Sohbet XML'i değiştirmez ve düzeltme onayı vermez. Son 20 soru-cevap bu işlemle birlikte yerelde saklanır. Model erişilemezse yerel yedek yanıt belirtilir.</p>
+      <p>Önceki yanıtlar soruldukları andaki durumu anlatır. Düzeltme sonrası güncel sonuç için yeniden sorun veya “Önce / sonra” seçeneğini kullanın.</p>
+    </div></details>
+  </div>
+</aside>
 <script src="{{ url_for('static', path='/document-chat.js') }}" defer></script>

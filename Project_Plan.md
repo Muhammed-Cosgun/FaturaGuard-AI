@@ -12,6 +12,15 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ## 3. İş paketleri ve çıktılar
 
+### Ek paket — bağımsız sağ sohbet paneli (22.11.2026)
+
+Tamamlandı: sonuç/rapor sayfaları iki sütun, sağda sticky sohbet ve ayrı mesaj
+kaydırması; dar ekranda açılır panel/telefonda tam ekran. Mesaj balonları,
+gönderim alanı, klavye kısayolları, pending/hata/taslak koruması ve mobil odak
+yönetimi mevcut. 405 test/Ruff/node sözdizimi ve izole gerçek tarayıcıda
+masaüstü/tablet/telefon kontrolleri geçti. Bu paket yalnızca arayüzdür;
+LLM sağlayıcı kabulü tekrar açılmadı. Yerel masaüstü/mobil görseller kaydedildi.
+
 ### Ek paket — bağlamlı LLM sohbeti (21.11.2026)
 
 Kullanıcı tarafından onaylandı; son UI kalite düzeltmesiyle 405 otomatik test hazır. Yeni

@@ -66,6 +66,15 @@ FastAPI uygulaması
 
 ## Çalıştırma ve rapor sınırları
 
+- Sohbet görünümü: sonuç/rapor şablonları document-content ve document_chat
+  aside'ını CSS Grid ile ayırır. document-chat.css masaüstünde sticky panel ve
+  bağımsız mesaj scroll'u sağlar. 1100 px altında JS launcher/drawer açar;
+  rol/aria-modal, arka plan inert ve odak döngüsü/geri dönüşü yönetilir. Destekleyen
+  tarayıcıda visualViewport ile mobil görünen alana uyum sağlanır; fiziksel
+  telefon klavyesi ayrı cihaz testinde ölçülmedi. JS yokken aside normal akışta
+  ve standart POST formu erişilebilir kalır. HTML soru/yanıtları escape eder,
+  JS metinleri textContent ile ekler. Pending balonu gerçek model streaming'i değildir.
+
 - Belge asistanı: `ConversationalDocumentChat` LangGraph'ta `interpret_question`
   → `read_document_tools` → `compose_answer` çalıştırır. İlk LLM çağrısı şemalı
   plan üretir; uygulama en fazla dört izinli salt okunur aracı çalıştırır; ikinci
