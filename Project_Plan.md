@@ -12,6 +12,14 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ## 3. İş paketleri ve çıktılar
 
+### Takip — okunabilir durum değerleri
+
+Kullanıcının canlı örneğinde teklif cevabı iki teknik alan reddinden yerel
+yedeğe düşmüştü. Kayıtla uyuşan sınırlı durum bool/enum değerlerinin Türkçe
+sunumu ve dengeli kalın yazı işaretlerinin düz metne dönüşümü eklendi.
+Çelişkili durum ifadeleri reddedilmeye devam eder. 493 test/Ruff ve 24/24 ham
+kalite vakası geçti; yeni canlı sağlayıcı cevabı ayrıca gözlenmedi.
+
 ### Ek paket — sohbet üreticisi, kalite denetimi ve kaynak kartları (22.11.2026)
 
 Üç adım, kullanıcı isteğiyle sıralı test kapılarıyla tamamlandı:

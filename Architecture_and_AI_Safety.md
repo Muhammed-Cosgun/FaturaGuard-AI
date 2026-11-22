@@ -78,6 +78,11 @@ FastAPI uygulaması
   çelişkilerini red koduyla mevcut tek onarım akışına yönlendirir. 24 olumlu/
   olumsuz vaka, doğru metnin yanlış reddedilmesini de kontrol eder. Genel doğal
   dil doğruluğu veya mevzuat destek ilişkisi bu sınırlı kurallarla kanıtlanmaz.
+  Öncesinde prepare_user_answer, kayda uygun approval bool ve sınırlı durum
+  enum değerlerini Türkçeleştirir; çelişen değerler veya diğer anahtarlar
+  değiştirilmeden reddetme denetimine gider. Dengeli kalın yazı yıldızları
+  temizlenir; HTML/Markdown yürütülmez. Tutar tokenları, atıflar ve final
+  sağlayıcı kaydı bu sunum adımında değiştirilmez.
 - Kaynak kartındaki excerpt, yalnızca getirilen resmî chunk'ın modele verilen
   ilk 1800 karakterinden seçilir; güvenilir kod sözlüğünün teknik terimi çevresinde
   kısa bir pencere alınır. Boş/eksik metin yerine alıntı uydurulmaz. HTML autoescape,

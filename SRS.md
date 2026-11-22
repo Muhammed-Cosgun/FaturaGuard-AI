@@ -45,6 +45,10 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
   doğrulama evresi çelişkileri kontrol edilir; geçersiz yanıt mevcut tek onarım
   akışına girer. Olumlu ve olumsuz kalite vakaları çevrimdışı değerlendirilir;
   bu kontrol bütün doğal dil ifadelerinin doğruluk garantisi değildir.
+- Yanıt denetiminden önce yalnızca gerçek kayıtla uyuşan sınırlı onay bool ve
+  durum enum ifadeleri Türkçeleştirilebilir. Çelişkili veya bilinmeyen alanlar
+  sessizce silinmez; kalite kontrolüne bırakılır. Yeni yanıtlar düz metin olarak
+  sunulur; dengeli kalın yazı işaretlerinin temizlenmesi HTML çalıştırmaz.
 - Atıflar başlık, sayfa, kısa alıntı ve resmî belge bağlantısıyla kart olarak
   gösterilir. Alıntı getirilen resmî kanıtın modele sunulan kısmından alınır;
   karttaki alıntıyı model oluşturmaz. Eski kayıtta alıntı yoksa kullanıcıya eksik olduğu belirtilir.

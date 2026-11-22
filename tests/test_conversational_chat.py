@@ -561,7 +561,7 @@ def test_technical_field_leak_is_repaired_before_it_reaches_the_user(document):
                 assert data["rejection_code"] == "technical_field_leak"
                 return schema(answer="Teklif sonuç ekranında kullanıcı onayı bekliyor.", citation_ids=[])
             return result
-    model = RepairModel(answer="approval_available: true")
+    model = RepairModel(answer="approval_available: false")
     turn = ConversationalDocumentChat(model).answer(document, "Teklifin durumu ne?")
     assert turn.mode == "llm_chat" and "approval_available" not in turn.answer
     assert turn.validation_issues == ["technical_field_leak"] and turn.repair_attempted
@@ -573,6 +573,18 @@ def test_repeated_technical_leak_uses_safe_local_summary_and_audits_only_reason(
     assert turn.mode == "local_fallback" and turn.generated_by == "local"
     assert "approval_available" not in turn.answer and turn.failure_code == "technical_field_leak"
     assert turn.validation_issues == ["technical_field_leak", "technical_field_leak"]
+
+
+def test_record_matching_technical_state_is_humanized_without_losing_ai_authorship(document):
+    document.proposals[0].status = "applied"
+    model = Model(tools=[{"name": "correction_proposals", "finding_code": ""}],
+                  answer="Teklif **already_applied** durumunda (approval_available: false).")
+    model.last_provider = "groq"
+    turn = ConversationalDocumentChat(model).answer(document, "Teklifin durumu nedir?")
+    assert turn.mode == "llm_chat" and turn.generated_by == "groq" and not turn.repair_attempted
+    assert "uygulandı" in turn.answer and "onaylanabilir hazır teklif yok" in turn.answer
+    assert "already_applied" not in turn.answer and "approval_available" not in turn.answer
+    assert "**" not in turn.answer
 
 
 def test_source_excerpt_is_bound_to_retrieved_evidence_and_survives_reload(document, tmp_path):

@@ -2,6 +2,16 @@
 
 ## Aktif geliştirme
 
+Son canlı UI paylaşımında yerel SQLite metadata'sı okundu: teklif yanıtı iki
+technical_field_leak nedeniyle yerel yedeğe düştü; önceki karşılaştırma yanıtı
+validation_phase_mismatch sonrası onarılmıştı. Reddedilen metin saklanmadığından
+hangi iç alanın çıktığı kesin bilinmiyor. Kayıtla uyuşan approval_available
+bool ve already_applied/awaiting_user_approval/plan_not_ready terimleri dar
+bir sunum adımında Türkçeleştirilir; çelişkili/bilinmeyenler hâlâ reddedilir.
+Dengeli **kalın** işaretleri yeni yanıt metninde sadeleşir; HTML çalıştırılmaz.
+493 test, Ruff ve 24/24 ham kalite denetimi geçti. Yeni gerçek model çıktısı
+henüz gözlenmedi. Eski sohbet/işlem kayıtları değiştirilmedi.
+
 22.11.2026 kullanıcı üç adımı sırayla ve her adımdan sonra test ederek istedi:
 1) üretici/dayanaklar, 2) teknik alan sızıntısı ve durum kalitesi, 3) alıntılı
 kaynak kartları. Dal feature/chat-provenance-quality-sources. Adım 1 tamamlandı:

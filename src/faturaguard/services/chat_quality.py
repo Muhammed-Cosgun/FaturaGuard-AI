@@ -15,6 +15,35 @@ INTERNAL_FIELDS = (
 FIELD_PATTERN = re.compile(r"\b(?:" + "|".join(INTERNAL_FIELDS) + r")\b", re.IGNORECASE)
 
 
+def prepare_user_answer(answer, job):
+    """Yalnızca kayıtla doğrulanan durumları sadeleştirir; çelişkiyi gizlemez.
+
+    HTML/Markdown çalıştırılmaz. Sayısal tokenlar ve kaynak atıfları değiştirilmez.
+    Diğer iç anahtarlar kalite denetiminde reddedilmeye devam eder.
+    """
+    ready = any(p.status == "proposed" and (p.agent_plan or {}).get("decision") == "propose"
+                for p in job.proposals)
+    text = re.sub(r"\*\*([^*\n]+)\*\*", r"\1", answer)
+
+    def approval(match):
+        claimed = match[1].lower() == "true"
+        if claimed != ready:
+            return match[0]
+        return "sonuç ekranında onaylanabilir bir teklif var" if ready else "onaylanabilir hazır teklif yok"
+
+    text = re.sub(r"[\"`]?approval_available[\"`]?\s*[:=]\s*(true|false)\b", approval, text, flags=re.IGNORECASE)
+    replacements = {}
+    if any(p.status == "applied" for p in job.proposals):
+        replacements["already_applied"] = "uygulandı"
+    if ready:
+        replacements["awaiting_user_approval"] = "kullanıcı onayı bekliyor"
+    if any(p.status == "proposed" and (p.agent_plan or {}).get("decision") != "propose" for p in job.proposals):
+        replacements["plan_not_ready"] = "plan henüz onaya hazır değil"
+    for key, value in replacements.items():
+        text = re.sub(r"\b" + key + r"\b", value, text, flags=re.IGNORECASE)
+    return text
+
+
 def chat_quality_issues(answer, job):
     issues = []
     if FIELD_PATTERN.search(answer):
