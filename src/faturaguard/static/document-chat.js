@@ -125,8 +125,30 @@ document.querySelectorAll('[data-document-chat]').forEach((panel) => {
       : turn.mode === 'source_summary' ? 'Güvenli kaynak özeti' : 'İşlem rehberi';
     addText(answer, 'strong', 'Asistan · ' + label);
     addText(answer, 'p', turn.answer);
+    addText(answer, 'p', turn.producer_label || 'AI tarafından üretildi · Sağlayıcı kaydı yok', 'chat-producer');
+    const basis = addText(answer, 'details', '', 'chat-basis');
+    const findings = turn.basis_findings || [];
+    const records = turn.basis_records || [];
+    let basisLabel = 'Dayanaklar';
+    if (findings.length) basisLabel += ' · ' + findings.length + ' bulgu';
+    if (turn.citations.length) basisLabel += ' · ' + turn.citations.length + ' kaynak';
+    addText(basis, 'summary', basisLabel);
+    if (records.length) {
+      const list = addText(basis, 'ul', '', 'chat-basis-records');
+      records.forEach((record) => addText(list, 'li', record));
+    }
+    if (findings.length) {
+      addText(basis, 'p', 'İncelenen bulgular', 'chat-basis-label');
+      const list = addText(basis, 'ul', '', 'chat-basis-findings');
+      findings.forEach((code) => addText(addText(list, 'li', ''), 'code', code));
+    }
+    if (!records.length && !findings.length && !turn.citations.length) {
+      addText(basis, 'p', turn.basis_recorded
+        ? 'Bu yanıt için belge bulgusu veya resmî kaynak kullanılmadı.'
+        : 'Bu eski yanıt için ayrıntılı dayanak kaydı bulunmuyor.', 'chat-basis-empty');
+    }
     if (turn.citations.length) {
-      const list = addText(answer, 'ul', '', 'chat-citations');
+      const list = addText(basis, 'ul', '', 'chat-citations');
       turn.citations.forEach((citation) => {
         const item = addText(list, 'li', '');
         const link = addText(item, 'a', citation.source_title + ', s. ' + citation.page);

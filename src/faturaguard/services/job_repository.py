@@ -79,6 +79,7 @@ class SqliteCorrectionJobStore:
                     'providers': turn.providers, 'tools_used': turn.tools_used,
                     'failure_code': turn.failure_code, 'validation_issues': turn.validation_issues,
                     'repair_attempted': turn.repair_attempted,
+                    'generated_by': turn.generated_by,
                 })),
             )
         return self.load(job_id)

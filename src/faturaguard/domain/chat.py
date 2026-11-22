@@ -1,9 +1,10 @@
 """Belgeye bağlı, yerelde saklanan sohbet kayıtları."""
 
 from datetime import UTC, datetime
+from typing import Literal
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 
 class ChatCitation(BaseModel):
@@ -37,4 +38,20 @@ class ChatTurn(BaseModel):
     failure_code: str | None = None
     validation_issues: list[str] = Field(default_factory=list)
     repair_attempted: bool = False
+    generated_by: Literal["gemini", "groq", "local", "unknown"] = "unknown"
+    basis_recorded: bool = False
+    basis_findings: list[str] = Field(default_factory=list)
+    basis_records: list[str] = Field(default_factory=list)
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+
+    @computed_field
+    @property
+    def producer_label(self) -> str:
+        if self.generated_by == "local" or self.mode in {
+            "local_fallback", "overview", "comparison", "proposal", "guidance",
+            "clarification", "safety_boundary", "unavailable", "source_summary",
+        }:
+            return "Yerel kayıt özeti"
+        if self.generated_by in {"gemini", "groq"}:
+            return f"{self.generated_by.title()} tarafından üretildi"
+        return "AI tarafından üretildi · Sağlayıcı kaydı yok"

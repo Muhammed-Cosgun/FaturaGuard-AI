@@ -460,6 +460,7 @@ def test_semantically_rejected_gemini_answer_is_repaired_with_groq(document, mon
     model = ConversationModel(Settings(gemini_api_key="fake-gemini", groq_api_key="fake-groq"))
     turn = ConversationalDocumentChat(model).answer(document, "Teklif var mı?")
     assert turn.mode == "llm_chat" and turn.providers == ["gemini", "groq"]
+    assert turn.generated_by == "groq" and turn.producer_label == "Groq tarafından üretildi"
     assert turn.validation_issues == ["unbound_citation"] and turn.repair_attempted
     assert len(requests) == 3 and "groq" in requests[-1][0]
     repair_data = requests[-1][1]["json"]
@@ -517,3 +518,36 @@ def test_model_receives_completed_approval_and_explicit_severity_transitions(doc
     assert next(row for row in rows if row["code"] == "imza-yok")["severity_label"] == "Bilgi"
     assert "Özel Müşteri AŞ" not in json.dumps(model.calls, ensure_ascii=False)
     assert "15.00" not in json.dumps(model.calls)
+
+
+def test_basis_contains_only_the_findings_read_by_selected_tools(document):
+    second = document.report.findings[0].model_copy(update={"code": "imza-yok"})
+    document.report.findings.append(second)
+    model = Model(tools=[{"name": "current_findings", "finding_code": "imza-yok"}])
+    model.last_provider = "gemini"
+    turn = ConversationalDocumentChat(model).answer(document, "İmzayı açıkla", "imza-yok")
+    assert turn.generated_by == "gemini" and turn.basis_recorded
+    assert turn.basis_findings == ["imza-yok"]
+    assert turn.basis_records == ["Güncel doğrulama sonuçları"]
+
+
+def test_failed_provider_attempt_is_not_presented_as_the_reply_author(document):
+    model = Model(answer="Geçersiz [NUMBER]")
+    model.last_provider = "gemini"
+    turn = ConversationalDocumentChat(model).answer(document, "Öncelikli sorunları özetle")
+    assert turn.generated_by == "local" and turn.producer_label == "Yerel kayıt özeti"
+    assert turn.basis_findings == ["hesap-dip-vergi-haric"]
+    assert turn.basis_records == ["Güncel doğrulama sonuçları"]
+
+
+def test_final_provider_is_the_validated_response_not_the_first_attempt(monkeypatch):
+    def post(endpoint, **kwargs):
+        if "groq" in endpoint:
+            return httpx.Response(429, request=httpx.Request("POST", endpoint))
+        return httpx.Response(200, request=httpx.Request("POST", endpoint), json={"steps": [
+            {"type": "model_output", "content": [{"type": "text", "text":
+                '{"answer":"Yanıt","citation_ids":[]}'}]}]})
+    monkeypatch.setattr(httpx, "post", post)
+    model = ConversationModel(Settings(gemini_api_key="fake", groq_api_key="fake"))
+    model.generate("system", {}, ConversationAnswer, fallback_first=True)
+    assert model.attempted == ["groq", "gemini"] and model.last_provider == "gemini"

@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from faturaguard.domain.chat import ChatCitation, ChatTurn
 from faturaguard.services.chat_facts import proposal_approval, validation_transitions
+from faturaguard.services.chat_provenance import TOOL_LABELS, local_basis, tool_finding_codes
 from faturaguard.services.document_chat import DocumentChat, normalize
 from faturaguard.services.document_insights import comparison_details, finding_context
 from faturaguard.services.privacy_redactor import privacy_redactor
@@ -49,6 +50,7 @@ class ConversationModel:
     def __init__(self, settings):
         self.settings = settings
         self.attempted: list[str] = []
+        self.last_provider: str | None = None
 
     def generate(self, prompt, data, schema, *, fallback_first=False):
         providers = []
@@ -88,7 +90,9 @@ class ConversationModel:
                 body = response.json()
                 content = (GeminiStructuredGenerator._output_text(body) if provider == "gemini"
                            else body["choices"][0]["message"]["content"])
-                return schema.model_validate_json(content)
+                result = schema.model_validate_json(content)
+                self.last_provider = provider
+                return result
             except (httpx.HTTPError, KeyError, TypeError, ValueError):
                 continue
         raise LLMUnavailableError("Sohbet modeli geçerli yanıt üretemedi.")
@@ -258,6 +262,7 @@ class ConversationalDocumentChat:
         if finding_code and finding_code not in findings:
             raise ValueError("Seçilen bulgu bu işlemde bulunmuyor.")
         tools_used, citations, validation_issues = [], {}, []
+        basis_findings, basis_records = [], []
         repair_attempted = False
         approval_available = any(p.status == "proposed" and
                                  (p.agent_plan or {}).get("decision") == "propose"
@@ -347,6 +352,8 @@ class ConversationalDocumentChat:
                             rows.append({"id": key, "title": chunk.source_title,
                                          "page": chunk.page, "text": chunk.text[:1800]})
                         results[result_key] = rows or {"status": "insufficient_official_evidence"}
+                    basis_findings.extend(tool_finding_codes(job, call, results[result_key]))
+                    basis_records.append(TOOL_LABELS[call.name])
                 if not results:
                     results["status"] = "No document tools requested; ask for clarification."
                 return {"results": results}
@@ -396,12 +403,16 @@ class ConversationalDocumentChat:
             graph.add_edge("read_document_tools", "compose_answer")
             graph.add_edge("compose_answer", END)
             result = graph.compile().invoke({})["response"]
+            producer = getattr(self.model, "last_provider", None)
             return ChatTurn(question=question, answer=mask.restore(result.answer), mode="llm_chat",
                             finding_code=finding_code or None,
                             citations=[citations[key] for key in dict.fromkeys(result.citation_ids)],
                             providers=list(dict.fromkeys(self.model.attempted[attempted:])),
                             tools_used=tools_used, masked_conversation_sent=True,
-                            validation_issues=validation_issues, repair_attempted=repair_attempted)
+                            validation_issues=validation_issues, repair_attempted=repair_attempted,
+                            generated_by=producer if producer in {"gemini", "groq"} else "unknown",
+                            basis_recorded=True, basis_findings=list(dict.fromkeys(basis_findings)),
+                            basis_records=list(dict.fromkeys(basis_records)))
         except (LLMUnavailableError, ValueError, RuntimeError) as error:
             failure_code = (error.code if isinstance(error, ChatResponseRejected) else
                             "provider_or_context_unavailable" if isinstance(error, LLMUnavailableError)
@@ -410,6 +421,7 @@ class ConversationalDocumentChat:
             fallback = DocumentChat().answer(job, question, finding_code)
             if "validation_comparison" in tools_used:
                 fallback = fallback.model_copy(update={"answer": comparison_details(job), "citations": []})
+            local_codes, local_records = local_basis(job, fallback, "validation_comparison" in tools_used)
             return fallback.model_copy(update={
                 "answer": "AI sohbet yanıtı şu anda hazırlanamadı. Yerel kayıt özeti:\n\n" + fallback.answer,
                 "mode": "local_fallback", "tools_used": tools_used,
@@ -417,6 +429,8 @@ class ConversationalDocumentChat:
                 "masked_conversation_sent": len(self.model.attempted) > attempted,
                 "failure_code": failure_code, "validation_issues": validation_issues,
                 "repair_attempted": repair_attempted,
+                "generated_by": "local", "basis_recorded": True,
+                "basis_findings": list(dict.fromkeys(local_codes)), "basis_records": local_records,
             })
 
 

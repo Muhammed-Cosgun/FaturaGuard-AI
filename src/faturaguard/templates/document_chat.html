@@ -22,7 +22,7 @@
     <article class="chat-turn">
       <p class="chat-question"><strong>Siz</strong><span>{{ turn.question }}</span></p>
       <div class="chat-answer"><strong>Asistan · {% if turn.mode == 'llm_chat' %}AI sohbeti{% elif turn.mode == 'local_fallback' %}Yerel yedek yanıt{% elif turn.mode == 'source_backed' %}Kaynaklı AI açıklaması{% elif turn.mode == 'source_summary' %}Güvenli kaynak özeti{% else %}İşlem rehberi{% endif %}</strong><p>{{ turn.answer }}</p>
-        {% if turn.citations %}<ul class="chat-citations">{% for citation in turn.citations %}<li><a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a></li>{% endfor %}</ul>{% endif %}
+        {% include 'chat_basis.html' %}
       </div>
     </article>
     {% endfor %}

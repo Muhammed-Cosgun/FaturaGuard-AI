@@ -46,6 +46,14 @@
 .document-chat .chat-answer p { margin: 7px 0 0; }
 .chat-citations { margin: 12px 0 0; padding: 10px 0 0 16px; border-top: 1px solid #edf1f6; font-size: 11px; line-height: 1.7; }
 .chat-citations a { color: #075da8; overflow-wrap: anywhere; }
+.document-chat .chat-answer .chat-producer { margin-top: 12px; color: #58718a; font-size: 10px; }
+.chat-basis { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e8eff5; color: #4c6880; font-size: 11px; line-height: 1.7; }
+.chat-basis > summary { cursor: pointer; font-weight: 650; }
+.chat-basis-records { margin: 9px 0; padding-left: 17px; }
+.document-chat .chat-answer .chat-basis-label { margin-top: 12px; font-size: 10px; font-weight: 700; }
+.chat-basis-findings { display: flex; flex-wrap: wrap; gap: 5px; margin: 7px 0; padding: 0; list-style: none; }
+.chat-basis-findings li { max-width: 100%; padding: 2px 6px; border-radius: 5px; background: #f0f6fb; overflow-wrap: anywhere; font-size: 10px; }
+.document-chat .chat-answer .chat-basis-empty { color: #64788c; font-size: 11px; }
 .chat-compose-area { flex-shrink: 0; padding: 14px 16px 12px; border-top: 1px solid #e5edf5; background: #fff; }
 .document-chat .chat-form { display: grid; gap: 11px; margin: 0; }
 .chat-prompts { display: flex; flex-wrap: wrap; gap: 6px; }
