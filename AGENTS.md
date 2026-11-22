@@ -9,7 +9,13 @@ generated_by yalnızca final şemalı yanıtı veren gerçek sağlayıcıdan gel
 providers deneme izi olarak kalır. Yerel yedek yerel etiketlenir, eski bilinmeyen
 sağlayıcı tahmin edilmez. Araçların gerçekten okuduğu bulgular ve kayıt türleri
 Dayanaklar altında görünür. 415 test/Ruff/node ve izole tarayıcı SSR/dinamik
-yanıt kontrolleri geçti. Adım 2 bu kapı geçildikten sonra başlar; adım 3 henüz yok.
+yanıt kontrolleri geçti. Adım 2, bu kapıdan sonra tamamlandı: bilinen iç alan
+sızıntıları ve doğrudan seviye/durum/evre çelişkileri sabit red koduyla mevcut
+tek onarım akışına girer; tekrar başarısızsa yerel yedek. 24 olumlu/olumsuz
+çevrimdışı kalite vakası 24/24; toplam 470 test/Ruff geçti. Tarayıcıda sahte
+modelle teknik alanlı yanıtın gösterilmeyip insan dilindeki onarılmış yanıtın
+ve doğru üreticinin görüntülendiği doğrulandı. Bu, bütün doğal dil doğruluğu
+veya canlı LLM başarı oranı değildir. Adım 3 henüz başlamadı.
 
 22.11.2026 son istek: sohbet masaüstünde de isteğe bağlı açılıp kapanır ve
 varsayılan kapalıdır. Kapalı durumda içerik 1040 px genişliğinde ortalı;

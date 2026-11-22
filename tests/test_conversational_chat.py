@@ -551,3 +551,25 @@ def test_final_provider_is_the_validated_response_not_the_first_attempt(monkeypa
     model = ConversationModel(Settings(gemini_api_key="fake", groq_api_key="fake"))
     model.generate("system", {}, ConversationAnswer, fallback_first=True)
     assert model.attempted == ["groq", "gemini"] and model.last_provider == "gemini"
+
+
+def test_technical_field_leak_is_repaired_before_it_reaches_the_user(document):
+    class RepairModel(Model):
+        def generate(self, prompt, data, schema, **kwargs):
+            result = super().generate(prompt, data, schema, **kwargs)
+            if kwargs.get("fallback_first"):
+                assert data["rejection_code"] == "technical_field_leak"
+                return schema(answer="Teklif sonuç ekranında kullanıcı onayı bekliyor.", citation_ids=[])
+            return result
+    model = RepairModel(answer="approval_available: true")
+    turn = ConversationalDocumentChat(model).answer(document, "Teklifin durumu ne?")
+    assert turn.mode == "llm_chat" and "approval_available" not in turn.answer
+    assert turn.validation_issues == ["technical_field_leak"] and turn.repair_attempted
+
+
+def test_repeated_technical_leak_uses_safe_local_summary_and_audits_only_reason(document):
+    model = Model(answer="approval_available: false")
+    turn = ConversationalDocumentChat(model).answer(document, "Düzeltme teklifini açıkla")
+    assert turn.mode == "local_fallback" and turn.generated_by == "local"
+    assert "approval_available" not in turn.answer and turn.failure_code == "technical_field_leak"
+    assert turn.validation_issues == ["technical_field_leak", "technical_field_leak"]
