@@ -1,25 +1,246 @@
 {
-  "name": "FaturaGuard AI - Düzeltme Bildirimi",
+  "name": "FaturaGuard - Durable Review and Local Email",
   "nodes": [
     {
-      "parameters": {"httpMethod": "POST", "path": "faturaguard-correction", "responseMode": "onReceived"},
-      "id": "faturaguard-webhook",
-      "name": "FaturaGuard Webhook",
+      "id": "webhook",
+      "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [300, 300]
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "faturaguard-correction",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CONFIGURE_LOCAL_TOKEN",
+          "name": "FaturaGuard Local Token"
+        }
+      },
+      "webhookId": "faturaguard-correction-v1"
     },
     {
-      "parameters": {"assignments": {"assignments": [{"name": "job_id", "value": "={{ $json.body.job_id }}", "type": "string"}, {"name": "event", "value": "={{ $json.body.event }}", "type": "string"}, {"name": "corrected_sha256", "value": "={{ $json.body.corrected_sha256 }}", "type": "string"}]}, "options": {}},
-      "id": "prepare-summary",
-      "name": "İşlem Özetini Hazırla",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [540, 300]
+      "id": "claim-review",
+      "name": "Claim Review",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://host.docker.internal:8012/automation/reviews/{{ $json.body.event_id }}/claim",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CONFIGURE_LOCAL_TOKEN",
+          "name": "FaturaGuard Local Token"
+        }
+      }
+    },
+    {
+      "id": "notify-required",
+      "name": "Notify Required",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "notify",
+              "leftValue": "={{ $json.should_notify }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "send-demo-email",
+      "name": "Send Demo Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        -100
+      ],
+      "parameters": {
+        "fromEmail": "faturaguard@demo.local",
+        "toEmail": "reviewer@demo.local",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.message }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "smtp": {
+          "id": "CONFIGURE_LOCAL_MAILPIT",
+          "name": "FaturaGuard Mailpit"
+        }
+      }
+    },
+    {
+      "id": "complete-review",
+      "name": "Complete Review",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://host.docker.internal:8012/automation/reviews/{{ $('Claim Review').item.json.event_id }}/complete",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { lease: $('Claim Review').item.json.lease } }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CONFIGURE_LOCAL_TOKEN",
+          "name": "FaturaGuard Local Token"
+        }
+      }
+    },
+    {
+      "id": "acknowledge",
+      "name": "Acknowledge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1200,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { event_id: $json.event_id, status: $json.status } }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "setup-notes",
+      "name": "Setup Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        120,
+        -400
+      ],
+      "parameters": {
+        "content": "## Local demo only\n1. Create Header Auth credential: X-FaturaGuard-Token (local secret). Assign to Webhook, Claim Review, Complete Review.\n2. SMTP credential: host mailpit, port 1025, SSL/TLS off, no username/password. Assign Send Demo Email.\n3. Start callback API and FaturaGuard. Publish workflow.\n4. Mailbox: http://localhost:8025\nClaim/complete use durable SQLite records. SMTP is at-least-once: crash after send may duplicate email. Never enable automatic node retries on Send Demo Email.",
+        "height": 340,
+        "width": 520
+      }
     }
   ],
-  "connections": {"FaturaGuard Webhook": {"main": [[{"node": "İşlem Özetini Hazırla", "type": "main", "index": 0}]]}},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Claim Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Review": {
+      "main": [
+        [
+          {
+            "node": "Notify Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Required": {
+      "main": [
+        [
+          {
+            "node": "Send Demo Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Acknowledge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Demo Email": {
+      "main": [
+        [
+          {
+            "node": "Complete Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Review": {
+      "main": [
+        [
+          {
+            "node": "Acknowledge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "active": false,
-  "settings": {},
-  "versionId": "faturaguard-v1"
+  "settings": {
+    "executionOrder": "v1",
+    "executionTimeout": 90,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none"
+  },
+  "versionId": "72a2881b-848d-4dd0-a1b7-76bb7131d00e"
 }

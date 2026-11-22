@@ -14,6 +14,8 @@ from fastapi.templating import Jinja2Templates
 
 from faturaguard.config import Settings, settings
 from faturaguard.services.agent_workflow import FaturaGuardAgent, SourceBackedAgent
+from faturaguard.services.automation import AutomationDispatcher, AutomationStore
+from faturaguard.services.automation_routes import automation_router
 from faturaguard.services.conversational_chat import create_conversational_chat
 from faturaguard.services.correction_workflow import CorrectionWorkflow
 from faturaguard.services.document_storage import DocumentStorage, FilePolicyError
@@ -23,7 +25,6 @@ from faturaguard.services.hybrid_retrieval import (
     HybridRetriever,
     SentenceTransformerEmbedder,
 )
-from faturaguard.services.n8n_webhook import N8nWebhookNotifier
 from faturaguard.services.official_rag import OfficialRagIndex
 from faturaguard.services.reporting import build_report_payload
 from faturaguard.services.source_backed_explanation import (
@@ -160,9 +161,25 @@ async def application_lifespan(app: FastAPI):
         else:
             app.state.rag_warmup_status = "ready"
             logger.info("RAG başlangıç ısıtması tamamlandı.")
+    stop_automation = asyncio.Event()
+
+    async def dispatch_notifications():
+        while not stop_automation.is_set():
+            try:
+                await asyncio.to_thread(app.state.automation_dispatcher.deliver_one)
+            except Exception as error:
+                logger.warning("Otomasyon işçisi: %s", type(error).__name__)
+            try:
+                await asyncio.wait_for(stop_automation.wait(), timeout=5)
+            except TimeoutError:
+                pass
+
+    automation_task = asyncio.create_task(dispatch_notifications())
     try:
         yield
     finally:
+        stop_automation.set()
+        await automation_task
         # Native Schematron nesneleri doğrulamanın çalıştığı event loop üzerinde
         # temizlenmeli; TestClient thread'i sonlandıktan sonraya bırakılmamalı.
         app.state.validator.close()
@@ -181,7 +198,11 @@ def create_app() -> FastAPI:
     app.state.correction_workflow = CorrectionWorkflow(settings.data_directory, app.state.validator)
     app.state.source_backed_agent = _create_agent()
     app.state.workflow_agent = FaturaGuardAgent(app.state.source_backed_agent)
-    app.state.n8n_notifier = N8nWebhookNotifier(settings.n8n_webhook_url)
+    app.state.automation_store = AutomationStore(settings.data_directory)
+    app.state.automation_dispatcher = AutomationDispatcher(
+        app.state.automation_store, settings.n8n_webhook_url, settings.automation_token)
+
+    app.include_router(automation_router(app.state.automation_store, settings.automation_token))
 
     @app.get("/health", tags=["system"])
     def health_check() -> dict[str, str]:
@@ -245,10 +266,6 @@ def create_app() -> FastAPI:
             return templates.TemplateResponse(
                 request, "validation_result.html", {"error": str(error)}, status_code=400
             )
-        notification = app.state.n8n_notifier.notify(job)
-        job = app.state.correction_workflow.record_automation_event(
-            job.job_id, notification.status, notification.detail
-        )
         return templates.TemplateResponse(
             request,
             "validation_result.html",

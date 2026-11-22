@@ -164,7 +164,12 @@ Varsayılan karşılaştırma `qwen2.5:3b-instruct`, `qwen3:4b-instruct` ve `gem
 
 ## İsteğe bağlı n8n otomasyonu
 
-`n8n/faturaguard-webhook-workflow.json` dosyasını n8n'e içe aktarın. Ardından n8n webhook adresini `N8N_WEBHOOK_URL` ortam değişkenine yazın. FaturaGuard yalnızca işlem kimliği, dosya adı, hash, karar durumu ve doğrulama özetini gönderir; XML içeriğini göndermez.
+Kullanıcı onayı ve yeniden doğrulama sonrası olay SQLite kuyruğuna atomik yazılır.
+Arka plan işçisi n8n'e teslim eder; tekil inceleme kaydı ve yerel demo e-postası
+oluşur. Sınırlı tekrar deneme, sahiplik süresi ve tamamlanma cevabı kontrolü vardır.
+XML, dosya adı, tutarlar ve sohbet gönderilmez. Docker/n8n kurulumu, credential
+ayarları ve canlı kabul için [yerel kurulum rehberi](n8n/KURULUM.md).
+Canlı n8n kabulü henüz tamamlanmadı; gerçek alıcı yerine Mailpit demo kutusu kullanılır.
 
 ## Temel ilke
 

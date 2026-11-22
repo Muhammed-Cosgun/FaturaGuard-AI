@@ -10,6 +10,7 @@ from typing import Any
 
 from faturaguard.domain.chat import ChatTurn
 from faturaguard.domain.correction import CorrectionJob
+from faturaguard.services.automation import SCHEMA, enqueue
 
 
 class SqliteCorrectionJobStore:
@@ -21,7 +22,7 @@ class SqliteCorrectionJobStore:
         self._diff_root = root / "diffs"
         self._initialize()
 
-    def save(self, job: CorrectionJob) -> None:
+    def save(self, job: CorrectionJob, automation_event=None) -> None:
         now = self._timestamp()
         payload = job.model_dump(mode="json", exclude={"diff"})
         with self._connect() as connection:
@@ -44,6 +45,7 @@ class SqliteCorrectionJobStore:
                     json.dumps(payload, ensure_ascii=False),
                 ),
             )
+            enqueue(connection, automation_event)
 
     def load(self, job_id: str) -> CorrectionJob:
         with self._connect() as connection:
@@ -151,6 +153,7 @@ class SqliteCorrectionJobStore:
     def _initialize(self) -> None:
         self._root.mkdir(parents=True, exist_ok=True)
         with self._connect() as connection:
+            connection.executescript(SCHEMA)
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS jobs (

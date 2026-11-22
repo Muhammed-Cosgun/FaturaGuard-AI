@@ -38,6 +38,7 @@ class Settings:
         os.getenv("CORRECTION_PLAN_TIMEOUT_SECONDS", "12")
     )
     n8n_webhook_url: str | None = os.getenv("N8N_WEBHOOK_URL") or None
+    automation_token: str | None = os.getenv("FATURAGUARD_AUTOMATION_TOKEN") or None
 
 
 settings = Settings()

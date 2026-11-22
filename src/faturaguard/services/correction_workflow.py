@@ -4,6 +4,7 @@ import difflib
 from pathlib import Path
 
 from faturaguard.domain.correction import CorrectionJob, CorrectionStatus
+from faturaguard.services.automation import correction_event
 from faturaguard.services.correction_engine import SafeCorrectionEngine, store_working_copy
 from faturaguard.services.document_storage import StoredDocument
 from faturaguard.services.job_repository import SqliteCorrectionJobStore
@@ -93,7 +94,7 @@ class CorrectionWorkflow:
         )
         job.diff_path = str(self._store.store_diff(job.job_id, job.diff))
         proposal.status = CorrectionStatus.APPLIED
-        self._store.save(job)
+        self._store.save(job, automation_event=correction_event(job))
         self._store.append_event(
             job.job_id,
             "correction_applied",

@@ -2,6 +2,24 @@
 
 ## Aktif geliştirme
 
+22.11.2026 n8n geliştirmesi: kullanıcı yerel Docker kurulumunu seçti; Docker
+henüz kurulu değil, bildirim hedefinin anlamını sordu. Gerçek alıcı belirlenmedi.
+Yeni automation modülü uygulanan düzeltme + yeniden doğrulama olayını job ile
+aynı SQLite transaction'da outbox'a yazar. 6 deneme, backoff, lease ve sabit
+hata kodları; tekil review kaydı + tokenlı callback + business ACK var.
+Ana FastAPI lifespan işçisi teslim eder. automation_api ayrı 8012 callback
+sunucusudur; XML/sohbet uçları yok. Yerel launcher ayarı data/automation/local.env
+üzerinden yükler; normal BASLAT.cmd bu ayarı yüklemez. Yeni workflow n8n header
+credential'ları ve SMTP credential seçilmeden yayınlanamaz. Docker compose,
+Mailpit demo kutusu ve sentetik canlı kabul scripti hazır. 518 test/Ruff/derleme
+ve YAML ayrıştırma geçti; gerçek Docker Compose/n8n import/canlı SMTP kabulü
+YAPILMADI. Kullanıcının Docker Desktop kurması gerekiyor. Sonra n8n/KURULUM.md
+adımları ve run_automation_acceptance.py, ardından gerçek XML web kabulü.
+Gerçek dış alıcıya bildirim gönderilmedi. SMTP exactly-once değildir; gönderim
+sonrası çökme yinelenmeye yol açabilir. Eski n8n_webhook.py uyumluluk kodudur;
+ana web akışı artık onu çağırmaz. Aynı olaydan tek review, ACK kaybında duplicate
+cevabı; eski tarihî jobs geriye dönük kuyruğa eklenmez.
+
 22.11.2026 son canlı paylaşımında karşılaştırma yanıtları alan değerlerini
 atlıyordu; kalan imza bilgisine rağmen genel işlem gerekmiyor iddiası da vardı.
 Karşılaştırma aracı uygulanan değişiklikleri ayrı maskeli before/after kayıtları
