@@ -1,3 +1,12 @@
+22.11.2026 gerçek XML web otomasyon kabulü de geçti: demo_tax_exclusive_error.xml,
+recalculate-tax-exclusive-total applied; yeniden doğrulama 0 hata/0 uyarı/1 bilgi.
+Kullanıcı Mailpit mesajını paylaştı; SQLite job/outbox/review eşleştirildi:
+job=108a817bf3544418ba55debf594e037e, outbox=delivered, review=notified.
+Bu olayın canlı mesajı ile kayıtlar uyumlu. Önceki sentetik kabul ayrıca duplicate
+kontrolünü geçmişti. Kullanıcı Gemini/Groq için ücretsiz planda olduğunu kontrol
+ettiğini bildirdi; ücretli plan veya n8n AI Assistant etkinleştirilmedi.
+Gerçek dış alıcıya geçilmedi; bildirim yerel Mailpit'tedir.
+
 # FaturaGuard AI çalışma bağlamı
 
 ## Aktif geliştirme

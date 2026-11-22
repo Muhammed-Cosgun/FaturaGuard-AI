@@ -170,7 +170,7 @@ oluşur. Sınırlı tekrar deneme, sahiplik süresi ve tamamlanma cevabı kontro
 XML, dosya adı, tutarlar ve sohbet gönderilmez. Docker/n8n kurulumu, credential
 ayarları ve canlı kabul için [yerel kurulum rehberi](n8n/KURULUM.md).
 Canlı sentetik n8n kabulü geçti: tekil inceleme kaydı, bir Mailpit mesajı ve
-yinelenen olay cevabı doğrulandı. Gerçek XML düzeltmeli canlı kabul ayrıdır;
+yinelenen olay cevabı doğrulandı. Gerçek XML düzeltmeli canlı kabul de geçti (0 hata/0 uyarı/1 bilgi);
 dış alıcı yerine yerel demo kutusu kullanılır. Otomasyon testi LLM çağırmaz.
 
 ## Temel ilke

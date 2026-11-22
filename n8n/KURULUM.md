@@ -9,7 +9,8 @@ adetlerini gösterir, gönderim onayı vermez.
 22.11.2026 canlı sentetik kabul geçti: Docker servisleri, n8n import/yayın,
 Header Auth, inceleme kaydı ve tek Mailpit mesajı doğrulandı; aynı olay yeniden
 gönderildiğinde duplicate cevabı alındı. Bu test LLM çağırmaz ve dışarı e-posta
-göndermez. Gerçek XML düzeltmeli canlı kabul ayrıca yapılmalıdır.
+göndermez. Gerçek XML düzeltmeli canlı kabul de geçti: demo_tax_exclusive_error.xml,
+0 hata/0 uyarı/1 bilgi; yerel job/outbox/review kayıtları mesajla eşleştirildi.
 
 ## 1. Docker Desktop
 
