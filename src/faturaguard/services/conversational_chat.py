@@ -233,6 +233,10 @@ olan hata sayısını 'giderildi/ortadan kalktı' diye anlatma. Net adet azalmas
 kod bazında giderilen kayıtları finding_changes üzerinden ayrı değerlendir.
 Bulgu seviyesini aynen koru: hata=Hata, uyari=Uyarı, bilgi=Bilgi. Bilgi kaydını
 'uyarı' veya 'hata' diye adlandırma; genel ad olarak 'bulgu/kayıt' kullan.
+Karşılaştırma aracını kullandıysan applied_changes içindeki her uygulanan değişikliği
+alan adı ve önceki → sonraki değer tokenlarıyla açıkla; yalnızca bulgu sayılarını özetleme.
+Kalan bulgu varsa onaylanabilir teklif olmamasını tüm işlemlerin tamamlanması sayma.
+İmza bilgisi sürüyorsa gönderim öncesinde ayrıca incelenmesi gerektiğini belirt.
 Tutarları hesaplama/uydurma; varsa [VALUE_n] tokenlarını aynen kullan; yerelde açılacak.
 Bulgu adetleri için güvenilir counts/initial_counts/current_counts alanlarını veya
 [COUNT_n] tokenlarını kullan; bu tokenlar yerelde gerçek adetlere açılır. [NUMBER]
@@ -345,6 +349,13 @@ class ConversationalDocumentChat:
                             "initial_counts": counts(job.report),
                             "current_counts": counts(job.corrected_report or job.report),
                             "revalidated": job.corrected_report is not None,
+                            "applied_changes": [{
+                                "field": p.target_path,
+                                "title": p.title,
+                                "before": mask.text(p.before, values=True),
+                                "after": mask.text(p.after, values=True),
+                            } for p in job.proposals if p.status == "applied"
+                                and job.corrected_report is not None],
                             **validation_transitions(job),
                             "detail": mask.text(comparison_details(job, format_count=mask.count_token), values=True),
                         }
@@ -383,6 +394,11 @@ class ConversationalDocumentChat:
                         raise ChatResponseRejected("unverified_url")
                     if not approval_available and suggests_approval_action(result.answer):
                         raise ChatResponseRejected("approval_unavailable")
+                    for key, tool_result in state["results"].items():
+                        if key.split(":")[0] == "validation_comparison":
+                            for change in tool_result.get("applied_changes", []):
+                                if any(change[field] not in result.answer for field in ("before", "after")):
+                                    raise ChatResponseRejected("missing_applied_change")
                     restored = mask.restore(result.answer)
                     issues = chat_quality_issues(restored, job)
                     if issues:

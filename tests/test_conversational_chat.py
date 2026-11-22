@@ -507,7 +507,7 @@ def test_model_receives_completed_approval_and_explicit_severity_transitions(doc
     document.corrected_report.summary.warning_count = 0
     model = Model(tools=[{"name": "correction_proposals", "finding_code": ""},
                          {"name": "validation_comparison", "finding_code": ""}],
-                  answer="Teklif uygulandı; yeniden onay gerekmiyor. Hata sayısı sıfır kaldı; bilgi kaydı sürüyor.")
+                  answer="Vergi hariç toplam [VALUE_1] → [VALUE_2]. Teklif uygulandı; yeniden onay gerekmiyor. Hata sayısı sıfır kaldı; bilgi kaydı sürüyor.")
     turn = ConversationalDocumentChat(model).answer(document, "Teklif ve önce/sonra durumu nedir?")
     tools = model.calls[1][1]["TOOLS"]
     assert turn.mode == "llm_chat" and not turn.repair_attempted
@@ -604,3 +604,22 @@ def test_source_excerpt_is_bound_to_retrieved_evidence_and_survives_reload(docum
     workflow._store.append_chat_turn(document.job_id, turn)
     saved = workflow._store.load(document.job_id).chat_history[-1]
     assert saved.citations[0].excerpt == turn.citations[0].excerpt
+
+@pytest.mark.parametrize('rule', [
+    'recalculate-line-extension-total', 'recalculate-tax-exclusive-total',
+    'recalculate-tax-inclusive-total', 'recalculate-payable-total',
+])
+def test_comparison_requires_recorded_values_for_every_applied_rule(document, rule):
+    document.proposals[0].rule_id = rule
+    document.proposals[0].status = 'applied'
+    document.corrected_report = document.report.model_copy(deep=True)
+    model = Model(tools=[{'name': 'validation_comparison', 'finding_code': ''}],
+                  answer='Findings resolved.')
+    turn = ConversationalDocumentChat(model).answer(document, 'What changed?')
+    assert turn.mode == 'local_fallback' and turn.repair_attempted
+    assert 'missing_applied_change' in turn.validation_issues
+    assert '15.00' in turn.answer and '15.15' in turn.answer
+    changes = model.calls[1][1]['TOOLS']['validation_comparison']['applied_changes']
+    assert changes[0]['before'] == '[VALUE_1]'
+    assert changes[0]['after'] == '[VALUE_2]'
+    assert '15.00' not in json.dumps(model.calls)

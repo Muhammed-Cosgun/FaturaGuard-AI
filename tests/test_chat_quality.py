@@ -57,3 +57,14 @@ def test_plain_text_normalization_preserves_xml_and_amount_tokens_without_render
     raw = '**Bilgi** kaydı aynı. [VALUE_1] → [VALUE_2]. <script>örnek</script>'
     result = prepare_user_answer(raw, quality_scenario("applied"))
     assert result == 'Bilgi kaydı aynı. [VALUE_1] → [VALUE_2]. <script>örnek</script>'
+
+@pytest.mark.parametrize('answer', [
+    'Başka bir işlem yapmanız gerekmez.',
+    'Herhangi bir işlem yapmanıza gerek yok.',
+])
+def test_remaining_information_prevents_blanket_completion_claim(answer):
+    assert 'remaining_findings_completion_claim' in chat_quality_issues(answer, quality_scenario('applied'))
+
+
+def test_no_new_approval_is_distinct_from_no_remaining_action():
+    assert not chat_quality_issues('Yeniden onay gerekmiyor; kalan bilgi kaydını inceleyin.', quality_scenario('applied'))

@@ -2,6 +2,15 @@
 
 ## Aktif geliştirme
 
+22.11.2026 son canlı paylaşımında karşılaştırma yanıtları alan değerlerini
+atlıyordu; kalan imza bilgisine rağmen genel işlem gerekmiyor iddiası da vardı.
+Karşılaştırma aracı uygulanan değişiklikleri ayrı maskeli before/after kayıtları
+olarak verir. Final yanıt bütün uygulanan değer çiftlerini içermiyorsa mevcut
+tek onarım, ardından yerel ayrıntılı karşılaştırma devreye girer. Kalan bulguda
+genel işlem gerekmiyor ifadesi dar kalite kontrolüyle reddedilir. Dört düzeltme
+türü dahil 500 test geçti; bu kontrol bütün doğal dil doğruluğunun garantisi
+değildir. Yeni sağlayıcı yanıtları bu ortamda canlı test edilmedi.
+
 Son canlı UI paylaşımında yerel SQLite metadata'sı okundu: teklif yanıtı iki
 technical_field_leak nedeniyle yerel yedeğe düştü; önceki karşılaştırma yanıtı
 validation_phase_mismatch sonrası onarılmıştı. Reddedilen metin saklanmadığından

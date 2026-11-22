@@ -75,6 +75,10 @@ def chat_quality_issues(answer, job):
         r"\b(?:teklif|duzeltme)(?:\s+basariyla)?\s+uygulan(?:di|mistir)\b", text
     ):
         issues.append("proposal_state_mismatch")
+    if (job.corrected_report or job.report).findings and re.search(
+        r"\b(?:baska (?:bir )?|herhangi bir )islem yapman(?:iz(?:a)?|a) (?:gerekmez|gerek yok|gerekmiyor)\b", text
+    ):
+        issues.append("remaining_findings_completion_claim")
     before = job.report.summary
     if before.error_count == 0 and re.search(
         r"\b0 hata(?:\s+ve\s+\d+\s+(?:uyari|bilgi))?\s+(?:ortadan kalk|gideril)", text
