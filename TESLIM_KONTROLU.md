@@ -43,11 +43,19 @@ güvenilirlik ölçümü değildir. Yeni LLM veya dış e-posta çağrısı yap�
 | Wheel paketleme | Kod/şablon/statik dosyalar mevcut; sır ve runtime verileri yok |
 | pip-audit | pytest düzeltildi; Chroma için belgelenmiş dört sunucu bildirimi sürüyor |
 
-Temiz dizin Git teslim dosyalarından yerel olarak oluşturulmuştur; sandbox
-private GitHub oturumunu kullanamadığı için buna “uzaktan klonlandı” denmez.
-Kullanıcı kendi hesabında `git fetch origin` çalıştırdı; uzak değişiklik alınmadı,
-başlangıçta main bir commit öndeydi. Uzak GitHub Actions çalışması bu ortamdan
-doğrulanmış değildir. Son commit push ve öğretmen erişimi aşağıdaki son adımdır.
+Temiz dizin Git teslim dosyalarından yerel olarak oluşturulmuştur; buna
+“uzaktan klonlandı” denmez. Kullanıcının push işlemi sonrasında GitHub,
+oturum açık tarayıcıdan ayrıca incelendi: **7d591e5** commit'i için
+[CI #19](https://github.com/Muhammed-Cosgun/FaturaGuard-AI/actions/runs/45040863009)
+**Success** sonucuyla tamamlandı (toplam 2 dakika 40 saniye). Kalite işi ve
+bütün adımları başarılıdır. README başlıkları, komut blokları, belge bağlantıları
+ve Mermaid mimari diyagramı GitHub üzerinde görüntülendi.
+
+Tek CI uyarısı: `actions/checkout@v4` ve `actions/setup-python@v5` Node.js 20
+hedefliyor; GitHub bunları Node.js 24 üzerinde çalıştırmış. Bu, başarısız test
+veya uygulama hatası değildir; Action sürümlerinin sonraki bakımda güncellenmesi
+önerilir. Bu rapor güncellemesi uygulama/CI kodunu değiştirmez ve `[skip ci]`
+ile kaydedilir; yukarıdaki başarı özellikle 7d591e5 commit'ine aittir.
 
 ## GitHub üzerinde teslimden önce
 
@@ -74,8 +82,8 @@ bağlantı uyarısı verdi; temel site/doğrulayıcı başarılı açıldı. Uza
 yapılmadı. Yeni Chroma/SMTP canlı kabulü bu tur tekrar edilmedi; Mailpit
 manifest digest ile sabitlendi, Compose YAML doğrulandı; daemon sandbox
 hesabından yönetilemedi. RAG ölçümü temiz dizinde aynı sonucu verdi.
-GitHub push/CI ve
-öğretmen erişimi ayrı son kontrol olarak kalır. Üretim güvenliği veya bütün
+Uygulama commit'inin GitHub push/CI kontrolü tamamlandı. Öğretmen erişimi
+ve bu rapor güncellemesinin push işlemi son adım olarak kalır. Üretim güvenliği veya bütün
 GİB/LLM senaryolarının kusursuzluğu iddia edilmez. [Güvenlik sınırları](SECURITY.md).
 
 Makine tarafından okunabilir, sır içermeyen teslim özeti:

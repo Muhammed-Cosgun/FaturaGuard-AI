@@ -13,7 +13,7 @@
   "clean_web_native_validation_passed": true,
   "clean_cli_arithmetic_passed": true,
   "remote_llm_invoked": false,
-  "remote_ci_verified": false,
+  "remote_ci_verified": true,
   "dependency_audit_remaining_package": "chromadb==1.5.9",
   "remaining_unique_advisories": [
     "PYSEC-2026-311",
@@ -21,5 +21,11 @@
     "PYSEC-2026-3814",
     "PYSEC-2026-3815"
   ],
-  "security_scope": "Local educational prototype; see SECURITY.md, not a zero-vulnerability or production certification."
+  "security_scope": "Local educational prototype; see SECURITY.md, not a zero-vulnerability or production certification.",
+  "remote_ci_commit": "7d591e56826b31a140a314606bf8d0bd57e9b65c",
+  "remote_ci_url": "https://github.com/Muhammed-Cosgun/FaturaGuard-AI/actions/runs/45040863009",
+  "remote_ci_status": "success",
+  "remote_ci_warning": "checkout@v4 and setup-python@v5 target Node.js 20; GitHub ran them on Node.js 24.",
+  "github_readme_rendering_verified": true,
+  "teacher_access_verified": false
 }
