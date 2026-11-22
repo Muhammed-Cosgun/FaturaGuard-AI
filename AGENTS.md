@@ -1,3 +1,13 @@
+22.11.2026 sunuma dört gerçek ekran görüntüsü eklendi: ana sayfa, gerçek kayıtlı
+Groq sohbeti, kullanıcıdan ilk import sonrası n8n akışı ve gerçek XML kabulünün
+önce/sonra raporu. Dokuz slayt korundu; 2/5/6/7 görselli. n8n kırmızı uyarıları
+gizlenmedi; ilk kurulum durumu olduğu slaytta ve notta açıklanıyor. Görseller
+PPTX içine gömülü ve sunum/gorseller altında, kökenleri KAYNAKLAR.md içinde.
+Gerçek olmayan sidebar-preview/sıfır hashli önizlemeler kullanılmadı. Yeni LLM
+çağrısı yapılmadı. Geçici 8138 site sunucusu durduruldu. Artifact Tool ile kaynak
+PPTX import edilip hedef slaytlar düzenlendi; paket/geometri/import ve dört dolu
+medya kontrolü, dokuz slayt görsel incelemesi geçti. İş mantığı değiştirilmedi.
+
 22.11.2026 kapanış kontrolü TAMAMLANDI; prototip/sunum için başarılı.
 518 pytest/Ruff/Node/pip check/preflight/24 kalite vakası yeniden geçti.
 4/4 yerel ham kaynak hash'i ve 330 chunk doğrulandı. Offline RAG 11 sorguda
