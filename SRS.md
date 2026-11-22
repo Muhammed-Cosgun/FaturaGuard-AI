@@ -37,6 +37,18 @@ Kullanıcının e-Fatura XML belgesini yüklemesini, doğrulama sonuçlarını �
 
 ## Belgeye bağlı sohbet asistanı — ek kapsam
 
+- Her yeni yanıtta final üretici Gemini/Groq veya Yerel kayıt özeti etiketiyle
+  gösterilir. Sağlayıcı deneme izi üretici sayılmaz; eski kayıtta bilinmeyen
+  sağlayıcı tahmin edilmez. Dayanaklar yalnızca okunan araç verilerinin bulgu
+  kodlarını, kayıt türlerini ve doğrulanmış atıfları gösterir.
+- Bilinen teknik iç alanların cevap metnine sızması ve doğrudan seviye/durum/
+  doğrulama evresi çelişkileri kontrol edilir; geçersiz yanıt mevcut tek onarım
+  akışına girer. Olumlu ve olumsuz kalite vakaları çevrimdışı değerlendirilir;
+  bu kontrol bütün doğal dil ifadelerinin doğruluk garantisi değildir.
+- Atıflar başlık, sayfa, kısa alıntı ve resmî belge bağlantısıyla kart olarak
+  gösterilir. Alıntı getirilen resmî kanıtın modele sunulan kısmından alınır;
+  karttaki alıntıyı model oluşturmaz. Eski kayıtta alıntı yoksa kullanıcıya eksik olduğu belirtilir.
+
 - Sohbet JS açıkken başlangıçta kapalıdır; içerik eski genişliğinde ortalanır.
   Kullanıcı sağ alttaki düğmeyle açınca masaüstünde içerik sola kayar ve sağ
   sütunda sohbet görünür; kapatınca ortalı düzen geri gelir. Mesaj/taslak ve

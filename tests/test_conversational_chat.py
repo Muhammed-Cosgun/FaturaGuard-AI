@@ -573,3 +573,22 @@ def test_repeated_technical_leak_uses_safe_local_summary_and_audits_only_reason(
     assert turn.mode == "local_fallback" and turn.generated_by == "local"
     assert "approval_available" not in turn.answer and turn.failure_code == "technical_field_leak"
     assert turn.validation_issues == ["technical_field_leak", "technical_field_leak"]
+
+
+def test_source_excerpt_is_bound_to_retrieved_evidence_and_survives_reload(document, tmp_path):
+    from faturaguard.services.correction_workflow import CorrectionWorkflow
+    chunk = SimpleNamespace(source_title="Resmî GİB kılavuzu", source_url="https://ebelge.gib.gov.tr/guide.pdf",
+                            page=47, text="Gerçek kaynak metni.\nVergi hariç toplam alanı tanımlanır.")
+    agent = SimpleNamespace(chat_evidence=lambda finding: [SimpleNamespace(chunk=chunk)])
+    model = Model(tools=[{"name": "official_sources", "finding_code": "hesap-dip-vergi-haric"}],
+                  answer="Bu alanı kaynakla inceleyin.", citations=["evidence_1"])
+    model.last_provider = "gemini"
+    turn = ConversationalDocumentChat(model, agent).answer(document, "Bu bulgunun kaynağı nedir?")
+    assert turn.mode == "llm_chat"
+    assert turn.citations[0].excerpt == "Gerçek kaynak metni. Vergi hariç toplam alanı tanımlanır."
+    assert turn.basis_findings == ["hesap-dip-vergi-haric"]
+    workflow = CorrectionWorkflow(tmp_path, object())
+    workflow._store.save(document)
+    workflow._store.append_chat_turn(document.job_id, turn)
+    saved = workflow._store.load(document.job_id).chat_history[-1]
+    assert saved.citations[0].excerpt == turn.citations[0].excerpt

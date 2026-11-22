@@ -66,6 +66,24 @@ FastAPI uygulaması
 
 ## Çalıştırma ve rapor sınırları
 
+- Yanıt üreticisi: ConversationModel.last_provider yalnızca şeması geçerli
+  sonuç döndüren sağlayıcıyla güncellenir. Final cevabın kontrolü geçerse
+  generated_by alanına yazılır; yerel yedekte local olur. providers sadece
+  deneme izidir. Eski kayıtta gerçek sağlayıcı bilinmiyorsa unknown korunur.
+- Dayanaklar: yürütülen araçların gerçekten okuduğu kodlar ve sabit Türkçe kayıt
+  türleri yerelde kaydedilir; modelin bu alanları beyan etmesi istenmez. Yerel
+  yedek için dayanaklar yerel yanıt türünden türetilir, başarısız model araçları
+  yerel yanıtın dayanağı gibi sunulmaz. producer_label hesaplanan bir UI alanıdır.
+- chat_quality bilinen teknik anahtarları ve belirli doğrudan durum/seviye/evre
+  çelişkilerini red koduyla mevcut tek onarım akışına yönlendirir. 24 olumlu/
+  olumsuz vaka, doğru metnin yanlış reddedilmesini de kontrol eder. Genel doğal
+  dil doğruluğu veya mevzuat destek ilişkisi bu sınırlı kurallarla kanıtlanmaz.
+- Kaynak kartındaki excerpt, yalnızca getirilen resmî chunk'ın modele verilen
+  ilk 1800 karakterinden seçilir; güvenilir kod sözlüğünün teknik terimi çevresinde
+  kısa bir pencere alınır. Boş/eksik metin yerine alıntı uydurulmaz. HTML autoescape,
+  JS textContent ve HTTPS resmî alan doğrulaması korunur. Alıntı, atfın anlamsal
+  olarak bütün iddiaları desteklediğinin otomatik ispatı değildir.
+
 - Sohbet görünümü: sonuç/rapor şablonları document-content ve document_chat
   aside'ını CSS Grid ile ayırır. document-chat.css masaüstünde sticky panel ve
   bağımsız mesaj scroll'u sağlar. JS ilk yüklemede paneli kapalı tutar; içerik

@@ -15,7 +15,14 @@ tek onarım akışına girer; tekrar başarısızsa yerel yedek. 24 olumlu/olums
 çevrimdışı kalite vakası 24/24; toplam 470 test/Ruff geçti. Tarayıcıda sahte
 modelle teknik alanlı yanıtın gösterilmeyip insan dilindeki onarılmış yanıtın
 ve doğru üreticinin görüntülendiği doğrulandı. Bu, bütün doğal dil doğruluğu
-veya canlı LLM başarı oranı değildir. Adım 3 henüz başlamadı.
+veya canlı LLM başarı oranı değildir. Adım 3 de bu kapıdan sonra tamamlandı:
+kaynak kartı başlık/sayfa/alıntı/bağlantı taşır; alıntı yalnızca modele de
+verilen ilk 1800 karakterden, güvenilir teknik sorgu terimi çevresinde seçilir.
+Eski kayıtta alıntı yoksa bu açıkça belirtilir. 480 test/Ruff/node ve 24/24
+kalite vakası geçti. Tarayıcıda SSR/dinamik kartlar, gerçek yerel resmî metin,
+mobil taşma ve panel kapatma doğrulandı; hiçbir gerçek sağlayıcı çağrısı
+yapılmadı. Önizleme sahte üreticileri sadece UI testi içindi. Üç paket sırayla
+ayrı commit'lerde tutulur; son kontrolden sonra main'e ff birleştirilir.
 
 22.11.2026 son istek: sohbet masaüstünde de isteğe bağlı açılıp kapanır ve
 varsayılan kapalıdır. Kapalı durumda içerik 1040 px genişliğinde ortalı;

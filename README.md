@@ -202,6 +202,25 @@ python scripts\generate_arithmetic_demo_fixtures.py
 
 ## Fatura İnceleme Asistanı
 
+Yeni cevapların altında “Gemini tarafından üretildi”, “Groq tarafından üretildi”
+veya “Yerel kayıt özeti” görünür. Bu etiket final cevabı veren sağlayıcıyı izler;
+eski kayıtta bilgi yoksa açıkça belirtilir. “Dayanaklar” bölümünde incelenen
+bulgular, kullanılan işlem kayıtları ve doğrulanmış resmî kaynaklar açılır.
+
+Kaynak kartlarında başlık, sayfa, getirilen resmî metinden kısa alıntı ve belge
+bağlantısı bulunur. Eski mesajlarda alıntı kaydı yoksa yeni metin uydurulmaz.
+Bilinen iç alan sızıntıları ve belirli açık durum/seviye çelişkileri, yanıtın
+yeniden üretilmesine veya yerel özete dönülmesine neden olur.
+
+Bu denetimlerin olumlu/olumsuz örneklerini API çağrısı yapmadan çalıştırmak için:
+
+```cmd
+.venv-clean\Scripts\python.exe scripts\run_document_chat_quality_evaluation.py
+```
+
+Sonuçlar `data/evaluation/chat_answer_quality.json` dosyasına yazılır. Bu ölçüm
+yerel denetim sözleşmesidir; canlı model doğruluğu veya sıfır halüsinasyon ölçümü değildir.
+
 Doğrulama sonucu ve işlem raporunda belgeye bağlı sohbet paneli bulunur.
 Panel başlangıçta kapalıdır; içerik ortada durur. Sağ alttaki “Fatura Asistanı”
 düğmesiyle açılınca masaüstünde içerik sola kayarak panele yer açar. Çarpı veya

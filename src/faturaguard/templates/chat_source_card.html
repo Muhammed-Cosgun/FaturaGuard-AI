@@ -1,0 +1,6 @@
+<article class="chat-source-card">
+  <div class="chat-source-meta"><span>RESMÎ GİB KAYNAĞI</span><span class="chat-source-page">Sayfa {{ citation.page }}</span></div>
+  <h4><a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}</a></h4>
+  {% if citation.excerpt %}<p class="chat-source-label">Kaynaktan kısa alıntı</p><blockquote>{{ citation.excerpt }}</blockquote>{% else %}<p class="chat-source-missing">Bu kayıtta kısa alıntı bulunmuyor; kaynak belgeyi açabilirsiniz.</p>{% endif %}
+  <a class="chat-source-open" href="{{ citation.source_url }}" target="_blank" rel="noopener" aria-label="{{ citation.source_title }} belgesini aç — sayfa {{ citation.page }}">Kaynak belgeyi aç <span aria-hidden="true">↗</span></a>
+</article>

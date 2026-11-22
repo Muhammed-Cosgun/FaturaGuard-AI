@@ -15,9 +15,11 @@ from lxml import etree
 from pydantic import BaseModel, ConfigDict, Field
 
 from faturaguard.domain.chat import ChatCitation, ChatTurn
+from faturaguard.services.agent_workflow import SourceBackedAgent
 from faturaguard.services.chat_facts import proposal_approval, validation_transitions
 from faturaguard.services.chat_provenance import TOOL_LABELS, local_basis, tool_finding_codes
 from faturaguard.services.chat_quality import chat_quality_issues
+from faturaguard.services.chat_sources import source_excerpt
 from faturaguard.services.document_chat import DocumentChat, normalize
 from faturaguard.services.document_insights import comparison_details, finding_context
 from faturaguard.services.privacy_redactor import privacy_redactor
@@ -352,7 +354,8 @@ class ConversationalDocumentChat:
                         for item in evidence[:2]:
                             chunk = item.chunk
                             citation = ChatCitation(source_title=chunk.source_title,
-                                                    source_url=chunk.source_url, page=chunk.page)
+                                                    source_url=chunk.source_url, page=chunk.page,
+                                                    excerpt=source_excerpt(chunk.text, SourceBackedAgent._trusted_retrieval_query(findings[call.finding_code])))
                             key = f"evidence_{len(citations) + 1}"
                             citations[key] = citation
                             rows.append({"id": key, "title": chunk.source_title,

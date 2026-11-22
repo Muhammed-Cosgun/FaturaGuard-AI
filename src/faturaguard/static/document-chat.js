@@ -148,13 +148,27 @@ document.querySelectorAll('[data-document-chat]').forEach((panel) => {
         : 'Bu eski yanıt için ayrıntılı dayanak kaydı bulunmuyor.', 'chat-basis-empty');
     }
     if (turn.citations.length) {
-      const list = addText(basis, 'ul', '', 'chat-citations');
+      const list = addText(basis, 'div', '', 'chat-source-cards');
       turn.citations.forEach((citation) => {
-        const item = addText(list, 'li', '');
-        const link = addText(item, 'a', citation.source_title + ', s. ' + citation.page);
+        const item = addText(list, 'article', '', 'chat-source-card');
+        const meta = addText(item, 'div', '', 'chat-source-meta');
+        addText(meta, 'span', 'RESMÎ GİB KAYNAĞI');
+        addText(meta, 'span', 'Sayfa ' + citation.page, 'chat-source-page');
+        const link = addText(addText(item, 'h4', ''), 'a', citation.source_title);
         link.href = citation.source_url;
         link.target = '_blank';
         link.rel = 'noopener';
+        if (citation.excerpt) {
+          addText(item, 'p', 'Kaynaktan kısa alıntı', 'chat-source-label');
+          addText(item, 'blockquote', citation.excerpt);
+        } else {
+          addText(item, 'p', 'Bu kayıtta kısa alıntı bulunmuyor; kaynak belgeyi açabilirsiniz.', 'chat-source-missing');
+        }
+        const open = addText(item, 'a', 'Kaynak belgeyi aç ↗', 'chat-source-open');
+        open.href = citation.source_url;
+        open.target = '_blank';
+        open.rel = 'noopener';
+        open.setAttribute('aria-label', citation.source_title + ' belgesini aç — sayfa ' + citation.page);
       });
     }
   };

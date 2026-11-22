@@ -12,6 +12,21 @@ Proje tek geliştirici tarafından yürütülür. İşler küçük, doğrulanabi
 
 ## 3. İş paketleri ve çıktılar
 
+### Ek paket — sohbet üreticisi, kalite denetimi ve kaynak kartları (22.11.2026)
+
+Üç adım, kullanıcı isteğiyle sıralı test kapılarıyla tamamlandı:
+
+| Adım | Çıktı | Test kapısı |
+|---|---|---|
+| 1 | Final sağlayıcı etiketi, yerel özet etiketi ve kullanılan bulgu/kayıt/kaynak dayanakları | 415 test + Ruff/node + tarayıcı |
+| 2 | Bilinen teknik anahtar sızıntıları, açık seviye/durum/evre çelişkileri ve onarım | 470 test + 24/24 çevrimdışı kalite vakası + tarayıcı |
+| 3 | Resmî kaynaktan kısa alıntılı başlık/sayfa/bağlantı kartları; eski alıntılarda dürüst eksik bilgi | 480 test + Ruff/node + SSR/dinamik masaüstü/mobil tarayıcı |
+
+Her test kapısı geçildikten sonra sonraki adım kodlandı. Sağlayıcı yanıtları
+kontrollü test doubles/HTTP taklitleriyle sınandı; canlı LLM doğruluğu ölçülmedi.
+Ekran kanıtı proje dışındaki outputs/chat-source-cards-desktop.jpg ve
+chat-source-cards-mobile.jpg dosyalarında. Gerçek işlem kayıtlarına yazılmadı.
+
 ### Ek düzenleme — isteğe bağlı sohbet (22.11.2026)
 
 Tamamlandı: varsayılan kapalı panel, eski ortalı içerik, masaüstünde açılışta

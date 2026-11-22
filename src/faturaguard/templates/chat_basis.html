@@ -2,6 +2,6 @@
 <details class="chat-basis"><summary>Dayanaklar{% if turn.basis_findings %} · {{ turn.basis_findings|length }} bulgu{% endif %}{% if turn.citations %} · {{ turn.citations|length }} kaynak{% endif %}</summary>
   {% if turn.basis_records %}<ul class="chat-basis-records">{% for record in turn.basis_records %}<li>{{ record }}</li>{% endfor %}</ul>{% endif %}
   {% if turn.basis_findings %}<p class="chat-basis-label">İncelenen bulgular</p><ul class="chat-basis-findings">{% for code in turn.basis_findings %}<li><code>{{ code }}</code></li>{% endfor %}</ul>{% endif %}
-  {% if turn.citations %}<ul class="chat-citations">{% for citation in turn.citations %}<li><a href="{{ citation.source_url }}" target="_blank" rel="noopener">{{ citation.source_title }}, s. {{ citation.page }}</a></li>{% endfor %}</ul>{% endif %}
+  {% if turn.citations %}<div class="chat-source-cards">{% for citation in turn.citations %}{% include 'chat_source_card.html' %}{% endfor %}</div>{% endif %}
   {% if not turn.basis_records and not turn.basis_findings and not turn.citations %}<p class="chat-basis-empty">{% if turn.basis_recorded %}Bu yanıt için belge bulgusu veya resmî kaynak kullanılmadı.{% else %}Bu eski yanıt için ayrıntılı dayanak kaydı bulunmuyor.{% endif %}</p>{% endif %}
 </details>

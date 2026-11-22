@@ -44,8 +44,16 @@
 .document-chat .chat-answer { padding: 13px 14px; border: 1px solid #e1e9f1; border-radius: 4px 15px 15px 15px; background: #fff; font-size: 14px; }
 .document-chat .chat-answer > strong { display: block; color: #4a769a; font-size: 10px; font-weight: 700; }
 .document-chat .chat-answer p { margin: 7px 0 0; }
-.chat-citations { margin: 12px 0 0; padding: 10px 0 0 16px; border-top: 1px solid #edf1f6; font-size: 11px; line-height: 1.7; }
-.chat-citations a { color: #075da8; overflow-wrap: anywhere; }
+.chat-source-cards { display: grid; gap: 9px; margin-top: 12px; }
+.chat-source-card { min-width: 0; padding: 12px; border: 1px solid #dbe7f1; border-radius: 10px; background: #f8fbfe; }
+.chat-source-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; color: #58758f; font-size: 8px; font-weight: 750; letter-spacing: .05em; }
+.chat-source-page { padding: 2px 6px; border-radius: 4px; background: #eaf3fb; font-size: 10px; letter-spacing: 0; }
+.chat-source-card h4 { margin: 9px 0; font-size: 12px; line-height: 1.6; }
+.chat-source-card a { color: #0868b5; overflow-wrap: anywhere; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.document-chat .chat-answer .chat-source-label { margin-top: 12px; color: #627b91; font-size: 10px; }
+.chat-source-card blockquote { margin: 7px 0 12px; padding: 0 0 0 10px; border-left: 2px solid #b7d6ef; color: #405d75; font-size: 12px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-source-open { display: inline-block; font-size: 11px; font-weight: 650; }
+.document-chat .chat-answer .chat-source-missing { margin: 8px 0; color: #697f92; font-size: 11px; }
 .document-chat .chat-answer .chat-producer { margin-top: 12px; color: #58718a; font-size: 10px; }
 .chat-basis { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e8eff5; color: #4c6880; font-size: 11px; line-height: 1.7; }
 .chat-basis > summary { cursor: pointer; font-weight: 650; }

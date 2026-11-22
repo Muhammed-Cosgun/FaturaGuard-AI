@@ -11,6 +11,7 @@ class ChatCitation(BaseModel):
     source_title: str
     source_url: str
     page: int = Field(ge=1)
+    excerpt: str = Field(default="", max_length=600)
 
     @field_validator("source_url")
     @classmethod

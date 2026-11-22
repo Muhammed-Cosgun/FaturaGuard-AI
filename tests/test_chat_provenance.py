@@ -31,7 +31,7 @@ def test_provenance_template_escapes_findings_and_sources():
     html = main.templates.get_template("chat_basis.html").render(turn=turn)
     assert "Gemini tarafından üretildi" in html and "Dayanaklar" in html
     assert "&lt;script&gt;bulgu&lt;/script&gt;" in html and "<script>bulgu" not in html
-    assert "&lt;img&gt;Kaynak" in html and "s. 47" in html
+    assert "&lt;img&gt;Kaynak" in html and "Sayfa 47" in html
 
 
 def test_no_document_evidence_is_explicit_in_new_reply():
