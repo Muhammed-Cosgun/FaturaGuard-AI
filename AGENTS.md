@@ -2,23 +2,25 @@
 
 ## Aktif geliştirme
 
-22.11.2026 n8n geliştirmesi: kullanıcı yerel Docker kurulumunu seçti; Docker
-henüz kurulu değil, bildirim hedefinin anlamını sordu. Gerçek alıcı belirlenmedi.
-Yeni automation modülü uygulanan düzeltme + yeniden doğrulama olayını job ile
-aynı SQLite transaction'da outbox'a yazar. 6 deneme, backoff, lease ve sabit
-hata kodları; tekil review kaydı + tokenlı callback + business ACK var.
-Ana FastAPI lifespan işçisi teslim eder. automation_api ayrı 8012 callback
-sunucusudur; XML/sohbet uçları yok. Yerel launcher ayarı data/automation/local.env
-üzerinden yükler; normal BASLAT.cmd bu ayarı yüklemez. Yeni workflow n8n header
-credential'ları ve SMTP credential seçilmeden yayınlanamaz. Docker compose,
-Mailpit demo kutusu ve sentetik canlı kabul scripti hazır. 518 test/Ruff/derleme
-ve YAML ayrıştırma geçti; gerçek Docker Compose/n8n import/canlı SMTP kabulü
-YAPILMADI. Kullanıcının Docker Desktop kurması gerekiyor. Sonra n8n/KURULUM.md
-adımları ve run_automation_acceptance.py, ardından gerçek XML web kabulü.
-Gerçek dış alıcıya bildirim gönderilmedi. SMTP exactly-once değildir; gönderim
-sonrası çökme yinelenmeye yol açabilir. Eski n8n_webhook.py uyumluluk kodudur;
-ana web akışı artık onu çağırmaz. Aynı olaydan tek review, ACK kaybında duplicate
-cevabı; eski tarihî jobs geriye dönük kuyruğa eklenmez.
+22.11.2026 n8n canlı kabulü TAMAMLANDI. Kullanıcı Docker Desktop kurdu,
+n8n/Mailpit compose servislerini açtı, Header Auth ve yerel SMTP credential'larını
+seçti, workflow'u yayınladı. Callback ve site sunucuları kendi CMD oturumunda
+çalışırken run_automation_acceptance.py başarılı oldu. Yerel kanıt okundu:
+kind=live_n8n_mailpit_synthetic_acceptance, delivered=true, duplicate_ack=true,
+mail_count=1, real_invoice_validation=false, external_email_sent=false.
+Bu sentetik kabul gerçek n8n/SMTP hattını doğrular; gerçek XML düzeltmesi ile
+canlı uçtan uca kabul henüz ayrı olarak yapılmadı. 518 test/Ruff önceki kapısı
+geçmişti. Kullanıcı kesinlikle ücret istemiyor: ücretli AI Assistant/model,
+abonelik veya ücret gerektiren API çağrısı yapılmayacak. Mevcut Gemini/Groq
+hesap kotası/faturalama ücretsiz garanti sayılmaz; ücret riski doğrulanmadan
+canlı LLM testi veya site üstünden otomatik LLM çağrısı başlatılmamalı.
+Yerel Mailpit mesajı dışarı göndermez. Token data/automation/local.env içinde
+Git dışında; anahtar içeriğini okuma/paylaşma. OTOMASYON_SITE/CALLBACK launcher'ları
+bu ayarı yükler, normal BASLAT yüklemez. SQLite outbox job ile atomik yazılır;
+6 deneme/backoff/lease, tekil review ve business ACK vardır. SMTP gönderiminden
+hemen sonra tamamlanma kaydı öncesi çökme yinelenme riski taşır; exactly-once
+garantisi yok. Docker daemon sandbox hesabından erişilemiyor; gerekli Docker
+komutları kullanıcı CMD'sinde yürütülür. Gerçek dış alıcı seçilmedi.
 
 22.11.2026 son canlı paylaşımında karşılaştırma yanıtları alan değerlerini
 atlıyordu; kalan imza bilgisine rağmen genel işlem gerekmiyor iddiası da vardı.

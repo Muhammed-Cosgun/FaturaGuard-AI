@@ -169,7 +169,9 @@ Arka plan işçisi n8n'e teslim eder; tekil inceleme kaydı ve yerel demo e-post
 oluşur. Sınırlı tekrar deneme, sahiplik süresi ve tamamlanma cevabı kontrolü vardır.
 XML, dosya adı, tutarlar ve sohbet gönderilmez. Docker/n8n kurulumu, credential
 ayarları ve canlı kabul için [yerel kurulum rehberi](n8n/KURULUM.md).
-Canlı n8n kabulü henüz tamamlanmadı; gerçek alıcı yerine Mailpit demo kutusu kullanılır.
+Canlı sentetik n8n kabulü geçti: tekil inceleme kaydı, bir Mailpit mesajı ve
+yinelenen olay cevabı doğrulandı. Gerçek XML düzeltmeli canlı kabul ayrıdır;
+dış alıcı yerine yerel demo kutusu kullanılır. Otomasyon testi LLM çağırmaz.
 
 ## Temel ilke
 

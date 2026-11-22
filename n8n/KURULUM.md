@@ -6,8 +6,10 @@ tamamlanma cevabı. Belge yükleme, reddetme veya yalnızca sohbet bu olayı ür
 Doğrulamada hata kalması bildirimi engellemez; mesaj gerçek hata/uyarı/bilgi
 adetlerini gösterir, gönderim onayı vermez.
 
-Bu paket hazırlanırken Docker kurulu değildi. Python entegrasyonu test edildi;
-n8n importu, konteynerler ve canlı e-posta kabulü henüz doğrulanmadı.
+22.11.2026 canlı sentetik kabul geçti: Docker servisleri, n8n import/yayın,
+Header Auth, inceleme kaydı ve tek Mailpit mesajı doğrulandı; aynı olay yeniden
+gönderildiğinde duplicate cevabı alındı. Bu test LLM çağırmaz ve dışarı e-posta
+göndermez. Gerçek XML düzeltmeli canlı kabul ayrıca yapılmalıdır.
 
 ## 1. Docker Desktop
 
