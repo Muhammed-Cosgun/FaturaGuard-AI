@@ -11,6 +11,20 @@ htmlcov/
 .venv/
 .venv-*/
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite3
+*.sqlite3-*
+build/
+dist/
+*.egg-info/
+# Yerel format/kurtarma notları teslim paketine dahil edilmez.
+/PROJE_BAGLAMI.md
+/KURTARMA_NOTU.txt
 .build-temp/
 .verification-data/
 .tooling/

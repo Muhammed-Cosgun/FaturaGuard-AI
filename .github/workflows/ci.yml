@@ -4,14 +4,17 @@ on:
   push:
   pull_request:
 
-env:
-  PYTHONPATH: ${{ github.workspace }}
+permissions:
+  contents: read
 
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -19,5 +22,15 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Lint
         run: ruff check .
+      - name: Dependency consistency
+        run: python -m pip check
+      - name: Submission and Markdown checks
+        run: python scripts/check_submission.py --history
       - name: Test
-        run: pytest
+        run: python -m pytest -p no:cacheprovider -o addopts="" -q --basetemp=.pytest-work-ci
+      - name: Chat quality contracts (no API)
+        run: python scripts/run_document_chat_quality_evaluation.py
+      - name: JavaScript syntax
+        run: node --check src/faturaguard/static/document-chat.js
+      - name: Package build
+        run: python -m pip wheel --no-deps --wheel-dir .build-temp/dist .

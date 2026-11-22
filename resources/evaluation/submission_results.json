@@ -1,0 +1,25 @@
+{
+  "kind": "github_submission_local_acceptance",
+  "date": "2026-11-22",
+  "pytest_version": "9.0.3",
+  "pytest_passed": 526,
+  "chat_guard_cases_passed": 24,
+  "isolated_windows_lock_install": true,
+  "clean_snapshot_tested": true,
+  "remote_clone_performed_by_agent": false,
+  "gib_download_hash_verified_files": 4,
+  "embedding_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+  "chroma_chunks": 330,
+  "clean_web_native_validation_passed": true,
+  "clean_cli_arithmetic_passed": true,
+  "remote_llm_invoked": false,
+  "remote_ci_verified": false,
+  "dependency_audit_remaining_package": "chromadb==1.5.9",
+  "remaining_unique_advisories": [
+    "PYSEC-2026-311",
+    "PYSEC-2026-3813",
+    "PYSEC-2026-3814",
+    "PYSEC-2026-3815"
+  ],
+  "security_scope": "Local educational prototype; see SECURITY.md, not a zero-vulnerability or production certification."
+}

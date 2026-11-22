@@ -187,3 +187,11 @@ FastAPI uygulaması
   fakat dosya adı, bulgu metni ve teklif tutarları içerebilir. Rapor anonim değildir.
 - FastAPI lifespan kapanışı cached Schematron motorunu event loop thread'i
   bitmeden temizler; native kapanış regresyonu ayrı süreçte test edilir.
+
+## GitHub teslim güvenlik güncellemesi
+
+Embedding revizyonu sabitlendi ve trust_remote_code=False açıkça tanımlandı.
+Chroma yerel PersistentClient'tır, Chroma HTTP sunucusu açılmaz. Bağımlılık
+advisory değerlendirmesi [SECURITY.md](SECURITY.md) içinde; sıfır bilinen açık
+iddiası yoktur. Temiz-klon hazırlığı ve 526 test kapısı
+[TESLIM_KONTROLU.md](TESLIM_KONTROLU.md) içinde.

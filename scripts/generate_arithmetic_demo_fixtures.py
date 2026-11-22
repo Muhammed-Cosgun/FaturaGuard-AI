@@ -48,8 +48,15 @@ CASES = (
 
 
 def generate(output_dir: Path = OUTPUT_DIR) -> list[Path]:
-    baseline = BASELINE.read_bytes()
     validator = EfaturaKontrolAdapter()
+    try:
+        return _generate(output_dir, validator)
+    finally:
+        validator.close()
+
+
+def _generate(output_dir: Path, validator) -> list[Path]:
+    baseline = BASELINE.read_bytes()
     output_dir.mkdir(parents=True, exist_ok=True)
     generated: list[Path] = []
     for case in CASES:

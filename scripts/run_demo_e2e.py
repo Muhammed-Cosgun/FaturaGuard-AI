@@ -33,6 +33,14 @@ def sha256(path: Path) -> str:
 
 def main() -> None:
     args = parse_args()
+    validator = EfaturaKontrolAdapter()
+    try:
+        _run_demo(args, validator)
+    finally:
+        validator.close()
+
+
+def _run_demo(args, validator) -> None:
     source = args.xml_path.resolve()
     if not source.is_file():
         raise SystemExit(f"XML dosyası bulunamadı: {source}")
@@ -42,7 +50,6 @@ def main() -> None:
     original_hash_before = sha256(source)
     data_root = PROJECT_ROOT / "data"
     storage = DocumentStorage(data_root, settings.max_upload_bytes)
-    validator = EfaturaKontrolAdapter()
     workflow = CorrectionWorkflow(data_root, validator)
 
     contents = source.read_bytes()

@@ -1,103 +1,37 @@
-# FaturaGuard AI — Uçtan Uca Demo Senaryosu
+# Tekrar edilebilir demo
 
-Bu senaryo; doğrulama, insan onayı, sınırlı düzeltme, yeniden doğrulama, orijinalin korunması ve rapor üretimini tek akışta gösterir.
+## Hazırlık
 
-## Format sonrası güncel çalışma düzeni — 21.11.2026
+Temiz kurulum ve kaynak/model hazırlığı README.md içindedir. Test belgeleri:
 
-Proje kökünde `.venv-clean` kullanılır. `BASLAT.cmd` sunucuyu
-`http://127.0.0.1:8011` adresinde açar. Geliştirme için:
-
-```cmd
-.venv-clean\Scripts\python.exe -m uvicorn faturaguard.main:app --host 127.0.0.1 --port 8011 --reload
+```bash
+python scripts/prepare_demo.py --fixtures-only
 ```
 
-Gemini ve Groq anahtarları Windows kullanıcı ortam değişkenlerindedir; yeni CMD
-oturumunda devralınır. Anahtarlar sohbete, rapora veya kaynak koda yazılmaz.
+`data/demo-fixtures/` altında vergi hariç, vergi dahil ve ödenecek toplam
+hataları oluşturulur. Bu komut LLM çağırmaz ve kaynak fatura değişmez.
+Tam AI demo için resmî kaynaklar, embedding/Chroma ve kendi ücretsiz sağlayıcı
+ayarlarınız gerekir. Anahtarları kayda veya sunuma koymayın.
 
-```cmd
-.venv-clean\Scripts\python.exe scripts\run_demo_preflight.py
-.venv-clean\Scripts\python.exe scripts\run_web_acceptance.py
-echo %ERRORLEVEL%
+## Web kabulü
+
+1. Siteyi 8011 portunda açın.
+2. demo_tax_exclusive_error.xml yükleyin: 0 hata / 2 uyarı / 1 bilgi.
+3. Kaynaklı plan hazırsa 15.00 yerine 15.15 teklifini inceleyip açıkça onaylayın.
+4. Yeni sonuç 0 hata / 0 uyarı / 1 bilgi olmalı. Diff tek alanı göstermeli.
+5. Önce/sonra sohbetini ve sağlayıcı/dayanakları inceleyin.
+6. n8n hazırlanmışsa yeni işlem mesajını Mailpit'te işlem kimliğiyle eşleştirin.
+
+Reddetme yeni düzeltme veya bildirim olayı oluşturmamalı. İmza bilgisi kalabilir;
+uygulama imza atmaz veya GİB'e göndermez. Ayrıntılı konuşma ve yedek demo
+[SUNUM_HAZIRLIK.md](SUNUM_HAZIRLIK.md) içinde.
+
+## Yerel CLI aritmetik demosu
+
+```bash
+python scripts/run_demo_e2e.py data/demo-fixtures/demo_tax_exclusive_error.xml
 ```
 
-Üç fixture için 0 kalan uyarı ve süreç çıkışı 0 doğrulandı. Fixture'lar
-`data/demo-fixtures/` altındadır. Aşağıdaki `.venv-runtime`, eski Desktop dosyası
-ve port 8000 talimatları format öncesi akışı anlatır; bu bilgisayarda yukarıdaki
-komutlar ve mevcut demo fixture'ları kullanılır.
-
-## Ön koşul
-
-- `.venv-runtime` etkin olmalı.
-- `efatura-kontrol` ve proje bağımlılıkları kurulu olmalı.
-- Daha önce oluşturulan GİB RAG indeksi korunmalı. AI açıklaması için sunum modunda Gemini Flash Lite ve Groq GPT-OSS 120B anahtarları aynı CMD oturumunda tanımlanmalı; anahtar yoksa yerel Ollama/Gemma modu kullanılabilir.
-
-## Ana senaryo: aritmetik tutarsızlık
-
-Kullanıcının mevcut test dosyasını kullanın:
-
-```cmd
-python scripts\run_demo_e2e.py C:\Users\Muhammed\Desktop\efatura_kutuphane_testi\test_hesap_hata.xml
-```
-
-Beklenen davranış:
-
-1. Dosya doğrulanır ve `hesap-dip-satir` aritmetik bulgusu görülür.
-2. Bir düzeltme teklifi üretilir fakat onay verilmediği için hiçbir XML değiştirilmez.
-3. Komut sonunda giriş dosyasının SHA-256 özeti ilk değerle karşılaştırılır.
-4. XML içeriğini taşımayan işlem raporu `data/reports/` altında üretilir.
-
-Kullanıcının onayını temsil eden ikinci adım:
-
-```cmd
-python scripts\run_demo_e2e.py C:\Users\Muhammed\Desktop\efatura_kutuphane_testi\test_hesap_hata.xml --approve-first-proposal
-```
-
-Beklenen davranış:
-
-1. Yalnızca allowlist'teki `recalculate-line-extension-total` kuralı uygulanır.
-2. Düzeltilmiş XML, `data/working/` altında yeni bir çalışma kopyası olur.
-3. Orijinal test dosyası korunur.
-4. Çalışma kopyası yeniden doğrulanır; işlem raporu, hash'ler ve diff saklanır.
-
-> `--approve-first-proposal` yalnızca komut satırı demosunda kullanıcının onay düğmesine basmasını temsil eder. Web arayüzünde aynı işlem açık bir Kabul/Red kararıyla yapılır.
-
-## Web arayüzü senaryosu
-
-```cmd
-set "LLM_PROVIDER=auto"
-set "GEMINI_API_KEY=KENDI_GEMINI_ANAHTARIN"
-set "GEMINI_MODEL=gemini-3.5-flash-lite"
-set "GROQ_API_KEY=KENDI_GROQ_ANAHTARIN"
-set "GROQ_MODEL=openai/gpt-oss-120b"
-uvicorn faturaguard.main:app --reload
-```
-
-1. `http://127.0.0.1:8000` adresini açın ve aynı XML'i yükleyin.
-2. Aritmetik bulguda **Resmî GİB kaynağıyla açıkla** düğmesine basın; kaynak, resmî URL ve sayfayı inceleyin.
-3. Düzeltme kartındaki önce/sonra değerini kontrol edin.
-4. **Kabul et** ile çalışma kopyasının oluşturulduğunu, diff'i ve yeniden doğrulama özetini gösterin.
-5. İşlem raporunu HTML ve JSON olarak açın.
-
-## Genişletilmiş aritmetik katalog demosu
-
-Yeni dip toplam düzeltme kurallarını tarayıcıda göstermek için önce doğrulanmış
-demo dosyalarını üretin:
-
-```cmd
-python scripts\generate_arithmetic_demo_fixtures.py
-```
-
-Oluşan dosyalar `data\demo-fixtures\` altındadır. Bunları tek tek yükleyin:
-
-- `demo_tax_exclusive_error.xml`: Agent `TaxExclusiveAmount` teklifini üretir.
-- `demo_tax_inclusive_error.xml`: Agent `TaxInclusiveAmount` teklifini üretir.
-- `demo_payable_error.xml`: Agent `PayableAmount` teklifini üretir.
-
-Her vakada AI Agent işlem planını, maskeli LLM patch kararını, açık kullanıcı
-onayını, minimal diff'i ve yeniden doğrulama sonucunu gösterin. Alt toplam
-bulgusu bulunan belgede bağımlı üst toplamın teklif edilmemesi beklenen güvenlik
-davranışıdır.
-
-## Negatif senaryo
-
-`test_bozuk_xml.xml` ile yükleme yapın. XML iyi biçimli olmadığından güvenli düzeltme teklifi üretilmemeli; sistem yalnızca doğrulama bulgusunu göstermelidir.
+`--approve-first-proposal` yalnızca bu CLI demosunda açık kullanıcı onayı
+anlamına gelir. Web uygulamasının kaynaklı plan/onay kapısının testi değildir.
+Gerçek XML ve kişisel veriler yerine repodaki örnekleri kullanın.

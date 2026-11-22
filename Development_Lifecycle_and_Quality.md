@@ -1,3 +1,7 @@
+> Bu belge geliştirme yaklaşımı ve tarihsel aşamaları anlatır. Güncel kurulum
+> README.md, teslim kapısı TESLIM_KONTROLU.md ve güvenlik sınırları SECURITY.md
+> içindedir. Eski aşama sayıları güncel teslim sonucu olarak okunmamalıdır.
+
 # FaturaGuard AI — Geliştirme Yaşam Döngüsü ve Kalite Süreci
 
 ## 1. Neden bu süreç var?

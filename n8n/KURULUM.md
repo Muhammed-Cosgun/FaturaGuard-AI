@@ -29,7 +29,8 @@ docker compose -f n8n\compose.yaml up -d
 Portlar: n8n `http://localhost:5678`, demo posta kutusu `http://localhost:8025`.
 n8n ve posta verileri kalıcı Docker volume'larındadır. SMTP dışarı açılmaz;
 posta internete gönderilmez. `down -v` verileri siler; normal durdurmada kullanmayın.
-n8n sürümü sabittir; Mailpit demo imajı `latest` kullanır.
+n8n sürümü sabittir; Mailpit imajı teslim denetiminde resmî registry
+manifest digest değeriyle sabitlendi.
 
 `data/automation/local.env` rastgele otomasyon tokenını tutar; yeniden hazırlık
 mevcut dosyayı ezmez. Bu dosya Git dışında kalır. Tokenı sohbete göndermeyin.

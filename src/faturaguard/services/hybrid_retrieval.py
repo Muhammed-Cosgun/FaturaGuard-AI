@@ -12,6 +12,7 @@ from typing import Protocol
 from faturaguard.services.official_rag import TOKEN_PATTERN, RagChunk
 
 DEFAULT_EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
+DEFAULT_EMBEDDING_REVISION = "614241f622f53c4eeff9890bdc4f31cfecc418b3"
 
 
 def tokenize(value: str) -> list[str]:
@@ -56,6 +57,8 @@ class SentenceTransformerEmbedder:
             self.cache_directory.mkdir(parents=True, exist_ok=True)
             self._model = SentenceTransformer(
                 self.model_name,
+                revision=DEFAULT_EMBEDDING_REVISION if self.model_name == DEFAULT_EMBEDDING_MODEL else None,
+                trust_remote_code=False,
                 cache_folder=str(self.cache_directory),
                 local_files_only=not self.allow_model_download,
             )
