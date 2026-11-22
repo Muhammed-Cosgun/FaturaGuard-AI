@@ -1,3 +1,17 @@
+22.11.2026 kapanış kontrolü TAMAMLANDI; prototip/sunum için başarılı.
+518 pytest/Ruff/Node/pip check/preflight/24 kalite vakası yeniden geçti.
+4/4 yerel ham kaynak hash'i ve 330 chunk doğrulandı. Offline RAG 11 sorguda
+hibrit Recall@3=.9091, MRR@3=.7121; eski canlı web/sohbet/n8n kanıtları incelendi,
+kabul XML'inin iki hash'i yeniden eşleşti. Bu tur yeni LLM veya dış bildirim
+çağrısı yapılmadı; servisler kapalı/erişilemezdi, canlı test tekrar edilmedi.
+SON_KONTROL_RAPORU.md kapsamı ve sınırları içerir. Kullanıcı 8–10 dakika sunum
+istedi; dokuz slayt ve 2.5 dk demo, SUNUM_HAZIRLIK.md, sunum/ PPTX hazır.
+Spaces Artifact Session MXC ortam hatası nedeniyle iki kez başarısız oldu;
+Presentations becerisinin yerel Artifact Tool fallback'iyle PPTX üretildi.
+Paket/geometri/import doğrulaması ve dokuz slayt görsel incelemesi tamamlandı.
+Uygulama iş mantığı değişmedi. Üretim hazır/tüm GİB hataları/tüm LLM cevapları
+kesin doğru iddiası yok. MCP ve imza/GİB gönderimi kapsam dışı.
+
 22.11.2026 gerçek XML web otomasyon kabulü de geçti: demo_tax_exclusive_error.xml,
 recalculate-tax-exclusive-total applied; yeniden doğrulama 0 hata/0 uyarı/1 bilgi.
 Kullanıcı Mailpit mesajını paylaştı; SQLite job/outbox/review eşleştirildi:

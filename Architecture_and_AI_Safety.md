@@ -1,5 +1,23 @@
 # FaturaGuard AI — Mimari ve Yapay Zekâ Güvenliği
 
+## Kapanış güncellemesi — 22.11.2026
+
+Güncel arayüz Jinja2 ve küçük JavaScript modülleri kullanır; HTMX varsayılmaz.
+Sohbet LangGraph üzerinde soru yorumlama, salt okunur araç seçimi ve yanıt
+üretimi yürütür. Son altı soru-cevap ve gerekli bağlam maskelenerek seçili
+Gemini/Groq sağlayıcısına gönderilebilir; ham XML dosyası gönderilmez.
+Maskeleme her özel bilgiyi yakalayamayabilir. Sağlayıcı/dayanak/kaynak alıntısı
+etiketleri ve sınırlı çıktı kalite kontrolleri vardır.
+
+Düzeltme sonucu ile outbox olayı aynı SQLite transaction'da yazılır. Arka plan
+işçisi n8n'e teslim eder; tokenlı callback ile tekil inceleme, yerel Mailpit
+mesajı ve tamamlanma cevabı kaydedilir. 6 deneme/backoff/lease uygulanır.
+n8n bu akışta model kullanmaz. Sentetik ve gerçek XML canlı kabulleri geçti.
+SMTP gönderimi sonrası kayıt öncesi çökmede yinelenme mümkündür.
+
+Son kontrol: 518 test ve 24 kalite vakası. Ayrıntı SON_KONTROL_RAPORU.md.
+MCP, elektronik imza üretimi ve GİB gönderimi uygulanmadı.
+
 ## Mimari
 
 ```text
@@ -16,7 +34,7 @@ FastAPI uygulaması
  ├─ LangGraph agent iş akışı
  │   └─ allowlist araçlar, koşullu yönlendirme ve insan onayı
  ├─ güvenli düzeltme motoru / diff / yeniden doğrulama
- └─ raporlama ve isteğe bağlı n8n webhook'u
+ └─ raporlama ve kalıcı SQLite outbox üzerinden n8n bildirimi
 ```
 
 ## Bileşen sorumlulukları
@@ -27,7 +45,7 @@ FastAPI uygulaması
 - Chroma: doğrulanmış GİB chunks'larının kalıcı vektör koleksiyonudur; içerik ve metadata filtreleri buradan getirilir.
 - Hibrit retrieval/rerank: `intfloat/multilingual-e5-small` semantic araması ile BM25 araması ayrı üretilir. İlk 12'şer aday birleştirilir; 0.55 semantic + 0.30 normalize BM25 + 0.15 terim eşleşmesi puanıyla sıralanır. Ayrı bir neural reranker kullanılmaz.
 - Agent: LangGraph üzerinde tanımlı araçlar dışında işlem yapamaz. Belge kabul grafiği yerel `validate_document` → `propose_safe_corrections` → `assess_document_risk` → `await_human_review` / `report_ready` düğümlerini çalıştırır. Risk aracı, belgeyi `blocked`, `needs_human_review` veya `ready_for_manual_submission_review` rotasına alır; öncelikli bulguları, RAG ile incelenmesi gereken adımları ve onaya hazır düşük riskli düzeltme sayısını üretir. Karar grafiği ise kullanıcı onayı sonrasında `apply_safe_correction` → `revalidate_corrected_copy` → `report_correction_result` sırasını yürütür; red kararı yalnızca kaydedilir. Kaynaklı açıklama için alt akış: getir → rerank → kaynaklı açıkla → insan incelemesi. Bu araçların her çağrısı SQLite audit trail'e yazılır.
-- Kaynaklı açıklama: Ollama yerel API'sine JSON şeması gönderilir. LLM çıktısındaki her atıf, retrieval ile dönen GİB kanıtlarıyla bire bir eşleşmek zorundadır; eşleşmeyen atıf reddedilir.
+- Kaynaklı açıklama: seçilen Gemini/Groq veya yerel Ollama sağlayıcısına yapılandırılmış çıktı şeması gönderilir. LLM çıktısındaki her atıf, retrieval ile dönen GİB kanıtlarıyla bire bir eşleşmek zorundadır; eşleşmeyen atıf reddedilir.
 - LLM tabanlı düzeltme planı: Agent, yereldeki güvenli düzeltme motorunun hesapladığı adayları LLM'e maskeli tokenlarla (`TARGET_FIELD_1`, `CURRENT_VALUE_1`, `RECALCULATED_VALUE_1`) sunar. LLM yalnızca mevcut adaylardan birini seçen yapılandırılmış patch planı üretir; VKN/TCKN, isim, adres, IBAN, dosya adı, hash, ham XML ve gerçek tutarlar uzak sağlayıcıya aktarılmaz. Agent planı yereldeki adayla bire bir eşleştiremezse veya kaynak kanıtı yetersizse düzeltme engellenir ve insan incelemesine yönlenir.
 - Model sağlayıcısı: yerel LLM veya API sağlayıcısı değiştirilebilir adaptörlerle bağlanır. Güncel demoda anahtarlar tanımlıyken Gemini birincil, Groq yedektir. Yerel açıklama seçeneği `gemma3:4b`, eski benchmark'ta 4/4 şemalı çıktı üretmiştir; bu anlamsal doğruluk garantisi değildir. Model çevresel ayarla değiştirilebilir.
 - Hızlı API modu: `GEMINI_API_KEY` tanımlandığında düşük gecikmeli Gemini Flash-Lite, en güçlü iki GİB kanıt parçası ve 12 saniyelik istek bütçesiyle birincil üretici olur. Süre aşımı veya API hatasında yapılandırılmış çıktıyı Groq GPT-OSS 120B ikinci sağlayıcısı dener; o da başarısızsa uzun yerel LLM beklenmeden doğrulanmış atıflarla deterministik kaynak özeti gösterilir. Anahtar yoksa uygulama tamamen yerel Ollama moduna döner. API sınırından yalnızca statik doğrulama kuralı ve retrieval/rerank ile seçilmiş GİB kanıt parçaları geçer; XML, dosya adı, SHA-256, taraf/tutar bilgileri ve yerel yol geçmez. API anahtarı kaynak kodda, raporda veya audit kaydında tutulmaz.

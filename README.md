@@ -295,3 +295,12 @@ python scripts\run_demo_preflight.py
 | `resources/evaluation/golden_queries.json` | RAG retrieval değerlendirmesinde kullanılan beklentili sorgu seti |
 
 Bu belgeler kısa tutulur ve proje ilerledikçe güncellenir; amaç bürokrasi değil, kararların ve kalite kanıtlarının izlenebilir olmasıdır.
+
+## Kapanış ve sunum
+
+22.11.2026 prototip kapanış kontrolü başarılı. Son çalıştırmada 518 test,
+Ruff, Node sözdizimi, pip check ve 24 kalite vakası geçti. RAG ölçümü ve yerel
+kaynak hashleri yenilendi. Canlı kabul kanıtlarının kapsamı ve bilinen sınırlar
+[son kontrol raporunda](SON_KONTROL_RAPORU.md). 8–10 dakikalık sunum/demo planı
+[SUNUM_HAZIRLIK.md](SUNUM_HAZIRLIK.md), düzenlenebilir PowerPoint
+[sunum dosyası](sunum/FaturaGuard_AI_Sunum.pptx).

@@ -1,10 +1,17 @@
+# Prototip kapanışı — 22.11.2026
+
+Son kontroller başarılı: 518 test/Ruff/Node/pip check, kaynak hashleri ve yerel
+RAG ölçümü yenilendi. n8n sentetik ve gerçek XML canlı kabulleri kayıtlı.
+İş mantığı değiştirilmeden sunum hazırlığına geçildi. 8–10 dakikalık konuşma
+ve demo planı SUNUM_HAZIRLIK.md içinde. Karar ve sınırlar SON_KONTROL_RAPORU.md.
+
 # FaturaGuard AI — Proje Planı
 
 ## 1. Proje özeti
 
 FaturaGuard AI, e-Fatura XML belgelerini doğrulayan; sorunları önceliklendiren; yalnızca resmî GİB kaynaklarıyla açıklayan ve kullanıcı onayıyla güvenli, sınırlı düzeltmeler uygulayan bir web uygulamasıdır.
 
-**Teslim hedefi:** çalıştırılabilir FastAPI + Jinja2/HTMX V1 uygulaması, otomatik testler ve tekrar edilebilir demo senaryosu.
+**Teslim hedefi:** çalıştırılabilir FastAPI + Jinja2/JavaScript V1 uygulaması, otomatik testler ve tekrar edilebilir demo senaryosu.
 
 ## 2. Çalışma yaklaşımı
 
