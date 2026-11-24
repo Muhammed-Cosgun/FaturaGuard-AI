@@ -4,7 +4,7 @@ Tarih: 22.11.2026. İncelenen uygulama: main / 050ed05.
 
 ## Karar
 
-**Bootcamp prototipi ve gözetimli demo için başarılı.** Sunum hazırlığına geçildi.
+**Bootcamp prototipi ve gözetimli demo için başarılı.**
 Üretim ortamına çıkış veya bütün GİB senaryolarının karşılandığı onayı değildir.
 Bu kapanış turunda uygulamanın iş mantığı değiştirilmedi.
 

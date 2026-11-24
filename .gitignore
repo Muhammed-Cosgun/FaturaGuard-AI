@@ -45,3 +45,9 @@ resources/gib/raw/*
 .vscode/
 .idea/
 Thumbs.db
+
+# Sunum ve kişisel konuşma hazırlıkları yalnızca yerelde tutulur.
+/sunum/
+/SUNUM_HAZIRLIK.md
+*.pptx
+*.ppt

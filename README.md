@@ -4,7 +4,6 @@ UBL-TR e-Fatura XML belgelerini doğrulayan, bulguları resmî GİB kaynaklarıy
 açıklayan ve kullanıcı onayıyla sınırlı aritmetik düzeltmeler uygulayan bootcamp projesi.
 Orijinal dosya korunur. Elektronik imza üretimi ve GİB'e gönderim yapılmaz.
 
-![FaturaGuard ana sayfa](sunum/gorseller/ana-sayfa.jpg)
 
 ## Projede neler var?
 
@@ -174,7 +173,7 @@ Rerank ayrı neural model değildir: 0.55 semantic + 0.30 normalize BM25 +
 revizyonu kodda sabittir. Kaynaklar [GİB envanterinden](resources/gib/official_sources.json)
 SHA-256 ile doğrulanır.
 
-## Belgeler ve sunum
+## Belgeler
 
 - [Gereksinimler ve kapsam](SRS.md)
 - [Mimari ve AI güvenliği](Architecture_and_AI_Safety.md)
@@ -182,9 +181,6 @@ SHA-256 ile doğrulanır.
 - [Test ve teslim özeti](Test_and_Delivery_Report.md)
 - [Son prototip kontrolü](SON_KONTROL_RAPORU.md)
 - [GitHub teslim kontrolü](TESLIM_KONTROLU.md)
-- [PowerPoint sunumu](sunum/FaturaGuard_AI_Sunum.pptx)
-- [Konuşma ve demo planı](SUNUM_HAZIRLIK.md)
-- [Ekran görüntülerinin kaynakları](sunum/gorseller/KAYNAKLAR.md)
 - [Üçüncü taraf bileşenler](THIRD_PARTY_NOTICES.md)
 - [Güvenlik taraması ve bilinen sınırlar](SECURITY.md)
 

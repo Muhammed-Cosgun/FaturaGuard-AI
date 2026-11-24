@@ -11,7 +11,7 @@ python scripts/prepare_demo.py --fixtures-only
 `data/demo-fixtures/` altında vergi hariç, vergi dahil ve ödenecek toplam
 hataları oluşturulur. Bu komut LLM çağırmaz ve kaynak fatura değişmez.
 Tam AI demo için resmî kaynaklar, embedding/Chroma ve kendi ücretsiz sağlayıcı
-ayarlarınız gerekir. Anahtarları kayda veya sunuma koymayın.
+ayarlarınız gerekir. Anahtarları kayda koymayın.
 
 ## Web kabulü
 
@@ -23,8 +23,7 @@ ayarlarınız gerekir. Anahtarları kayda veya sunuma koymayın.
 6. n8n hazırlanmışsa yeni işlem mesajını Mailpit'te işlem kimliğiyle eşleştirin.
 
 Reddetme yeni düzeltme veya bildirim olayı oluşturmamalı. İmza bilgisi kalabilir;
-uygulama imza atmaz veya GİB'e göndermez. Ayrıntılı konuşma ve yedek demo
-[SUNUM_HAZIRLIK.md](SUNUM_HAZIRLIK.md) içinde.
+uygulama imza atmaz veya GİB'e göndermez.
 
 ## Yerel CLI aritmetik demosu
 

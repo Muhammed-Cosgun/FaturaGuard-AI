@@ -2,7 +2,7 @@
 
 Bu depo yerel bootcamp prototipidir. Gereksinimler SRS.md, mimari
 Architecture_and_AI_Safety.md, güncel kurulum README.md içinde. Teslim
-kapısı TESLIM_KONTROLU.md, sunum SUNUM_HAZIRLIK.md ve sunum/ altında.
+kapısı TESLIM_KONTROLU.md içindedir.
 
 ## Temel sınırlar
 
@@ -32,5 +32,5 @@ eklendi. Chroma advisory sonucu temiz diye sunulmaz; SECURITY.md okunmalı.
 
 Bu testler canlı API gerektirmez. Canlı smoke/benchmark betikleri ayrı
 çalıştırılır; geçmiş kanıtı yeni canlı test diye raporlama. Dokümantasyon
-bağlantılarını ve sunum görsellerinin kökenini koru. MCP veya tüm GİB hata
+bağlantılarını koru. MCP veya tüm GİB hata
 senaryolarının kapsandığını iddia etme. CI, üretim güvenliği onayı değildir.

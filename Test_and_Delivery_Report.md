@@ -6,7 +6,6 @@
   güvenlik ve güncel test kapısı.
 - [Prototip kapanış raporu](SON_KONTROL_RAPORU.md): 22.11.2026 tarihli 518 test,
   RAG ölçümü ve kayıtlı canlı kabulün kapsamı.
-- [Sunum ve demo](SUNUM_HAZIRLIK.md).
 
 ## Kanıtların anlamı
 

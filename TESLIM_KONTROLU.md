@@ -66,7 +66,7 @@ ile kaydedilir; yukarıdaki başarı özellikle 7d591e5 commit'ine aittir.
    görülmeden “uzak CI geçti” denmez; hata varsa çıktıyla ayrıca düzeltilecektir.
 4. Repo private: hocanın GitHub hesabına erişim verin, daveti kabul ettiğini
    kontrol edin. Public yapma zorunluluğu yoktur. Erişim daveti otomatik gönderilmedi.
-5. README görsellerini, sunum indirmesini ve göreli belge bağlantılarını GitHub'da açın.
+5. README ve göreli belge bağlantılarını GitHub'da açın.
 6. API anahtarı, local.env, data/model/SQLite veya kişisel faturaları yüklemeyin.
 
 GitHub'a yalnızca repo dosyaları teslim edilir. Büyük RAG/model varlıkları

@@ -2,8 +2,7 @@
 
 Son kontroller başarılı: 518 test/Ruff/Node/pip check, kaynak hashleri ve yerel
 RAG ölçümü yenilendi. n8n sentetik ve gerçek XML canlı kabulleri kayıtlı.
-İş mantığı değiştirilmeden sunum hazırlığına geçildi. 8–10 dakikalık konuşma
-ve demo planı SUNUM_HAZIRLIK.md içinde. Karar ve sınırlar SON_KONTROL_RAPORU.md.
+Karar ve sınırlar SON_KONTROL_RAPORU.md içinde.
 
 # FaturaGuard AI — Proje Planı
 
@@ -113,7 +112,7 @@ Gemini/Groq smoke testi bekleniyor. Test geçmeden bu paketin canlı kabulü kap
 | M2 — Kaynaklı RAG çalışıyor | Chroma ve lexical retrieval, golden sorgularda beklenen GİB kaynağını getirir; rerank sonucu kaynak bilgisi taşır. |
 | M3 — Güvenli öneri akışı | LangGraph agent yalnızca tanımlı araçları çağırır; onaysız değişiklik yapılamaz. |
 | M4 — Düzeltme kanıtlanıyor | Çalışma kopyası değişir, orijinalin hash'i sabit kalır, diff gösterilir. |
-| M5 — Sunuma hazır V1 | Uçtan uca demo, otomatik testler, RAG metrikleri ve teslim raporu hazırdır. |
+| M5 — Teslime hazır V1 | Uçtan uca demo, otomatik testler, RAG metrikleri ve teslim raporu hazırdır. |
 
 ## 5. Öncelik ve kapsam yönetimi
 
@@ -168,13 +167,13 @@ ve golden set genişletmesi ayrı iyileştirmelerdir.
 | 5 — GİB hibrit RAG | Tamamlandı | Resmî GİB envanteri + SHA-256, chunking, embedding, Chroma, BM25, hybrid rerank, golden set ve metrikler mevcut. | 64 doğrulama kodunun tamamı için değil, temsilî hata aileleri için RAG kalite ölçümü var; golden set kapsamı genişletilebilir. |
 | 6 — Güvenli agent ve düzeltme | Tamamlandı, katalog genişletmesi sürüyor | LangGraph intake/decision graph, tool allowlist, insan onayı, maskeli LLM patch planı, privacy redactor, çoklu teklif için bağımlılık/etki planı ve dört izinli aritmetik dip toplam düzeltmesi mevcut. | Yeni düzeltme kuralları ancak gerçek fixture + bağımlılık analizi + yeniden doğrulama kanıtıyla eklenmeli. |
 | 7 — Sonuç kanıtları ve otomasyon | Tamamlandı | Yeniden doğrulama, hash, diff, SQLite audit trail, rapor ve n8n webhook örneği/testi mevcut. | n8n webhook'u gerçek bir yerel n8n örneğinde isteğe bağlı demo olarak çalıştırılabilir. |
-| 8 — Değerlendirme ve uçtan uca ürün | Tamamlandı | 138 test, lint, API sağlayıcı ölçümü, preflight ve genişletilmiş üç aritmetik düzeltme için web kabul kanıtı mevcut. | Ağ/sunucu yüküne bağlı API süreleri sunum öncesinde tekrar ölçülebilir. |
+| 8 — Değerlendirme ve uçtan uca ürün | Tamamlandı | 138 test, lint, API sağlayıcı ölçümü, preflight ve genişletilmiş üç aritmetik düzeltme için web kabul kanıtı mevcut. | Ağ/sunucu yüküne bağlı API süreleri demo öncesinde tekrar ölçülebilir. |
 
 ### Teslim öncesi öncelikli takip listesi
 
 - [x] **P0 — Genişletilmiş düzeltme kataloğu kabulü:** Üç tekil hata senaryosu; maskeli LLM planı, onay, minimal diff ve 0 uyarılı yeniden doğrulamayla kaydedildi.
 - [x] **P0 — Temiz kurulum denemesi:** Yeni sanal ortam ve proje içi geçici dizin yapılandırması doğrulandı; bu otomasyon ortamının işlem süresi limiti nedeniyle tam bağımlılık kurulumu normal yerel CMD için teslim kontrol maddesi olarak kaydedildi.
-- [x] **P0 — Sunum yapılandırması:** `run_demo_preflight.py` ile Gemini → Groq → deterministik fallback zinciri doğrulandı; anahtarlar yazdırılmadı.
+- [x] **P0 — Demo yapılandırması:** `run_demo_preflight.py` ile Gemini → Groq → deterministik fallback zinciri doğrulandı; anahtarlar yazdırılmadı.
 - [x] **P0 — Teslim raporu güncellemesi:** 138 otomatik test, kabul tarihi, API ölçümü ve sınırlılıklar işlendi.
 - [x] **P1 — Hız/kalite kanıtı:** Gemini ve Groq için üçer kaynak açıklaması ölçüldü; sonuçlar teslim raporuna eklendi.
 - [x] **P1 — Rapor bütünlüğü:** HTML rapora agent risk/işlem planı özeti eklendi; JSON raporundaki agent triage alanıyla tutarlılığı test edildi.

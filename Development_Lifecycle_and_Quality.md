@@ -6,7 +6,7 @@
 
 ## 1. Neden bu süreç var?
 
-Amaç ağır bir kurumsal süreç kurmak değildir. Bu süreç, tek geliştiricinin kararlarını takip edebilmesini, hataları erken yakalamasını ve sunumda projenin kontrollü geliştirildiğini kanıtlamasını sağlar.
+Amaç ağır bir kurumsal süreç kurmak değildir. Bu süreç, tek geliştiricinin kararlarını takip edebilmesini, hataları erken yakalamasını ve projenin kontrollü gelişimini izlemesini sağlar.
 
 ## 2. Yaşam döngüsü
 
@@ -63,7 +63,7 @@ Bir iş paketi aşağıdakilerin tümü sağlanmadan tamamlanmış sayılmaz:
 - Test paketi
 - Test raporu üretimi
 
-## 8. Sunum öncesi kalite kontrolü
+## 8. Sürüm öncesi kalite kontrolü
 
 1. Temiz ortamda kurulum talimatı denenir.
 2. Geçerli, bozuk ve aritmetik hatalı örneklerle demo tekrarlanır.
